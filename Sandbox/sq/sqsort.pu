@@ -1,0 +1,20 @@
+@startuml
+
+actor ユーザー
+participant メイン
+participant サブ
+
+
+==ソート==
+ユーザー->メイン: 並び替えしたい項目をタッチ
+activate ユーザー
+activate メイン
+メイン->サブ: ソートメソッドを呼び出す
+activate サブ
+サブ->サブ: 指定した項目を（昇順、降順）に並び変える
+サブ->メイン: 並び変えたリストを返す
+deactivate サブ
+メイン->ユーザー: 並び替えた情報を表示
+deactivate メイン
+
+@enduml
