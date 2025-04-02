@@ -1,0 +1,303 @@
+@startuml 全体
+title プログラム全体のクラス図
+abstract class SetUpJframe{
+    {static} # frame : 表示する窓(JFarame)
+    {static} # frameJpanel : 表示する画面(JPanel)
+    # frameClear():画面の再描画メソッド。
+}
+abstract class SetUpTopScreen{
+    # JPanel(仮名):配置用のパネル、画面担当者が名称と個数を設定
+}
+class ViewTopScreen{
+    + view(): 一覧画面の表示メソッド。
+}
+class ViewSelectedScreen{
+    - selectedEmployee:選択された社員情報保存用、ArrayList<String>
+    + view(): 社員選択状態画面の表示メソッド。
+}
+
+SetUpJframe <|-- SetUpTopScreen:継承
+SetUpTopScreen <|-- ViewTopScreen:継承
+SetUpTopScreen <|-- ViewSelectedScreen:継承
+
+abstract class SetUpDetailsScreen{
+    # JPanel(仮名):配置用のパネル、画面担当者が名称と個数を設定
+}
+class ViewDetailsScreen{
+    + view():詳細画面の表示メソッド。
+}
+class ViewAdditionScreen{
+    + view():追加画面の表示メソッド。
+}
+class ViewEditScreen{
+    + view():編集画面の表示メソッド。
+}
+
+SetUpJframe <|-- SetUpDetailsScreen:継承
+SetUpDetailsScreen <|--ViewAdditionScreen:継承
+SetUpDetailsScreen <|--ViewEditScreen:継承
+SetUpDetailsScreen <|-- ViewDetailsScreen:継承
+
+class UpdateEmployee{
+    - save():変更された社員情報リストを保存用CSVファイル(employee_data.csv)に保存するメソッド
+    + addition():引数の入力内容をリストに追加するメソッド。
+    + update():引数1で渡されたリストに引数2の入力内容に編集するメソッド。
+    + delete():引数1で渡されたリスト内にある引数2の選択された社員を削除するするメソッド。
+}
+class OperateList{
+    + sort():表示している社員情報リストを指定した項目で並び替え(ソート)するメソッド
+    + search():社員情報リストから検索したい文字を探すメソッド。
+}
+class ConvertCsv{
+    + readCsv():PC内の指定したCSVファイルを読み込むメソッド。
+    + createCsv():PC内の指定した場所(フォルダー)に選択した社員情報をまとめたCSVファイルを出力するメソッド
+    + createTemplate():社員情報をまとめて読み込む為のテンプレートとなるCSVファイル(employee_template.csv)を出力。
+}
+
+OperateList<.up.ViewTopScreen:ソート、検索時にメソッド呼び出し
+ConvertCsv<.up.ViewTopScreen:CSVの入出力＆テンプレート出力時にメソッド呼び出し
+
+UpdateEmployee<.up.ViewSelectedScreen:employeeDelete()呼び出し
+UpdateEmployee<.up.ViewEditScreen:employeeEdit()呼び出し
+UpdateEmployee<.up.ViewAdditionScreen:employeeAddition()呼び出し
+
+class Thread{
+}
+Thread<|-up-ConvertCsv:継承
+Thread<|-up-UpdateEmployee:継承
+
+class App{
+}
+note right of App
+Appには以下のコードのみ記載
+‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐
+public static void main(String[] args) throws Exception{
+EmployeeManager manager =new EmployeeManager();
+manager.setUp();
+}
+‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐
+end note
+class EmployeeManager{
+    {static} + ArrayList<ArrayList<EmployeeInformation>>:画面に表示するリスト
+    + setUp():起動時に呼び出される。
+    - verificationEmployeeData():社員情報を登録・管理するためのCSVファイルの存在確認用。
+    - makeEmployeeData():CSVファイルが存在しない場合に新規作成する用。
+}
+
+EmployeeManager<.up.App:起動時に呼び出し
+ViewTopScreen<.up.EmployeeManager:View()の呼び出し
+
+abstract class SystemLog{
+    {static} + SYSTEM_LOG:ログ
+    # setUpLog():ログファイルの読み込み。
+    # writeLog():systemLogにログを書き込むメソッド。
+    # verificationLogFile():ログファイルの存在確認用。
+    # makeLogFile():ログファイルが存在しない場合にログファイルを作成する用。
+}
+SystemLog<|-left-EmployeeManager:継承
+
+class EmployeeInformation{
+    + employeeID:社員ID
+    + lastName:名字
+    + firstname:名前
+    + rubyLastName:名字のフリガナ
+    + rubyFirstname:名前のフリガナ
+    + birthday:生年月日
+    + joiningDate:入社年月
+    + engineerDate:エンジニア歴
+    + useLanguageDate:扱える言語
+    + careerDate:経歴
+    + trainingDate:研修の受講歴
+    + skillPoint:技術力
+    + attitudePoint:受講態度
+    + communicationPoint:コミュニケーション能力
+    + leadershipPoint:リーダーシップ
+    + remarks:備考
+    + updatedDay:更新日
+}
+@enduml
+
+@startuml 表示画面系クラス図
+title 表示画面系
+abstract class SetUpJframe{
+    {static} # frame : 表示する窓(JFarame)
+    {static} # frameJpanel : 表示する画面(JPanel)
+    # frameClear():画面の再描画メソッド。
+}
+note top of SetUpJframe
+JFarameの設定だけのクラス
+以下を設定
+・JFarameのサイズの設定
+・×ボタンを押したときの設定
+・パネルの配置(レイアウト)の設定
+end note
+
+abstract class SetUpTopScreen{
+    # JPanel(仮名):配置用のパネル、画面担当者が名称と個数を設定
+}
+note left of SetUpTopScreen
+一覧画面系の設定クラス
+以下を設定
+・ボタンなどを配置するためのパネルの設定
+・パネル内のパーツ(ボタンなど)の配置設定
+end note
+
+class ViewTopScreen{
+    + view(): 一覧画面の表示メソッド。
+}
+note bottom of ViewTopScreen
+一覧画面のクラス
+以下を設定
+・ボタンなどを配置する
+・ボタンイベント等の設定
+end note
+class ViewSelectedScreen{
+    - selectedEmployee:選択された社員情報保存用、ArrayList<String>
+    + view(): 社員選択状態画面の表示メソッド。
+}
+note bottom of ViewSelectedScreen
+社員選択状態画面のクラス
+以下を設定
+・ボタンなどを配置する
+・ボタンイベント等の設定
+end note
+
+SetUpJframe<|--SetUpTopScreen
+SetUpTopScreen<|--ViewTopScreen
+SetUpTopScreen<|--ViewSelectedScreen
+
+class SetUpDetailsScreen{
+    # JPanel(仮名):配置用のパネル、画面担当者が名称と個数を設定
+}
+note right of SetUpDetailsScreen
+詳細画面系の設定クラス
+以下を設定
+・ボタンなどを配置するためのパネルの設定
+・パネル内のパーツ(ボタンなど)の配置設定
+end note
+
+class ViewDetailsScreen{
+    + view():詳細画面の表示メソッド。
+}
+note bottom of ViewDetailsScreen
+詳細画面の設定クラス
+以下を設定
+・ボタンなどを配置する
+・ボタンイベント等の設定
+end note
+
+class ViewAdditionScreen{
+    + view():追加画面の表示メソッド。
+}
+note bottom of ViewAdditionScreen
+追加画面の設定クラス
+以下を設定
+・ボタンなどを配置する
+・ボタンイベント等の設定
+end note
+
+class ViewEditScreen{
+    + view():編集画面の表示メソッド。
+}
+note bottom of ViewEditScreen
+編集画面の設定クラス
+以下を設定
+・ボタンなどを配置する
+・ボタンイベント等の設定
+end note
+
+SetUpJframe<|-- SetUpDetailsScreen
+SetUpDetailsScreen<|--ViewDetailsScreen
+SetUpDetailsScreen<|--ViewAdditionScreen
+SetUpDetailsScreen<|--ViewEditScreen
+@enduml
+
+@startuml 実装機能系
+title 実装機能系
+class UpdateEmployee{
+    - employeeSave():変更された社員情報リストを保存用CSVファイル(employee_data.csv)に保存するメソッド
+    + employeeAddition():引数の入力内容をリストに追加するメソッド。
+    + employeeEdit():引数1で渡されたリストに引数2の入力内容に編集するメソッド。
+    + employeeDelete():引数1で渡されたリスト内にある引数2の選択された社員を削除するするメソッド。
+}
+note bottom of UpdateEmployee
+社員情報を追加・編集・削除する為のクラス。
+追加・編集・削除を行った際に最後にemployeeSave()を呼び出す
+end note
+class OperateList{
+    + employeeSort():表示している社員情報リストを指定した項目で並び替え(ソート)するメソッド
+    + emptyeeSearch():社員情報リストから検索したい文字を探すメソッド。
+}
+note bottom of OperateList
+画面表示リストを操作し、ソート＆検索をするためのクラス
+end note
+class ConvertCSV{
+    + employeeInput():PC内の指定したCSVファイルを読み込むメソッド。
+    + emptyeeOutput():PC内の指定した場所(フォルダー)に選択した社員情報をまとめたCSVファイルを出力するメソッド
+    + templateOutput():社員情報をまとめて読み込む為のテンプレートとなるCSVファイル(employee_template.csv)を出力。
+}
+note bottom of ConvertCSV
+CSVの入出力を扱うためのクラス
+end note
+@enduml
+
+@startuml 根幹系
+title 根幹系
+class App{
+    {static} + void main(String[] args) throws Exception{}
+}
+note top of App
+ユーザーが最初にクリックするプログラム
+Appには以下のコードのみ記載
+‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐
+public static void main(String[] args) throws Exception{
+EmployeeManager manager =new EmployeeManager();
+manager.setUp();
+}
+‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐‐
+end note
+class EmployeeManager{
+    {static} + ArrayList<ArrayList<EmployeeInformation>>:画面に表示するリスト
+    + setUp():起動時に呼び出される。
+    - checkEmployeeData():社員情報を登録・管理するためのCSVファイルの存在確認用。
+    - makeEmployeeData():CSVファイルが存在しない場合に新規作成する用。
+}
+note left of EmployeeManager
+社員情報を管理するクラス
+end note
+App..>EmployeeManager:起動時に呼び出し
+abstract class SystemLog{
+    {static} + SYSTEM_LOG:ログ
+    # setUpLog():ログファイルの読み込み。
+    # writeLog():systemLogにログを書き込むメソッド。
+    # checkLogFile():ログファイルの存在確認用。
+    # makeLogFile():ログファイルが存在しない場合にログファイルを作成する用。
+}
+note top of SystemLog
+ユーザーorプログラムが起こしたイベント事にログを残す
+end note
+SystemLog<|-down-EmployeeManager:継承
+
+class EmployeeInformation{
+    + employeeID:社員ID
+    + lastName:名字
+    + firstname:名前
+    + rubyLastName:名字のフリガナ
+    + rubyFirstname:名前のフリガナ
+    + birthday:生年月日
+    + joiningDate:入社年月
+    + engineerDate:エンジニア歴
+    + useLanguageDate:扱える言語
+    + careerDate:経歴
+    + trainingDate:研修の受講歴
+    + skillPoint:技術力
+    + attitudePoint:受講態度
+    + communicationPoint:コミュニケーション能力
+    + leadershipPoint:リーダーシップ
+    + remarks:備考
+    + updatedDay:更新日
+}
+note bottom of EmployeeInformation
+社員情報のテンプレート
+end note
+@enduml
