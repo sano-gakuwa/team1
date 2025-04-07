@@ -7,7 +7,7 @@ public abstract class SetUpJframe {
     protected static JFrame frame;
     protected static JPanel fullScreenPanel;
 
-    // static初期化ブロック
+    // staticな変数はクラス自体に属しているため、初期化を行う（初期化しないとnullのまま）
     static {
         Frame();
     }
@@ -18,13 +18,13 @@ public abstract class SetUpJframe {
         frame.setSize(850, 600);
         frame.setResizable(false);  // サイズ変更不可
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // ✕で即終了させない
-        frame.setLocationRelativeTo(null); // 画面中央にダイアログ表示
+        frame.setLocationRelativeTo(null); // 画面中央にウィンドウ表示
 
         // メインパネル
         fullScreenPanel = new JPanel();
         frame.add(fullScreenPanel);
 
-        // ✕ボタンの処理
+        // ✕ボタンのカスタム処理
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -47,7 +47,10 @@ public abstract class SetUpJframe {
         frame.setVisible(true);// 画面画面表示
     }
 
-    // 共通の終了確認メソッド
+    /*
+     * 共通の終了確認メソッド
+     * @author nishiyama
+    */
     protected static void confirmAndExit() {
         int result = JOptionPane.showConfirmDialog(
             frame,
@@ -62,7 +65,10 @@ public abstract class SetUpJframe {
         }
     }
 
-    // UI を再描画するメソッド
+    /*
+     *  UI を再描画するメソッド
+     *  @author nishiyama
+    */
     protected void frameClear() {
         frame.revalidate();  // レイアウトの再計算
         frame.repaint();  // 画面の再描画
