@@ -26,10 +26,10 @@ public abstract class SetUpTopScreen extends SetUpJframe {
         JPanel centerPanel = createPanel(new Dimension(715, 395));
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
 
-        // 中央パネル_上段（396*22px）
+        // 中央パネル_上段（715*22px）
         JPanel functionButtonsPanel = new JPanel();
-        functionButtonsPanel.setPreferredSize(new Dimension(396, 22));
-        functionButtonsPanel.setMaximumSize(new Dimension(396, 22));
+        functionButtonsPanel.setPreferredSize(new Dimension(715, 22));
+        functionButtonsPanel.setMaximumSize(new Dimension(715, 22));
         functionButtonsPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 左寄せ
         functionButtonsPanel.setBackground(Color.DARK_GRAY); // 仮背景色
         centerPanel.add(functionButtonsPanel);
