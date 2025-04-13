@@ -1,42 +1,37 @@
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public abstract class SystemLog {
     protected Date nowTime = new Date();
-    final String FILEPATH = "LOG/systemLog.txt";
-    static final File SYSTEM_LOG = new File("LOG/systemLog.txt");
-    private Logger logger;
+    protected static final String LOG_FOLDER = "LOG";
+    protected static final String LOG_FILEPATH = LOG_FOLDER + "/system_log_" + LocalDate.now() + ".txt";
+    protected static final File SYSTEM_LOG = new File(LOG_FILEPATH);
+    public final Logger LOGGER = Logger.getLogger("SystemLog");;
 
     // ログファイルの読み込み。
     protected void setUpLog() {
         try {
+            Files.createDirectories(Paths.get(LOG_FOLDER));
             if (verificationLogFile()) {
-                writeLog("起動\n");
+                FileHandler fileHandler = new FileHandler(LOG_FILEPATH, true);
+                // ログのフォーマットを設定
+                // valueに書式指定子とSimpleFormatterの引数でフォーマット指定
+                System.setProperty("java.util.logging.SimpleFormatter.format",
+                        "[%1$tF %1$tT] [%4$s] [%2$s] - %5$s%6$s%n");
+                fileHandler.setFormatter(new SimpleFormatter());
+                LOGGER.addHandler(fileHandler);
             }
         } catch (Exception e) {
-            System.out.println(e);
-        }
-    }
-
-    // ログを書き込むメソッド。
-    protected void writeLog(String a) {
-        try {
-            // 文字コードを指定する
-            PrintWriter filewriter = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(FILEPATH, true), "Shift-JIS")));
-            //書き込み
-            filewriter.append(a);
-            //書き込み終了
-            filewriter.close();
-        } catch (Exception e) {
-            System.out.println(e);
+            printLogStackTrace(e, "ログ設定で例外が発生しました");
         }
     }
 
@@ -52,18 +47,31 @@ public abstract class SystemLog {
                 return true;
             }
         } catch (Exception e) {
-            System.out.println(e);
+            printLogStackTrace(e, "ログファイルの存在確認で例外が発生しました");
         }
         return false;
     }
 
     // ログファイルが存在しない場合にログファイルを作成する用。
     protected void makeLogFile() {
-        Path path = Paths.get(FILEPATH);
+        Path path = Paths.get(LOG_FILEPATH);
         try {
             Files.createFile(path);// ファイルが存在しない為、ファイルを新規作成
         } catch (Exception e) {
-            System.out.println(e);
+            printLogStackTrace(e, "ログファイルの新規作成で例外が発生しました");
         }
+    }
+
+    /**
+     * ログにスタックトレースを出力する
+     * 
+     * @param e           スタックトレースを持っている例外クラス
+     * @param errorString ログに出力するエラー文言
+     */
+    private void printLogStackTrace(Exception e, String errorString) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        LOGGER.severe(String.format("%s¥n%s", errorString, sw.toString()));
     }
 }
