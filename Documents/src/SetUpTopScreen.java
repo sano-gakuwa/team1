@@ -5,10 +5,10 @@ import javax.swing.*;
 public abstract class SetUpTopScreen extends SetUpJframe {
 
     public SetUpTopScreen() {
-        layoutPanals();
+        layoutPanels();
     }
 
-    private void layoutPanals() {
+    private void layoutPanels() {
         // レイアウトマネージャーをセット（BoxLayout.Y_AXIS = 縦方向配置）
         fullScreenPanel.setLayout(new BoxLayout(fullScreenPanel, BoxLayout.Y_AXIS));
 
