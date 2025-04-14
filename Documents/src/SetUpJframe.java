@@ -69,7 +69,7 @@ public abstract class SetUpJframe {
      *  UI を再描画するメソッド
      *  @author nishiyama
     */
-    protected void frameClear() {
+    protected void refreshUI() {
         frame.revalidate();  // レイアウトの再計算
         frame.repaint();  // 画面の再描画
     }
