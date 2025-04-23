@@ -1,0 +1,48 @@
+@startuml
+actor ユーザー
+participant メイン
+participant Csv
+participant List
+participant ログ
+
+== アプリケーション起動 ==
+
+ユーザー -> メイン : アプリケーション起動
+activate ユーザー
+activate メイン
+メイン -> ログ : （パス）の"system_log.txt"の存在の確認(起動した日のログファイル、ログファイルがあるかを確認)
+ログ --> メイン : ファイル存在の確認結果
+
+alt ログファイルが存在しない場合
+    メイン -> ログ : （パス）の"system_log.txt" を新規作成
+    ログ --> メイン : ファイル存在の確認結果
+end
+
+メイン -> ログ : アプリ起動ログ記録開始
+activate ログ
+
+メイン -> Csv : "employee_data.csv" の存在確認
+Csv --> メイン : ファイル存在確認結果
+
+alt ファイルが存在しない場合
+    メイン -> Csv : "employee_data.csv" を新規作成
+    Csv --> メイン : ファイル存在確認結果
+end
+
+メイン->Csv : Csvファイルにロックをかける
+
+loop
+メイン -> Csv : "employee_data.csv" を読み込む（上から一行ずつ）
+Csv --> メイン : CSVデータを返す
+メイン->リスト : エンジニアリストを追加する
+リスト-->メイン : 追加成功
+メイン->CSV : 次の行にエンジニア情報があるか確認
+end
+
+メイン->Csv :CSVファイルのロックを解除する
+
+List --> メイン : 表示リスト作成完了
+
+メイン -> ユーザー : 一覧画面を表示
+
+@enduml
