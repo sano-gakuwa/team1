@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +21,8 @@ public class ViewTopScreen extends SetUpTopScreen {
     public int totalPages = 1;
     private Set<Integer> selectedRows = new HashSet<>(); // 選択操作
     private Map<Integer, Set<Integer>> pageSelectedRows = new HashMap<>();
+    private ArrayList<String> selected=new ArrayList<>();
+    private DefaultTableModel model;
 
     public ViewTopScreen() {
         setupEngineerList();
@@ -39,7 +42,7 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         // Object[][] pageData = EmployeeManager.getPageData(currentPage, 10);木下作成部分
         Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
-        DefaultTableModel model = new DefaultTableModel(pageData, new String[] {
+        model = new DefaultTableModel(pageData, new String[] {
                 "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細"
         }) {
             public boolean isCellEditable(int row, int column) {
@@ -83,12 +86,10 @@ public class ViewTopScreen extends SetUpTopScreen {
                 int row = engineerTable.rowAtPoint(e.getPoint());
                 if (row != -1) {
                     // 選択された社員のIDを取得
-                    JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(fullScreenPanel);
-                    frame.getContentPane().removeAll();
-                    // frame.getContentPane().add(new ViewSelectedScreen()); // IDを渡す
-                    frame.revalidate();
-                    frame.repaint();
-
+                    selected.add((model.getValueAt(row,0)).toString());
+                    refreshUI();
+                    ViewSelectedScreen selectedScreen=new ViewSelectedScreen();
+                    selectedScreen.View(selected,currentPage);
                 }
             }
         });
@@ -115,7 +116,6 @@ public class ViewTopScreen extends SetUpTopScreen {
         String[] labels = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語" };
         for (String label : labels) {
             topPanel.add(new JLabel(label));
-
             JTextField field = new JTextField(5);
             topPanel.add(field);
         }
@@ -141,16 +141,15 @@ public class ViewTopScreen extends SetUpTopScreen {
         bulkSelectButton = new JButton("ページ内一括選択");
         functionButtonsPanel.add(bulkSelectButton);
         bulkSelectButton.addActionListener(e -> {
-            // JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(fullScreenPanel);
-            // frame.getContentPane().removeAll();
-            // frame.getContentPane().add(new ViewSelectedScreen());
-            // frame.revalidate();
-            // frame.repaint();
-
+            for(int i=0;i<10;i++){
+                selected.add((model.getValueAt(i,0)).toString());
+            }
+            refreshUI();
+            ViewSelectedScreen selectedScreen=new ViewSelectedScreen();
+            selectedScreen.View(selected,currentPage);
         });
         // テーブル構築
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
-        // Object[][] data = EmployeeManager.getPageData(currentPage, 10);木下作成部分
         Object[][] data = getPageData(currentPage, 10);// 下村作成部分
         // ソート対象外の列インデックス（「詳細」列）
         Set<Integer> unsortableColumns = Set.of(5);
@@ -163,7 +162,6 @@ public class ViewTopScreen extends SetUpTopScreen {
             return;
         }
         // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
-        // int totalEmployees = EmployeeManager.getEmployeeCount();木下作成部分
         int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
         DefaultTableModel tableModel = new DefaultTableModel(data, columnNames) {
