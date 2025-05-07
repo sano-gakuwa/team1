@@ -4,8 +4,8 @@ import javax.swing.*;
 public abstract class SetUpJframe {
 
     // フィールド（クラス内の変数）を static にする
-    protected static JFrame frame;
-    protected static JPanel fullScreenPanel;
+    protected static JFrame frame=new JFrame();
+    protected static JPanel fullScreenPanel=new JPanel();
 
     // staticな変数はクラス自体に属しているため、初期化を行う（初期化しないとnullのまま）
     protected SetUpJframe(){
@@ -14,14 +14,14 @@ public abstract class SetUpJframe {
 
     // JFrame の設定
     protected static void Frame() {
-        frame = new JFrame(); // method内のローカル変数
+        // frame = new JFrame(); // method内のローカル変数
         frame.setSize(850, 690);
         frame.setResizable(false);  // サイズ変更不可
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // ✕で即終了させない
         frame.setLocationRelativeTo(null); // 画面中央にウィンドウ表示
 
         // メインパネル
-        fullScreenPanel = new JPanel();
+        // fullScreenPanel = new JPanel();
         frame.add(fullScreenPanel);
 
         // ✕ボタンのカスタム処理
@@ -70,6 +70,7 @@ public abstract class SetUpJframe {
      *  @author nishiyama
     */
     protected void refreshUI() {
+        fullScreenPanel.removeAll();
         frame.revalidate();  // レイアウトの再計算
         frame.repaint();  // 画面の再描画
     }
