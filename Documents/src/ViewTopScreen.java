@@ -383,4 +383,30 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         return age;
     }
+    // ==========================
+    // 各種ボタンイベント設定
+    // ==========================
+
+    /**
+     * 新規追加ボタンが押下されたとき、ViewAdditionScreen に遷移する。
+     */
+    // private void setupAdditionButtonAction() {
+    //     additionButton.addActionListener(new ActionListener() {
+    //         @Override
+    //         public void actionPerformed(ActionEvent e) {
+    //             ViewAdditionScreen additionScreen = new ViewAdditionScreen(employeeManager);
+    //             SetUpJframe.changePanel(additionScreen);
+    //         }
+    //     });
+    // }
+
+    /**
+     * 表内の「詳細」ボタンが押下されたとき、ViewDetailScreen に遷移する。
+     * @param engineerId 対象社員のID
+     */
+    // private void showDetailScreen(String engineerId) {
+    //     ViewDetailScreen detailScreen = new ViewDetailScreen(employeeManager, engineerId);
+    //     SetUpJframe.changePanel(detailScreen);
+    // }
+
 }
