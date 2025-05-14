@@ -335,6 +335,12 @@ public class ViewTopScreen extends SetUpTopScreen {
         frame.setVisible(true);
     }
 
+    public void View(int currentPage){
+        this.currentPage=currentPage;
+        refreshTable(); // 画面初期表示とデータ同期
+        frame.setVisible(true);
+    }
+
     public Object[][] getPageData(int currentPage, int maxDisplayCount) {
         Object[][] displayList = new Object[10][5];
         Date now = new Date();
