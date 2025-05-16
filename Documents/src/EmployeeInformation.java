@@ -46,4 +46,19 @@ public class EmployeeInformation {
         this.remarks=remarks;
         this.updatedDay=updatedDay;
     }
+
+    /**
+ * 指定された {@link Date} オブジェクトを "yyyy/MM/dd" 形式の文字列にフォーマットを返す
+ * 日付が null の場合は空文字列を返す
+ *
+ * @param date フォーマット対象の日付
+ * @return フォーマットされた日付文字列、または null の場合は空文字列
+ * 
+ *  @author nishiyama
+ */
+    public static String formatDate(Date date) {
+        if (date == null) return "";
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy/MM/dd");
+        return sdf.format(date);
+    }
 }
