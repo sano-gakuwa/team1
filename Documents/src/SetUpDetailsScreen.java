@@ -48,9 +48,6 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
         // topPanelをfullScreenPanelに追加（中央寄せ）
         fullScreenPanel.add(wrapCentered(topPanel));
 
-        // topPanelをfullScreenPanelに追加（中央寄せ）
-        fullScreenPanel.add(wrapCentered(topPanel));
-
         // 上段と中央の間（10px）
         fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
