@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Calendar;
@@ -19,7 +20,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
 
         // ルビ（フリガナ）
         JPanel rubyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JTextField firstNameRubyField = createPlaceholderTextField( "ヤマダ");
+        JTextField firstNameRubyField = createPlaceholderTextField("ヤマダ");
         JTextField lastNameRubyField = createPlaceholderTextField("タロウ");
         rubyPanel.add(firstNameRubyField);
         rubyPanel.add(lastNameRubyField);
@@ -80,14 +81,14 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         // 経歴
         JPanel editableCareer = createEditableSection("経歴",
                 "2024年10月 株式会社カスタマーリレーションテレマーケティング退社\n"
-                        + "2024年11月 Fulfill株式会社入社");
+                + "2024年11月 Fulfill株式会社入社");
         careerPanel.setLayout(new BorderLayout());
         careerPanel.add(editableCareer, BorderLayout.CENTER);
 
         // スキル
         skillsPanel.setBorder(BorderFactory.createTitledBorder("スキル"));
         JPanel skillList = new JPanel(new GridLayout(4, 2, 10, 10));
-        String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
+        String[] scores = {"1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0"};
         skillList.add(new JLabel("技術力:"));
         skillList.add(new JComboBox<>(scores));
         skillList.add(new JLabel("コミュニケーション能力:"));
@@ -98,7 +99,6 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         skillList.add(new JComboBox<>(scores));
         skillsScorePanel.setLayout(new BorderLayout());
         skillsScorePanel.add(skillList, BorderLayout.CENTER);
-        
 
         // 研修受講歴
         trainingRecordsPanel.setLayout(new BorderLayout());
@@ -142,7 +142,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         textField.setForeground(Color.GRAY);
 
         // 初期状態の判定用フラグ
-        final boolean[] showingPlaceholder = { true };
+        final boolean[] showingPlaceholder = {true};
 
         textField.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
@@ -178,12 +178,12 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
 
         // （1900〜2100年）
         panel.add(new JComboBox<>());
-        for (int i = 1900; i<= 2100; i++){
+        for (int i = 1900; i <= 2100; i++) {
             yearCombo.addItem(i);
         }
         // 月（1〜12月）
         panel.add(new JComboBox<>());
-        for (int i = 1; i <= 12; i++){
+        for (int i = 1; i <= 12; i++) {
             monthCombo.addItem(i);
         }
         // 日（初期値として1〜31日）
@@ -254,6 +254,26 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         JTextArea textArea = createPlaceholderTextArea(content);
         panel.add(new JScrollPane(textArea), BorderLayout.CENTER);
         return panel;
+    }
+
+    public void showSuccessDialog(String message) {
+        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+     * エラーメッセージをダイアログで表示。
+     *
+     * @param message 表示するエラーメッセージ
+     * 
+     * @authnor nishiyama
+     */
+    public void showErrorDialog(String message) {
+        javax.swing.JOptionPane.showMessageDialog(null, message, "エラー", javax.swing.JOptionPane.ERROR_MESSAGE);
+    }
+
+    // エラーメッセージをポップアップやラベルで表示する
+    public void showValidationError(String message) {
+        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 
     public void view() {
