@@ -41,56 +41,68 @@ public class TestEmployeeManager extends EmployeeManager {
     
             try (PrintWriter writer = new PrintWriter(
                 new OutputStreamWriter(new FileOutputStream(file), "Shift_JIS"))) {
-                // 17項目のヘッダー（実際はEmployeeManagerの読み込み順に合わせる）
-                writer.println("社員ID,氏名,年齢,エンジニア歴,扱える言語,"
-                            + "生年月日,入社日,勤続年数,最終学歴,学校名,学部名,"
-                            + "Java,Python,JavaScript,SQL,備考,更新日");
-    
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");//ダミーテスト時にyyyy/MM/ddから変更
-                String today = sdf.format(new Date());
-    
-                for (int i = 1; i <= 999; i++) {
-                    String id = String.format("EMP%04d", i);
-                
-                    String name;
-                    if (i == 1) {
-                        name = "佐藤花子";
-                    } else if (i == 2) {
-                        name = "伊藤浩史";
-                    } else if (i == 3) {
-                        name = "鈴木太郎";
-                    } else {
-                        name = "山田太郎" + i;
+
+            // EmployeeInformationのフィールド順
+            writer.println("社員ID,姓,名,姓カナ,名カナ,生年月日,入社日,エンジニア歴,使用言語,経歴,研修,"
+                        + "Java,態度,コミュニケーション,リーダーシップ,備考,更新日");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String today = sdf.format(new Date());
+
+            for (int i = 1; i <= 999; i++) {
+                String employeeID = String.format("EMP%04d", i);
+
+                // 氏名（姓 + 名）
+                String lastName;
+                String firstName;
+                switch (i) {
+                    case 1 -> {
+                        lastName = "佐藤";
+                        firstName = "花子";
                     }
-                
-                    int age = 25 + (i % 30);
-                    int years = i % 10;
-                    String lang = getDummyLanguage(i);
-                    String birthday = sdf.format(new GregorianCalendar(1990 + (i % 10), 1, 1).getTime());
-                    String joinDate = sdf.format(new GregorianCalendar(2015 + (i % 5), 4, 1).getTime());
-                    int workYears = 2025 - (2015 + (i % 5));
-                    String edu = "大学卒";
-                    String school = "○○大学";
-                    String dept = "工学部";
-                    double javaScore = (i % 5) + 1;
-                    double pyScore = (i % 4) + 1;
-                    double jsScore = (i % 3) + 1;
-                    double sqlScore = (i % 2) + 1;
-                    String note = "備考なし";
-                
-                    writer.printf("%s,%s,%d,%d,%s,%s,%s,%d,%s,%s,%s,%.1f,%.1f,%.1f,%.1f,%s,%s%n",
-                        id, name, age, years, lang,
-                        birthday, joinDate, workYears, edu, school, dept,
-                        javaScore, pyScore, jsScore, sqlScore, note, today);
+                    case 2 -> {
+                        lastName = "伊藤";
+                        firstName = "浩史";
+                    }
+                    case 3 -> {
+                        lastName = "鈴木";
+                        firstName = "太郎";
+                    }
+                    default -> {
+                        lastName = "山田";
+                        firstName = "太郎" + i;
+                    }
                 }
-                
-    
-                System.out.println("999人分のダミーデータ（17列）をCSVに出力しました。");
+                String rubyLastName = "ルビ" + lastName;
+                String rubyFirstName = "ルビ" + firstName;
+
+                String birthday = sdf.format(new GregorianCalendar(1990 + (i % 10), 1, 1).getTime());
+                String joiningDate = sdf.format(new GregorianCalendar(2015 + (i % 5), 4, 1).getTime());
+                int engineerDate = i % 10;
+                String useLanguage = getDummyLanguage(i);
+                String careerDate = "経歴あり";
+                String trainingDate = "研修済み";
+
+                double skill = (i % 5) + 1;
+                double attitude = (i % 4) + 1;
+                double communication = (i % 3) + 1;
+                double leadership = (i % 2) + 1;
+
+                String remarks = "備考なし";
+
+                writer.printf("%s,%s,%s,%s,%s,%s,%s,%d,%s,%s,%s,%.1f,%.1f,%.1f,%.1f,%s,%s%n",
+                    employeeID, lastName, firstName, rubyLastName, rubyFirstName,
+                    birthday, joiningDate, engineerDate, useLanguage, careerDate, trainingDate,
+                    skill, attitude, communication, leadership, remarks, today);
             }
-    
-        } catch (IOException e) {
-            System.err.println("CSV書き込み中にエラーが発生しました: " + e.getMessage());
+
+            System.out.println("999人分のダミーデータ（5列）をCSVに出力しました。");
+
         }
+
+    } catch (IOException e) {
+        System.err.println("CSV書き込み中にエラーが発生しました: " + e.getMessage());
+    }
+
     }
     
     
