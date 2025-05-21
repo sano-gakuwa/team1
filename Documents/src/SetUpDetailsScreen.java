@@ -12,6 +12,7 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
     JPanel skillsScorePanel;// 1段目 スキルスコア（75*120px）
     JPanel trainingRecordsPanel;// 2段目 研修受講歴（375*105px）
     JPanel remarksPanel;// 2段目 備考（340*105px）
+    JPanel errorPanel;// エラーパネル（750*26px）
     JPanel bottomPanel;// 下段パネル（715*34px）
     // 各パネルの間隔
     int verticalGap = 20;
@@ -108,8 +109,9 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
         // ラップして中央寄せ（外枠パネルに追加）
         fullScreenPanel.add(wrapCentered(middlePanel));
 
-        // middleとbottomの間（26px）
-        fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 26)));
+        // エラー出るパネル（26px）
+        errorPanel = createPanel(new Dimension(750,26));
+        fullScreenPanel.add(wrapCentered(errorPanel));
 
         // 下段パネル（715*34px）
         bottomPanel = createPanel(new Dimension(750, 34));
