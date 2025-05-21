@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -11,22 +10,22 @@ import java.util.Date;
 
 public class ViewSelectedScreen extends SetUpTopScreen {
     private JButton bulkSelectButton;// 一括選択ボタン
-    private JButton bulkCancellationtButton;// 一括解除ボタン
-    private JButton createCsvButton;// CSV出力ボタン
-    private JButton deleteButton;// 削除ボタン
+    private JButton bulkCancellationtButton;//一括解除ボタン
+    private JButton createCsvButton;//CSV出力ボタン
+    private JButton deleteButton;//削除ボタン
 
-    private JTable engineerTable;// 社員情報表示欄
-    private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);// ページ数表示箇所
-    public int currentPage = 1; // 現在のページ数
-    public int totalPages = 1;// 最後のページ数
-    private ArrayList<String> selected = new ArrayList<>();// 選択された社員情報
-    private TableModel model;// tableのモデル
-    private EmployeeManager manager = new EmployeeManager();// マネージャー
+    private JTable engineerTable=new JTable();//社員情報表示欄
+    private JTableHeader header;
+    private Set<Integer> unsortableColumns;
+    private Map<Integer, Integer> sortStates;
+    private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);//ページ数表示箇所
+    public int currentPage = 1; //現在のページ数
+    public int totalPages = 1;//最後のページ数
+    private ArrayList<String> selected = new ArrayList<>();
+    private DefaultTableModel model;
+    private EmployeeManager manager=new EmployeeManager();
 
     public ViewSelectedScreen() {
-        engineerTable = new JTable();// 先にテーブルを初期化してから refreshTable を呼ぶ
-        setupEngineerList();// 画面初期表示
-        refreshTable(); // データ同期
     }
 
     private void setupEngineerList() {
@@ -36,7 +35,6 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         topPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
         topPanel.setOpaque(false);
         String[] labels = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語" };
-        // ラベル貼り付け
         for (String label : labels) {
             topPanel.add(new JLabel(label));
             JTextField field = new JTextField(5);
@@ -56,72 +54,88 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         // ボタン配置
         functionButtonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
         functionButtonsPanel.setOpaque(false); // 背景透過
-        bulkCancellationtButton = new JButton("ページ内一括解除");
+        bulkCancellationtButton=new JButton("ページ内一括解除");
         bulkSelectButton = new JButton("ページ内一括選択");
-        createCsvButton = new JButton("CSV出力");
-        deleteButton = new JButton("削除");
+        createCsvButton=new JButton("CSV出力");
+        deleteButton=new JButton("削除");
         functionButtonsPanel.add(bulkCancellationtButton);
         functionButtonsPanel.add(bulkSelectButton);
         functionButtonsPanel.add(createCsvButton);
         functionButtonsPanel.add(deleteButton);
-        // ページ内一括解除
-        bulkCancellationtButton.addActionListener(e -> {
+        bulkCancellationtButton.addActionListener(e->{
+            //ページ内一括解除
             manager.LOGGER.info("ページ内一括解除ボタンが押されました");
-            for (int row = 0; row < 10; row++) {
-                String select = (model.getValueAt(row, 0)).toString();
-                if (selected.contains(select) == true) {
+            for(int row=0;row<10;row++){
+                String select=(model.getValueAt(row,0)).toString();
+                if(selected.contains(select)==true){
                     selected.remove(selected.indexOf(select));
                 }
             }
             System.out.println(selected);
-            if (selected.size() <= 0) {
-                refreshUI();
-                ViewTopScreen top = new ViewTopScreen();
-                top.View(currentPage);
-                manager.LOGGER.info("一覧画面へ遷移");
-            }
         });
-        // ページ内一括選択
         bulkSelectButton.addActionListener(e -> {
+            //ページ内一括選択
             manager.LOGGER.info("ページ内一括選択ボタンが押されました");
-            for (int row = 0; row < 10; row++) {
-                String select = (model.getValueAt(row, 0)).toString();
-                if (selected.contains(select) == false) {
+            for(int row=0;row<10;row++){
+                String select=(model.getValueAt(row,0)).toString();
+                if(selected.contains(select)==false){
                     selected.add(select);
                 }
             }
             System.out.println(selected);
         });
-        // CSV出力
-        createCsvButton.addActionListener(e -> {
+        createCsvButton.addActionListener(e->{
+            //CSV出力
             manager.LOGGER.info("CSV出力ボタンが押されました");
         });
-        // 削除
-        deleteButton.addActionListener(e -> {
+        deleteButton.addActionListener(e->{
+            //削除
             manager.LOGGER.info("削除ボタンが押されました");
         });
         // テーブル構築
-        String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "" };
-        Object[][] data = getPageData(currentPage, 10);
+        String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
+        Object[][] data = getPageData(currentPage, 10);// 下村作成部分
         // ソート対象外の列インデックス（「詳細」列）
-        Set<Integer> unsortableColumns = Set.of(5);
+        unsortableColumns = Set.of(5);
 
-        // JTableの設定
+        // 従業員０名時の表示
         if (data.length == 0) {
-            // 従業員0名時の表示
             showNoDataLabel(employeeListPanel);
         } else {
-            showDataLabel(data, columnNames);
+            // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
+            int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
+            totalPages = Math.min((totalEmployees + 9) / 10, 100);
+            DefaultTableModel tableModel = new DefaultTableModel(data, columnNames) {
+                public boolean isCellEditable(int row, int column) {
+                    return column == 5;
+                }
+            };
+            engineerTable = new JTable(tableModel) {
+                @Override
+                public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                    Component comp = super.prepareRenderer(renderer, row, column);
+                    if (comp instanceof JLabel) {
+                        JLabel label = (JLabel) comp;
+                        label.setHorizontalAlignment(SwingConstants.CENTER);
+                        label.setOpaque(true);
+                        label.setBackground(Color.WHITE);
+                        label.setForeground(Color.BLACK);
+                        return label;
+                    }
+                    return comp;
+                }
+            };
         }
+
         // ヘッダーソート状態マップ（0:ー, 1:↑, 2:↓）
-        Map<Integer, Integer> sortStates = new HashMap<>();
-        JTableHeader header = engineerTable.getTableHeader();
+        sortStates = new HashMap<>();
+        header = engineerTable.getTableHeader();
         header.setFont(new Font("SansSerif", Font.BOLD, 18)); // 太字に
         header.setBackground(new Color(200, 200, 255)); // ヘッダーの背景色を設定
         header.setDefaultRenderer(new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int column) {
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
                 JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
                         column);
                 label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -138,23 +152,6 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                     label.setText(base + symbol);
                 }
                 return label;
-            }
-        });
-        header.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                int col = header.columnAtPoint(e.getPoint());
-                if (unsortableColumns.contains(col)) {
-                    return; // 「詳細」列はソート対象外
-                }
-                int current = sortStates.getOrDefault(col, 0);
-                int next = switch (current) {
-                    case 0 -> 1;
-                    case 1 -> 2;
-                    default -> 1;
-                };
-                sortStates.put(col, next);
-                header.repaint(); // 再描画して記号更新
             }
         });
         engineerTable.setRowHeight(34);
@@ -196,33 +193,24 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         });
     }
 
-    // 社員情報0件の場合（共通化）
-    private void showNoDataLabel(JPanel panel) {
-        panel.removeAll(); // 既存コンポーネントを削除
-        panel.setLayout(new BorderLayout());
-        JLabel noDataLabel = new JLabel("データがありません", SwingConstants.CENTER);
-        noDataLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-        panel.add(noDataLabel, BorderLayout.CENTER);
-        panel.revalidate();
-        panel.repaint();
-    }
-
-    // 社員情報1件以上の場合
-    private void showDataLabel(Object[][] data, String[] columnNames) {
-        // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
-        int totalEmployees = EmployeeManager.employeeList.size();
+    public void refreshTable() {
+        int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
-        model = new DefaultTableModel(data, columnNames) {
+        if (totalPages == 0)
+            totalPages = 1; // 0ページにならないように
+
+        Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
+        // テーブルのヘッダー
+        String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
+
+        // テーブルモデル作成（編集不可）
+        model = new DefaultTableModel(pageData, columnNames) {
+            @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 5;
+                return false;
             }
         };
-        engineerTable.setModel(model);
-    }
-
-    public void refreshTable() {
-        int totalEmployees = EmployeeManager.employeeList.size();
-        totalPages = Math.min((totalEmployees + 9) / 10, 100);
+        engineerTable.setModel(model); // モデルの設定後にレンダラー設定
         // refreshTable() の最後にこのループを追加
         for (int i = 0; i < engineerTable.getColumnCount(); i++) {
             if (i == 4) {
@@ -248,40 +236,73 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
             }
         }
-
-        JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
+       JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
         header.setFont(new Font("SansSerif", Font.BOLD, 16));
         engineerTable.setRowHeight(34);
+        pageLabel.setText(currentPage + " / " + totalPages);
+    }
+    // 
+    private void setMouseEvent(){
+        header.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int col = header.columnAtPoint(e.getPoint());
+                if (unsortableColumns.contains(col))
+                    return; // 「詳細」列はソート対象外
+                int current = sortStates.getOrDefault(col, 0);
+                int next = switch (current) {
+                    case 0 -> 1;
+                    case 1 -> 2;
+                    default -> 1;
+                };
+                sortStates.put(col, next);
+                header.repaint(); // 再描画して記号更新
+            }
+        });
         engineerTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                int selectRow = engineerTable.getSelectedRow();
-                if (selectRow >= 0) {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = engineerTable.rowAtPoint(e.getPoint());
+                if (row != -1) {
                     // 選択された社員のIDを取得
-                    String select = engineerTable.getValueAt(selectRow, 0).toString();
-                    if (selected.contains(select) == false) {
+                    String select=(model.getValueAt(row,0)).toString();
+                    if(selected.contains(select)==false){
                         selected.add(select);
-                        manager.LOGGER.info("社員ID:" + select + "を選択");
-                    } else if (selected.contains(select) == true) {
+                        manager.LOGGER.info("社員ID:"+select+"を選択");
+                        System.out.println("b1:"+select);
+                    }else if(selected.contains(select)==true){
                         selected.remove(selected.indexOf(select));
-                        manager.LOGGER.info("社員ID:" + select + "を選択解除");
+                        manager.LOGGER.info("社員ID:"+select+"を選択解除");
+                        System.out.println("b2:"+select);
                     }
-                    if (selected.size() <= 0) {
+                    if (selected.size()<=0) {
                         refreshUI();
-                        ViewTopScreen top = new ViewTopScreen();
+                        ViewTopScreen top=new ViewTopScreen();
                         top.View(currentPage);
                         manager.LOGGER.info("一覧画面へ遷移");
                     }
                 }
             }
         });
-        pageLabel.setText(currentPage + " / " + totalPages);
+    }
+    // 0件時のラベル表示（共通化）
+    private void showNoDataLabel(JPanel panel) {
+        panel.removeAll(); // 既存コンポーネントを削除
+        panel.setLayout(new BorderLayout());
+        JLabel noDataLabel = new JLabel("データがありません", SwingConstants.CENTER);
+        noDataLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        panel.add(noDataLabel, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
     }
 
-    public void View(ArrayList<String> selected, int currentPage) {
-        this.currentPage = currentPage;
-        this.selected = selected;
+    public void View(ArrayList<String> selected,int currentPage) {
+        this.currentPage=currentPage;
+        this.selected=selected;
         frame.setTitle("選択画面");
+        setupEngineerList();
         refreshTable(); // 画面初期表示とデータ同期
+        setMouseEvent();
         frame.setVisible(true);
     }
 
