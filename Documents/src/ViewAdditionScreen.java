@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Calendar;
 import javax.swing.*;
+import javax.swing.text.View;
 
 public class ViewAdditionScreen extends SetUpDetailsScreen {
 
@@ -65,11 +66,31 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         JPanel backPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton backButton = new JButton("< 詳細画面へ戻る");
         backPanel.add(backButton);
+        backButton.addActionListener(e -> {
+            int result = javax.swing.JOptionPane.showConfirmDialog(
+                    null,
+                    "現在の入力内容を破棄してキャンセルしてもよろしいですか？",
+                    "確認",
+                    javax.swing.JOptionPane.YES_NO_OPTION,
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+
+            if (result == javax.swing.JOptionPane.YES_OPTION) {
+                // ViewDetailScreen を表示
+                refreshUI();
+                new ViewDetailsScreen().View();// ViewDetailsScreen内にViewmethodがない
+            }
+            // NO_OPTION の場合は何もしない（入力画面に留まる）
+        });
 
         // 保存ボタン（中央）
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton saveButton = new JButton("保存");
         footerPanel.add(saveButton);
+        saveButton.addActionListener(e -> {
+            refreshUI();
+            new ViewTopScreen().View();
+        });
 
         bottomPanel.add(backPanel, BorderLayout.WEST);
         bottomPanel.add(footerPanel, BorderLayout.CENTER);
@@ -261,14 +282,20 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     }
 
     /**
-     * エラーメッセージをダイアログで表示。
+     * エラーメッセージをパネルに表示。
      *
      * @param message 表示するエラーメッセージ
-     * 
+     *
      * @authnor nishiyama
      */
-    public void showErrorDialog(String message) {
-        javax.swing.JOptionPane.showMessageDialog(null, message, "エラー", javax.swing.JOptionPane.ERROR_MESSAGE);
+    public void showErrorMessageOnPanel(String message) {
+        errorPanel.removeAll();
+
+        JLabel errorLabel = new JLabel(message);
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 12));
+
+        errorPanel.add(errorLabel);
     }
 
     // エラーメッセージをポップアップやラベルで表示する
