@@ -16,7 +16,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private JButton saveButton, cancelButton;
 
     public ViewEditScreen() {
-        super();  // 親クラスの初期化
+        super(); // 親クラスの初期化
     }
 
     // メイン画面の表示処理
@@ -161,14 +161,22 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     // 保存・キャンセルボタン
     private void setupButtons(JPanel panel) {
         cancelButton = new JButton("< 編集キャンセル");
-        cancelButton.setBounds(250, 470, 140, 30);
+        cancelButton.setBounds(0, 470, 140, 30);
         panel.add(cancelButton);
 
         saveButton = new JButton("保存");
         saveButton.setBounds(400, 470, 80, 30);
         saveButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame, "保存しました！");
+            int result = JOptionPane.showConfirmDialog(frame, "この情報で上書きしますか？", "確認", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(frame, "保存完了しました。");
+                // 編集のメソッド
+                // 一覧画面を表示
+            } else if (result == JOptionPane.NO_OPTION) {
+            }
+
         });
+
         panel.add(saveButton);
     }
 
@@ -183,7 +191,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
     // スキルスコア用の選択肢
     private JComboBox<String> createScoreCombo() {
-        String[] scores = {"1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0"};
+        String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
         return new JComboBox<>(scores);
     }
 
