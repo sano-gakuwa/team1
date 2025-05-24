@@ -66,13 +66,17 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         bulkCancellationtButton.addActionListener(e->{
             //ページ内一括解除
             manager.LOGGER.info("ページ内一括解除ボタンが押されました");
-            for(int row=0;row<10;row++){
-                String select=(model.getValueAt(row,0)).toString();
-                if(selected.contains(select)==true){
+            for (int row = 0; row < 10; row++) {
+                String select = (model.getValueAt(row, 0)).toString();
+                if (selected.contains(select) == true) {
                     selected.remove(selected.indexOf(select));
                 }
+                if (selected.size() <= 0) {
+                    // 選択されている社員情報が0名分
+                    viewTopScreen();
+                }
+                engineerTable.repaint();
             }
-            System.out.println(selected);
         });
         bulkSelectButton.addActionListener(e -> {
             //ページ内一括選択
@@ -82,12 +86,13 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 if(selected.contains(select)==false){
                     selected.add(select);
                 }
+                engineerTable.repaint();
             }
-            System.out.println(selected);
         });
         createCsvButton.addActionListener(e->{
             //CSV出力
             manager.LOGGER.info("CSV出力ボタンが押されました");
+            selectFolder();
         });
         deleteButton.addActionListener(e->{
             //削除
@@ -289,10 +294,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                     }
                     if (selected.size()<=0) {
                         // 選択されている社員情報が0名分
-                        refreshUI();
-                        ViewTopScreen top=new ViewTopScreen();
-                        top.View(currentPage);
-                        manager.LOGGER.info("一覧画面へ遷移");
+                        viewTopScreen();
                     }
                 }
             }
@@ -307,6 +309,12 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         panel.add(noDataLabel, BorderLayout.CENTER);
         panel.revalidate();
         panel.repaint();
+    }
+    private void viewTopScreen() {
+        refreshUI();
+        ViewTopScreen top = new ViewTopScreen();
+        top.View(currentPage);
+        manager.LOGGER.info("一覧画面へ遷移");
     }
 
     public void View(ArrayList<String> selected,int currentPage) {
@@ -391,5 +399,40 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             }
         }
         return age;
+    }
+
+    private void selectFolder() {
+        JFileChooser filechooser = new JFileChooser();
+        filechooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int selected = filechooser.showOpenDialog(filechooser);
+        if (selected == JFileChooser.APPROVE_OPTION) {
+            String directoryPath = filechooser.getSelectedFile().toString();
+            System.out.println(directoryPath);
+            showCreateCsvDialog(directoryPath);
+        }
+    }
+    private void showCreateCsvDialog(String directory){
+        String[] label={"出力","キャンセル","参照"};
+        int selectButton = JOptionPane.showOptionDialog(
+                null,
+                "出力先を選択してください\n"
+                +"選択中"+directory,
+                "確認ダイアログ",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                label,
+                null);
+        if (selectButton == 0) {
+            manager.LOGGER.info("CSV出力を開始");
+            CsvConverter csvConverter=new CsvConverter();
+            csvConverter.createCsv(directory,selected);
+            viewTopScreen();
+        } else if (selectButton == 1) {
+            manager.LOGGER.info("CSV出力をキャンセル");
+        } else if (selectButton == 2) {
+            manager.LOGGER.info("CSV出力先を変更");
+            selectFolder();
+        }
     }
 }
