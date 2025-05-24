@@ -259,6 +259,7 @@ public class EmployeeUpdater extends Thread {
                     for (String category : EmployeeManager.EMPLOYEE_CATEGORY) {
                         pw.append(category + ",");
                     }
+                    pw.append("\n");
                     for (EmployeeInformation employee : EmployeeManager.employeeList) {
                         pw.println(convertToCSV(employee));
                     }
