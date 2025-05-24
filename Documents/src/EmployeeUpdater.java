@@ -211,4 +211,74 @@ public class EmployeeUpdater extends Thread {
             callerScreen.showErrorMessageOnPanel(message);
         });
     }
+    //-------------------------------------------------------
+    // 下村作成部分
+    private final Lock LOCK = new ReentrantLock();
+    private EmployeeManager manager = new EmployeeManager();
+
+    public void delete(ArrayList<String> selected) {
+        if (LOCK.tryLock()) {
+            LOCK.lock();
+            try {
+                // バックアップファイル作成
+                File originalFile = new File("CSV/employee_data.csv");
+                File backupFile = new File("CSV/employee_data_backup.csv");
+                try {
+                    Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    // bakkuappuログ
+                } catch (IOException e) {
+                    manager.LOGGER.info("バックアップファイルの作成に失敗しました");
+                    showErrorDialog("バックアップファイルの作成に失敗しました");
+                    return;
+                }
+                ArrayList<EmployeeInformation> backupEmployeeList;
+                backupEmployeeList = EmployeeManager.employeeList;
+                try {
+                    synchronized (EmployeeManager.employeeList) {
+                        for (Iterator<EmployeeInformation> employeeIterator = EmployeeManager.employeeList
+                                .iterator(); employeeIterator.hasNext();) {
+                            EmployeeInformation employee = employeeIterator.next();
+                            if (selected.contains(employee.employeeID) == true) {
+                                employeeIterator.remove();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // employeeListにbackupEmployeeListをコピー
+                    EmployeeManager.employeeList.clear();
+                    EmployeeManager.employeeList = backupEmployeeList;
+                }
+                try {
+                    PrintWriter pw = new PrintWriter(new BufferedWriter(
+                            new OutputStreamWriter(new FileOutputStream(originalFile), "Shift-JIS")));
+                    for (String category : EmployeeManager.EMPLOYEE_CATEGORY) {
+                        pw.append(category + ",");
+                    }
+                    for (EmployeeInformation employee : EmployeeManager.employeeList) {
+                        pw.println(convertToCSV(employee));
+                    }
+                    pw.close();
+                } catch (Exception e) {
+                    // TODO: handle exception
+                }
+                Files.deleteIfExists(backupFile.toPath());
+            } catch (Exception e) {
+            } finally {
+
+                LOCK.unlock();
+            }
+        }
+    }
+
+    /**
+     * エラー表示用に用意したパネルに文言表示させる
+     *
+     * @param message 表示するエラーメッセージ
+     *
+     * @author nishiyama
+     */
+    private void showErrorDialog(String message) {
+        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+    }
+    //-------------------------------------------------------
 }
