@@ -1,14 +1,21 @@
-
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.swing.JOptionPane;
 
 public class EmployeeUpdater extends Thread {
 
     private static  EmployeeInformation newEmployee;
     private final ViewAdditionScreen callerScreen = new ViewAdditionScreen();
     private  EmployeeManager manager = new EmployeeManager();
+    //下村追加分-------------------------------------------------------
+    private final Lock LOCK = new ReentrantLock();
 
     /**
      * コンストラクタ 社員情報リスト、追加する社員情報、呼び出し元の画面を設定
@@ -211,11 +218,9 @@ public class EmployeeUpdater extends Thread {
             callerScreen.showErrorMessageOnPanel(message);
         });
     }
+    
     //-------------------------------------------------------
     // 下村作成部分
-    private final Lock LOCK = new ReentrantLock();
-    private EmployeeManager manager = new EmployeeManager();
-
     public void delete(ArrayList<String> selected) {
         if (LOCK.tryLock()) {
             LOCK.lock();
@@ -280,5 +285,5 @@ public class EmployeeUpdater extends Thread {
     private void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
-    //-------------------------------------------------------
+    // -------------------
 }
