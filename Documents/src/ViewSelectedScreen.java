@@ -16,6 +16,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
 
     private JTable engineerTable=new JTable();//社員情報表示欄
     private JTableHeader header;
+    private String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
     private Set<Integer> unsortableColumns;
     private Map<Integer, Integer> sortStates;
     private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);//ページ数表示箇所
@@ -91,26 +92,30 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         deleteButton.addActionListener(e->{
             //削除
             manager.LOGGER.info("削除ボタンが押されました");
+            EmployeeUpdater updater=new EmployeeUpdater();
+            updater.delete(selected);
+            refreshUI();
+            ViewTopScreen top=new ViewTopScreen();
+            top.View();
         });
         // テーブル構築
-        String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
-        Object[][] data = getPageData(currentPage, 10);// 下村作成部分
+        Object[][] pageData = getPageData(currentPage, 10);
         // ソート対象外の列インデックス（「詳細」列）
         unsortableColumns = Set.of(5);
 
         // 従業員０名時の表示
-        if (data.length == 0) {
+        if (EmployeeManager.employeeList.size()==0) {
             showNoDataLabel(employeeListPanel);
-        } else {
+        } else if(EmployeeManager.employeeList.size()>=1){
             // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
-            int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
+            int totalEmployees = EmployeeManager.employeeList.size();
             totalPages = Math.min((totalEmployees + 9) / 10, 100);
-            DefaultTableModel tableModel = new DefaultTableModel(data, columnNames) {
+            model = new DefaultTableModel(pageData, columnNames) {
                 public boolean isCellEditable(int row, int column) {
-                    return column == 5;
+                    return false;
                 }
             };
-            engineerTable = new JTable(tableModel) {
+            engineerTable = new JTable(model) {
                 @Override
                 public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
                     Component comp = super.prepareRenderer(renderer, row, column);
@@ -118,13 +123,19 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                         JLabel label = (JLabel) comp;
                         label.setHorizontalAlignment(SwingConstants.CENTER);
                         label.setOpaque(true);
-                        label.setBackground(Color.WHITE);
+                        if(selected.contains(engineerTable.getValueAt(row, 0))){
+                            label.setBackground(Color.LIGHT_GRAY);
+                        }else{
+                            label.setBackground(Color.WHITE);
+                        }
                         label.setForeground(Color.BLACK);
                         return label;
                     }
                     return comp;
                 }
             };
+        }else{
+            manager.LOGGER.warning("表作成失敗");
         }
 
         // ヘッダーソート状態マップ（0:ー, 1:↑, 2:↓）
@@ -161,7 +172,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         for (int i = 0; i < engineerTable.getColumnCount(); i++) {
             engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
-        if (data.length != 0) {
+        if (pageData.length != 0) {
             JScrollPane scrollPane = new JScrollPane(engineerTable);
             scrollPane.setPreferredSize(new Dimension(715, 363));
             employeeListPanel.setLayout(new BorderLayout());
@@ -194,15 +205,10 @@ public class ViewSelectedScreen extends SetUpTopScreen {
     }
 
     public void refreshTable() {
-        int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
+        //ページ数表示
+        int totalEmployees = EmployeeManager.employeeList.size();
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
-        if (totalPages == 0)
-            totalPages = 1; // 0ページにならないように
-
-        Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
-        // テーブルのヘッダー
-        String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
-
+        Object[][] pageData = getPageData(currentPage, 10);
         // テーブルモデル作成（編集不可）
         model = new DefaultTableModel(pageData, columnNames) {
             @Override
@@ -236,12 +242,13 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
             }
         }
-       JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
+        JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
+        header.setReorderingAllowed(false);// テーブルの列移動を不許可にする。
         header.setFont(new Font("SansSerif", Font.BOLD, 16));
         engineerTable.setRowHeight(34);
         pageLabel.setText(currentPage + " / " + totalPages);
     }
-    // 
+    // マウスイベント設定
     private void setMouseEvent(){
         header.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -263,19 +270,25 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int row = engineerTable.rowAtPoint(e.getPoint());
-                if (row != -1) {
+                if (row >-1) {
                     // 選択された社員のIDを取得
                     String select=(model.getValueAt(row,0)).toString();
-                    if(selected.contains(select)==false){
+                    if(select==""){
+                        // 空白行を選択
+                        manager.LOGGER.info("空白行を選択");
+                    }else if(selected.contains(select)==false){
+                        // 未選択の社員情報の行をクリック
                         selected.add(select);
                         manager.LOGGER.info("社員ID:"+select+"を選択");
-                        System.out.println("b1:"+select);
+                        engineerTable.repaint();
                     }else if(selected.contains(select)==true){
+                        // 選択済みの社員情報の行をクリック
                         selected.remove(selected.indexOf(select));
                         manager.LOGGER.info("社員ID:"+select+"を選択解除");
-                        System.out.println("b2:"+select);
+                        engineerTable.repaint();
                     }
                     if (selected.size()<=0) {
+                        // 選択されている社員情報が0名分
                         refreshUI();
                         ViewTopScreen top=new ViewTopScreen();
                         top.View(currentPage);
@@ -315,20 +328,46 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         Date now = new Date();
         int displayCount;
         if (EmployeeManager.employeeList.size() <= 10) {
-            displayCount = EmployeeManager.employeeList.size();// 社員数10以下
+            // 社員数10名以下
+            displayCount = EmployeeManager.employeeList.size();
         } else if (currentPage * maxDisplayCount < EmployeeManager.employeeList.size()) {
+            // 社員数10名以上で10名表示
             displayCount = maxDisplayCount;
         } else {
+            // 社員数10名以上で10名未満表示
             displayCount = EmployeeManager.employeeList.size() - ((currentPage - 1) * maxDisplayCount);
         }
-        for (int i = 0; i < displayCount; i++) {
-            EmployeeInformation empioyee = EmployeeManager.employeeList.get(i + ((currentPage - 1) * maxDisplayCount));
-            displayList[i][0] = empioyee.employeeID;
-            displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
-            displayList[i][2] = calcAge(empioyee.birthday, now);
-            displayList[i][3] = empioyee.engineerDate;
-            displayList[i][4] = empioyee.useLanguageDate;
+        if (displayCount == 10) {
+            //10名分表示
+            for (int i = 0; i < displayCount; i++) {
+                EmployeeInformation empioyee = EmployeeManager.employeeList
+                        .get(i + ((currentPage - 1) * maxDisplayCount));
+                displayList[i][0] = empioyee.employeeID;
+                displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
+                displayList[i][2] = calcAge(empioyee.birthday, now);
+                displayList[i][3] = empioyee.engineerDate;
+                displayList[i][4] = empioyee.useLanguageDate;
+            }
+        } else {
+            //社員〇人分＋空きスペース
+            for (int i = 0; i < displayCount; i++) {
+                EmployeeInformation empioyee = EmployeeManager.employeeList
+                        .get(i + ((currentPage - 1) * maxDisplayCount));
+                displayList[i][0] = empioyee.employeeID;
+                displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
+                displayList[i][2] = calcAge(empioyee.birthday, now);
+                displayList[i][3] = empioyee.engineerDate;
+                displayList[i][4] = empioyee.useLanguageDate;
+            }
+            for(int i=displayCount;i<maxDisplayCount;i++){
+                displayList[i][0] = "";
+                displayList[i][1] = "";
+                displayList[i][2] = "";
+                displayList[i][3] = "";
+                displayList[i][4] = "";
+            }
         }
+
         return displayList;
     }
 
