@@ -3,12 +3,26 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.*;
+<<<<<<< HEAD
+=======
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.swing.JOptionPane;
+>>>>>>> 2a7fe81214fa4c59c9baee134dfb0e78c6aa0cff
 
 public class EmployeeUpdater extends Thread {
 
     private static  EmployeeInformation newEmployee;
     private final ViewAdditionScreen callerScreen = new ViewAdditionScreen();
     private  EmployeeManager manager = new EmployeeManager();
+<<<<<<< HEAD
+=======
+    //下村追加分-------------------------------------------------------
+    private final Lock LOCK = new ReentrantLock();
+>>>>>>> 2a7fe81214fa4c59c9baee134dfb0e78c6aa0cff
 
     /**
      * コンストラクタ 社員情報リスト、追加する社員情報、呼び出し元の画面を設定
@@ -211,4 +225,100 @@ public class EmployeeUpdater extends Thread {
             callerScreen.showErrorMessageOnPanel(message);
         });
     }
+    
+    //-------------------------------------------------------
+    // 下村作成部分
+    public void delete(ArrayList<String> selected) {
+        if (LOCK.tryLock()) {
+            LOCK.lock();
+            //削除処理
+            try {
+                //社員情報リストから選択した社員情報を削除
+                ArrayList<EmployeeInformation> backupEmployeeList;
+                backupEmployeeList = EmployeeManager.employeeList;
+                synchronized (EmployeeManager.employeeList) {
+                    try {
+                        for (Iterator<EmployeeInformation> employeeIterator = EmployeeManager.employeeList
+                                .iterator(); employeeIterator.hasNext();) {
+                            EmployeeInformation employee = employeeIterator.next();
+                            // 選択された社員情報と合致したら削除
+                            if (selected.contains(employee.employeeID) == true) {
+                                employeeIterator.remove();
+                            }
+                        }
+                    } catch (Exception e) {
+                        manager.printErrorLog(e, "選択された社員情報の削除に失敗しました");
+                        // employeeListにbackupEmployeeListをコピー
+                        EmployeeManager.employeeList.clear();
+                        EmployeeManager.employeeList = backupEmployeeList;
+                        manager.LOGGER.info("社員情報リストを削除処理前に戻しました");
+                        showErrorDialog("選択された社員情報の削除に失敗しました");
+                        return;
+                    }
+                }
+                //社員情報保存CSVから選択した社員情報を削除
+                File originalFile = EmployeeManager.ENPLOYEE_CSV;
+                File backupFile = new File("CSV/employee_data_backup.csv");
+                try {
+                    try {
+                        // バックアップファイル作成
+                        Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        manager.printErrorLog(e, "バックアップファイルの作成に失敗しました");
+                        showErrorDialog("バックアップファイルの作成に失敗しました");
+                        return;
+                    }
+                    PrintWriter pw = new PrintWriter(new BufferedWriter(
+                            new OutputStreamWriter(new FileOutputStream(originalFile), "Shift-JIS")));
+                    // 社員情報保存CSVファイルの1行目に項目名を記載
+                    for (String category : EmployeeManager.EMPLOYEE_CATEGORY) {
+                        pw.append(category + ",");
+                    }
+                    // 行の最後で改行
+                    pw.append("\n");
+                    // 社員情報リストの内容を社員情報保存CSVに上書き保存
+                    for (EmployeeInformation employee : EmployeeManager.employeeList) {
+                        pw.println(convertToCSV(employee));
+                    }
+                    pw.close();
+                } catch (Exception e) {
+                    manager.printErrorLog(e, "削除後の社員情報リストの保存に失敗しました");
+                    if (originalFile.exists() && backupFile.exists()) {
+                        try {
+                            Files.deleteIfExists(originalFile.toPath());
+                        } catch (Exception ex) {
+                            // オリジナルの社員情報保存CSVファイルが削除に失敗した場合
+                            manager.printErrorLog(ex, "オリジナルの社員情報保存CSVファイルが削除できませんでした");
+                            showErrorDialog("オリジナルの社員情報保存CSVファイルが削除できませんでした");
+                            return;
+                        }
+                        backupFile.renameTo(originalFile);
+                    }
+                    manager.LOGGER.info("社員情報保存CSVファイルを削除処理前に戻しました");
+                    showErrorDialog("削除後の社員情報リストの保存に失敗しました");
+                    return;
+                }
+                Files.deleteIfExists(backupFile.toPath());
+            } catch (Exception e) {
+                //社員情報保存CSV＆社員情報リスト以外で例外が発生した場合　(メモリがいっぱいなど)
+                manager.printErrorLog(e, "社員情報の削除に失敗しました");
+                showErrorDialog("社員情報の削除に失敗しました");
+                return;
+            } finally {
+                LOCK.unlock();
+            }
+        }
+    }
+
+    /**
+     * エラー表示用に用意したパネルに文言表示させる
+     *
+     * @param message 表示するエラーメッセージ
+     *
+     * @author nishiyama
+     */
+    private void showErrorDialog(String message) {
+        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+    }
+    // -------------------
 }

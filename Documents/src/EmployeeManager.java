@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +26,7 @@ public class EmployeeManager extends SystemLog {
             "扱える言語", "経歴", "研修の受講歴", "技術力", "受講態度", "コミュニケーション能力", "リーダーシップ",
             "備考", "更新日"
     };
-    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");// 木下変更yyyy/MM/ddから変更
 
     public void setUp() {
         setUpLog();
@@ -44,7 +45,7 @@ public class EmployeeManager extends SystemLog {
             employeeLoading();
             // checkArrayList();
         } catch (Exception e) {
-            printLogStackTrace(e, "社員情報保存用CSVファイル読み込み失敗");
+            printErrorLog(e, "社員情報保存用CSVファイル読み込み失敗");
         }
     }
 
@@ -62,7 +63,7 @@ public class EmployeeManager extends SystemLog {
                 return true;
             }
         } catch (Exception e) {
-            printLogStackTrace(e, "社員情報保存用CSVファイルの存在が確認出来ません");
+            printErrorLog(e, "社員情報保存用CSVファイルの存在が確認出来ません");
         }
         return false;
     }
@@ -72,8 +73,11 @@ public class EmployeeManager extends SystemLog {
         Path path = Paths.get(CSV_FILEPATH);
         try {
             Files.createFile(path);// ファイルが存在しない為、ファイルを新規作成
+        } catch (FileAlreadyExistsException e) {
+            //ファイルがすでに存在する場合
+            printErrorLog(e, "同じファイルがすでに存在します");
         } catch (Exception e) {
-            printLogStackTrace(e, "ファイル新規作成で例外が発生しました");
+            printErrorLog(e, "ファイル新規作成で例外が発生しました");
         }
         if (ENPLOYEE_CSV.isFile() && ENPLOYEE_CSV.canWrite()) {
             try {
@@ -87,7 +91,7 @@ public class EmployeeManager extends SystemLog {
                 newFileWriter.append("\n");
                 newFileWriter.close();
             } catch (Exception e) {
-                printLogStackTrace(e, "社員情報保存用CSVファイルのヘッダー部分が作成出来ませんでした");
+                printErrorLog(e, "社員情報保存用CSVファイルのヘッダー部分が作成出来ませんでした");
             }
         }
     }
@@ -121,12 +125,12 @@ public class EmployeeManager extends SystemLog {
                     employeeList.add(employee);
                 }
             } catch (Exception e) {
-                printLogStackTrace(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
+                printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
                 ;
             }
             scanner.close();
         } catch (Exception e) {
-            printLogStackTrace(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
+            printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
         }
     }
 
@@ -136,30 +140,10 @@ public class EmployeeManager extends SystemLog {
      * @param e           スタックトレースを持っている例外クラス
      * @param errorString ログに出力するエラー文言
      */
-    private void printLogStackTrace(Exception e, String errorString) {
+    public void printErrorLog(Exception e, String errorString) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         LOGGER.severe(String.format("%s¥n%s", errorString, sw.toString()));
     }
-
-    //リストに情報が入っているかの確認用
-    // private void checkArrayList() {
-    //     for (int i = 0; i < employeeList.size(); i++) {
-    //         EmployeeInformation test = employeeList.get(y);
-    //         System.out.println("-----------------------");
-    //         System.out.println(test.employeeID);
-    //         System.out.println(test.lastName+" "+test.firstname);
-    //         System.out.println(test.rubyLastName+" "+test.rubyFirstname);
-    //         System.out.println(test.birthday);
-    //         System.out.println(test.joiningDate);
-    //         System.out.println(test.engineerDate);
-    //         System.out.println(test.useLanguageDate);
-    //         System.out.println(test.careerDate);
-    //         System.out.println(test.trainingDate);
-    //         System.out.println(test.skillPoint+"/"+test.attitudePoint+"/"+test.communicationPoint+"/"+test.leadershipPoint);
-    //         System.out.println(test.remarks);
-    //         System.out.println(test.updatedDay);
-    //     }
-    // }
 }
