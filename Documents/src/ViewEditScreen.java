@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import javax.swing.*;
 
@@ -191,7 +192,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
     // スキルスコア用の選択肢
     private JComboBox<String> createScoreCombo() {
-        String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
+        String[] scores = {"1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0"};
         return new JComboBox<>(scores);
     }
 
