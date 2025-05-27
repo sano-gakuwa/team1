@@ -9,7 +9,7 @@ public class EmployeeInformation {
     Date birthday;
     Date joiningDate;
     int engineerDate;
-    String useLanguageDate;
+    String availableLanguages; // 元が「useLanguageDate」だったので変更
     String careerDate;
     String trainingDate;
     Double skillPoint;
@@ -24,7 +24,7 @@ public class EmployeeInformation {
         String lastName,String firstname,
         String rubyLastName,String rubyFirstname,
         Date birthday,Date joiningDate,int engineerDate,
-        String useLanguageDate,String careerDate,String trainingDate,
+        String availableLanguages,String careerDate,String trainingDate,
         Double skillPoint,Double attitudePoint,Double communicationPoint,Double leadershipPoint,
         String remarks,Date updatedDay
     ){
@@ -36,7 +36,7 @@ public class EmployeeInformation {
         this.birthday=birthday;
         this.joiningDate=joiningDate;
         this.engineerDate=engineerDate;
-        this.useLanguageDate=useLanguageDate;
+        this.availableLanguages= availableLanguages;
         this.careerDate=careerDate;
         this.trainingDate=trainingDate;
         this.skillPoint=skillPoint;
