@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -7,8 +8,12 @@ import java.util.Map;
 import java.util.Set;
 import javax.swing.*;
 import javax.swing.table.*;
-//下村追加分↓
-import java.util.Date;
+//5/24  下記３つ追記
+import java.awt.event.MouseListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+//import org.w3c.dom.events.MouseEvent;
+import java.util.Date;//下村追加分
 
 public class ViewTopScreen extends SetUpTopScreen {
     private JButton bulkSelectButton;// 選択操作
@@ -17,6 +22,7 @@ public class ViewTopScreen extends SetUpTopScreen {
 
     private JTable engineerTable;
     private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);
+    private JPanel bottomPanel; // 追加で保持（再描画防止）
     public int currentPage = 1; // UpdateEmployee クラスからの外部アクセス
     public int totalPages = 1;
     private Set<Integer> selectedRows = new HashSet<>(); // 選択操作
@@ -30,88 +36,8 @@ public class ViewTopScreen extends SetUpTopScreen {
         refreshTable(); // 画面初期表示とデータ同期
 
     }
-
-    /*
-     * 消すかも
-     * refreshTableメソッドはengineerTable のデータモデルを更新
-     * JTable のインスタンスであり、setupEngineerList() メソッド内で初期化されていることを前提
-     * EmployeeManager.getInitialData() は、最新の従業員データを2次元配列で返すメソッドであると仮定
-     */
-    public void refreshTable() {
-        int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
-        totalPages = Math.min((totalEmployees + 9) / 10, 100);
-        if (totalPages == 0)
-            totalPages = 1; // 0ページにならないように
-
-        Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
-        // テーブルのヘッダー
-        String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
-
-        // テーブルモデル作成（編集不可）
-        DefaultTableModel model = new DefaultTableModel(pageData, columnNames) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        engineerTable.setModel(model); // モデルの設定後にレンダラー設定
-        // refreshTable() の最後にこのループを追加
-        for (int i = 0; i < engineerTable.getColumnCount(); i++) {
-            if (i == 4) {
-                // 文字数カット＋中央寄せのカスタムレンダラー
-                engineerTable.getColumnModel().getColumn(i).setCellRenderer(new DefaultTableCellRenderer() {
-                    @Override
-                    public Component getTableCellRendererComponent(JTable table, Object value,
-                            boolean isSelected, boolean hasFocus, int row, int column) {
-                        JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-                                row, column);
-                        label.setHorizontalAlignment(SwingConstants.CENTER);
-                        if (value != null) {
-                            String str = value.toString();
-                            label.setText(str.length() > 10 ? str.substring(0, 10) + "..." : str);
-                        }
-                        return label;
-                    }
-                });
-            } else {
-                // その他中央寄せ（これが必要なら）
-                DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-                centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-                engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-            }
-        }
-
-        JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
-        header.setFont(new Font("SansSerif", Font.BOLD, 16));
-        engineerTable.setRowHeight(34);
-        engineerTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                int row = engineerTable.rowAtPoint(e.getPoint());
-                if (row != -1) {
-                    // 選択された社員のIDを取得
-                    selected.add((model.getValueAt(row, 0)).toString());
-                    refreshUI();
-                    ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
-                    selectedScreen.View(selected, currentPage);
-                }
-            }
-        });
-        pageLabel.setText(currentPage + " / " + totalPages);
-
-        // 詳細ボタン再設定（データがある場合のみ安全に処理）
-        if (pageData.length > 0) {
-            try {
-                TableColumn detailColumn = engineerTable.getColumn("詳細");
-                detailColumn.setCellRenderer(new ButtonRenderer());
-                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
-            } catch (IllegalArgumentException e) {
-                System.err.println("詳細列の設定失敗：" + e.getMessage());
-            }
-        }
-    }
-
     private void setupEngineerList() {
+        
         // 検索バー
         JPanel topWrapper = (JPanel) fullScreenPanel.getComponent(1);
         JPanel topPanel = (JPanel) topWrapper.getComponent(0);
@@ -134,14 +60,35 @@ public class ViewTopScreen extends SetUpTopScreen {
         JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
         JPanel employeeListPanel = (JPanel) centerPanel.getComponent(2);
         centerPanel.setOpaque(false);// 背景透過
-        // ボタン配置
+        // 仮ボタン配置
         functionButtonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
         functionButtonsPanel.setOpaque(false); // 背景透過
         functionButtonsPanel.add(new JLabel("エンジニア一覧"));
-        functionButtonsPanel.add(new JButton("新規"));
-        functionButtonsPanel.add(new JButton("読込"));
-        functionButtonsPanel.add(new JButton("テンプレート出力"));
-        // ViewSelectedScreen に遷移
+        JButton addEmployeeButton = new JButton("新規");
+        JButton loadButton = new JButton("読込");
+        JButton templateButton = new JButton("テンプレート出力");
+        
+        
+        
+        // =============================================
+        // 各種ボタンイベント設定（下記担当者記載）
+        // =============================================
+
+        //「新規追加」ボタン押下後イベント※{}内追記お願いします
+        addEmployeeButton.addActionListener(e -> {
+        });
+        functionButtonsPanel.add(addEmployeeButton);
+        
+        //「読込」ボタン押下後イベント※{}内追記お願いします
+        loadButton.addActionListener(e -> {       
+        });
+        functionButtonsPanel.add(loadButton);
+
+        //「テンプレート出力」ボタン押下後イベント※{}内追記お願いします
+        templateButton.addActionListener(e -> {       
+        });
+        functionButtonsPanel.add(templateButton);
+        // 選択画面（ViewSelectedScreen ）に遷移
         bulkSelectButton = new JButton("ページ内一括選択");
         functionButtonsPanel.add(bulkSelectButton);
         bulkSelectButton.addActionListener(e -> {
@@ -170,27 +117,9 @@ public class ViewTopScreen extends SetUpTopScreen {
                     return column == 5;
                 }
             };
-            engineerTable = new JTable(tableModel) {
-                @Override
-                public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-                    Component comp = super.prepareRenderer(renderer, row, column);
+            
 
-                    if (comp instanceof JLabel) {
-                        JLabel label = (JLabel) comp;
-                        label.setHorizontalAlignment(SwingConstants.CENTER);
-                        label.setOpaque(true);
-                        if (selectedRows.contains(row)) {
-                            label.setBackground(new Color(211, 211, 211));
-                            label.setForeground(Color.BLACK);
-                        } else {
-                            label.setBackground(Color.WHITE);
-                            label.setForeground(Color.BLACK);
-                        }
-                        return label;
-                    }
-                    return comp;
-                }
-            };
+            
         }
 
         // ヘッダーソート状態マップ（0:ー, 1:↑, 2:↓）
@@ -220,6 +149,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                 return label;
             }
         });
+
         header.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -288,6 +218,101 @@ public class ViewTopScreen extends SetUpTopScreen {
         panel.revalidate();
         panel.repaint();
     }
+
+    /*
+     * refreshTableメソッドはengineerTable のデータモデルを更新
+     * JTable のインスタンスであり、setupEngineerList() メソッド内で初期化されていることを前提
+     * EmployeeManager.getInitialData() は、最新の従業員データを2次元配列で返すメソッドであると仮定
+     */
+    public void refreshTable() {
+        int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分(本番時利用コード)
+        totalPages = Math.min((totalEmployees + 9) / 10, 100);
+        if (totalPages == 0)
+            totalPages = 1; // 0ページにならないように
+
+        Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
+        // テーブルのヘッダー
+        String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
+
+        // テーブルモデル作成（編集不可）
+        DefaultTableModel model = new DefaultTableModel(pageData, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        engineerTable.setModel(model); // モデルの設定後にレンダラー設定
+        // refreshTable() の最後にこのループを追加
+        for (int i = 0; i < engineerTable.getColumnCount(); i++) {
+            if (i == 4) {
+                // 文字数カット＋中央寄せのカスタムレンダラー
+                engineerTable.getColumnModel().getColumn(i).setCellRenderer(new DefaultTableCellRenderer() {
+                    @Override
+                    public Component getTableCellRendererComponent(JTable table, Object value,
+                            boolean isSelected, boolean hasFocus, int row, int column) {
+                        JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
+                                row, column);
+                        label.setHorizontalAlignment(SwingConstants.CENTER);
+                        if (value != null) {
+                            String str = value.toString();
+                            label.setText(str.length() > 10 ? str.substring(0, 10) + "..." : str);
+                        }
+                        return label;
+                    }
+                });
+            } else {
+                // その他中央寄せ（これが必要なら）
+                DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+                centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+                engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+            }
+        }
+
+        JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
+        header.setFont(new Font("SansSerif", Font.BOLD, 16));
+        engineerTable.setRowHeight(34);
+        pageLabel.setText(currentPage + " / " + totalPages);
+
+        // 詳細ボタン再設定（データがある場合のみ安全に処理）
+        if (pageData.length > 0) {
+            try {
+                TableColumn detailColumn = engineerTable.getColumn("詳細");
+                detailColumn.setCellRenderer(new ButtonRenderer());
+                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
+            } catch (IllegalArgumentException e) {
+                System.err.println("詳細列の設定失敗：" + e.getMessage());
+            }
+        }
+        // 表示更新の後で、マウスイベント登録メソッドを呼び出す
+        setupTableClickEvent(model);
+    }
+    //  従業員欄押下後ViewSelectedScreen に遷移。マウスクリックイベントをテーブルに設定、クリック時の社員IDを取得
+    private void setupTableClickEvent(DefaultTableModel model) {
+        // 既存のマウスリスナーを削除（多重登録防止）
+        for (MouseListener listener : engineerTable.getMouseListeners()) {
+            engineerTable.removeMouseListener(listener);
+        }
+
+        engineerTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = engineerTable.rowAtPoint(e.getPoint());
+                if (row >= 0) {
+                    String id = model.getValueAt(row, 0).toString();
+
+                    ArrayList<String> selectedIds = new ArrayList<>();
+                    selectedIds.add(id);
+
+                    ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
+                    selectedScreen.View(selectedIds, currentPage);
+                }
+            }
+        });
+    }
+
+    //ここまで
+
+    
 
     static class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
@@ -359,7 +384,8 @@ public class ViewTopScreen extends SetUpTopScreen {
     }
 
     public Object[][] getPageData(int currentPage, int maxDisplayCount) {
-        int totalEmployees = EmployeeManager.employeeList.size();
+        int totalEmployees = EmployeeManager.employeeList.size(); 
+
         if (totalEmployees == 0) {
             return new Object[0][6]; // 0件時は空配列を返す処理
         }
@@ -380,7 +406,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
             displayList[i][2] = calcAge(empioyee.birthday, now);
             displayList[i][3] = empioyee.engineerDate;
-            displayList[i][4] = empioyee.availableLanguages;
+            displayList[i][4] = empioyee.useLanguageDate;
             displayList[i][5] = "詳細";
         }
         return displayList;
@@ -410,33 +436,4 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         return age;
     }
-
-    // ==========================
-    // 各種ボタンイベント設定
-    // ==========================
-
-    /**
-     * 新規追加ボタンが押下されたとき、ViewAdditionScreen に遷移する。
-     */
-    // private void setupAdditionButtonAction() {
-    // additionButton.addActionListener(new ActionListener() {
-    // @Override
-    // public void actionPerformed(ActionEvent e) {
-    // ViewAdditionScreen additionScreen = new ViewAdditionScreen(employeeManager);
-    // SetUpJframe.changePanel(additionScreen);
-    // }
-    // });
-    // }
-
-    /**
-     * 表内の「詳細」ボタンが押下されたとき、ViewDetailScreen に遷移する。
-     * 
-     * @param engineerId 対象社員のID
-     */
-    // private void showDetailScreen(String engineerId) {
-    // ViewDetailScreen detailScreen = new ViewDetailScreen(employeeManager,
-    // engineerId);
-    // SetUpJframe.changePanel(detailScreen);
-    // }
-
 }
