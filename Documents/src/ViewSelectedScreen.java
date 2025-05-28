@@ -354,7 +354,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
                 displayList[i][2] = calcAge(empioyee.birthday, now);
                 displayList[i][3] = empioyee.engineerDate;
-                displayList[i][4] = empioyee.useLanguageDate;
+                displayList[i][4] = empioyee.availableLanguages;
             }
         } else {
             //社員〇人分＋空きスペース
@@ -365,7 +365,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
                 displayList[i][2] = calcAge(empioyee.birthday, now);
                 displayList[i][3] = empioyee.engineerDate;
-                displayList[i][4] = empioyee.useLanguageDate;
+                displayList[i][4] = empioyee.availableLanguages;
             }
             for(int i=displayCount;i<maxDisplayCount;i++){
                 displayList[i][0] = "";
