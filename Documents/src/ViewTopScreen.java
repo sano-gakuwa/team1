@@ -380,7 +380,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
             displayList[i][2] = calcAge(empioyee.birthday, now);
             displayList[i][3] = empioyee.engineerDate;
-            displayList[i][4] = empioyee.useLanguageDate;
+            displayList[i][4] = empioyee.availableLanguages;
             displayList[i][5] = "詳細";
         }
         return displayList;
