@@ -91,7 +91,7 @@ public class CsvConverter {
                 EmployeeInformation.formatDate(e.birthday),
                 EmployeeInformation.formatDate(e.joiningDate),
                 String.valueOf(e.engineerDate),
-                e.useLanguageDate,
+                e.availableLanguages,
                 e.careerDate,
                 e.trainingDate,
                 String.valueOf(e.skillPoint),
