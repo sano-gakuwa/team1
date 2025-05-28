@@ -217,7 +217,8 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         // 👉 一覧画面に戻る処理を追加
     buckButton.addActionListener(e -> {
         frame.dispose(); // 現在の画面を閉じる
-        new ViewTopScreen().view(); // 一覧画面を表示
+        ViewTopScreen top=new ViewTopScreen();
+        top.View();// 一覧画面を表示
     });
     
         // 編集ボタン：中央に配置（パネル幅800 - ボタン幅80）÷2 = 360
