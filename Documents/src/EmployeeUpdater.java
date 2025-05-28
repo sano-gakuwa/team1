@@ -3,26 +3,20 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.*;
-<<<<<<< HEAD
-=======
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JOptionPane;
->>>>>>> 2a7fe81214fa4c59c9baee134dfb0e78c6aa0cff
 
 public class EmployeeUpdater extends Thread {
 
     private static  EmployeeInformation newEmployee;
     private final ViewAdditionScreen callerScreen = new ViewAdditionScreen();
     private  EmployeeManager manager = new EmployeeManager();
-<<<<<<< HEAD
-=======
     //下村追加分-------------------------------------------------------
     private final Lock LOCK = new ReentrantLock();
->>>>>>> 2a7fe81214fa4c59c9baee134dfb0e78c6aa0cff
 
     /**
      * コンストラクタ 社員情報リスト、追加する社員情報、呼び出し元の画面を設定
@@ -201,7 +195,7 @@ public class EmployeeUpdater extends Thread {
                 EmployeeInformation.formatDate(e.birthday),
                 EmployeeInformation.formatDate(e.joiningDate),
                 String.valueOf(e.engineerDate),
-                e.useLanguageDate,
+                e.availableLanguages,
                 e.careerDate,
                 e.trainingDate,
                 String.valueOf(e.skillPoint),
