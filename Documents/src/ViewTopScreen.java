@@ -1,4 +1,3 @@
-
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -85,6 +84,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         templateButton.addActionListener(e -> {       
         });
         functionButtonsPanel.add(templateButton);
+        
         // 選択画面（ViewSelectedScreen ）に遷移
         bulkSelectButton = new JButton("ページ内一括選択");
         functionButtonsPanel.add(bulkSelectButton);
@@ -165,26 +165,56 @@ public class ViewTopScreen extends SetUpTopScreen {
             }
         });
         engineerTable.setRowHeight(34);
-        // 全列中央寄せ
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        for (int i = 0; i < engineerTable.getColumnCount(); i++) {
-            engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
-        if (data.length != 0) {
-            try {
-                TableColumn detailColumn = engineerTable.getColumn("詳細");
-                detailColumn.setCellRenderer(new ButtonRenderer());
-                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
-            } catch (IllegalArgumentException e) {
-                System.err.println("詳細列は詳細カラム作成後生成 " + e.getMessage());//このタイミングでは まだ"詳細" カラムない
-            }
 
-            JScrollPane scrollPane = new JScrollPane(engineerTable);
-            scrollPane.setPreferredSize(new Dimension(715, 363));
-            employeeListPanel.setLayout(new BorderLayout());
-            employeeListPanel.add(scrollPane, BorderLayout.CENTER);
-        }
+// 全列中央寄せ
+DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+for (int i = 0; i < engineerTable.getColumnCount(); i++) {
+    engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+}
+
+// 詳細ボタン列の設定
+if (data.length != 0) {
+    try {
+        TableColumn detailColumn = engineerTable.getColumn("詳細");
+
+        // 詳細ボタンの表示（レンダラー）
+        detailColumn.setCellRenderer(new ButtonRenderer());
+
+        // 詳細ボタンのアクション処理（エディター）
+        detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()) {
+            @Override
+            public Component getTableCellEditorComponent(JTable table, Object value,boolean isSelected, int row, int column) {
+                JButton button = (JButton) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+
+                button.addActionListener(e -> {
+                    // 現在の行から社員IDなど必要情報を取得
+                    String engineerId = table.getValueAt(row, 0).toString();
+
+                    // ポップアップ表示（テスト用）
+                    JOptionPane.showMessageDialog(null, "クリックされました");
+
+                    // ★将来的に詳細画面に遷移する処理（下記は例、今はコメントアウト）
+//                    ViewDetailsScreen detailScreen = new ViewDetailsScreen();
+//                    detailScreen.view(engineerId);
+
+                    fireEditingStopped(); // 編集完了を明示（これがないとボタンが残る）
+                });
+
+                return button;
+            }
+        });
+
+    } catch (IllegalArgumentException e) {
+        System.err.println("詳細列は詳細カラム作成後生成 " + e.getMessage());
+    }
+
+    JScrollPane scrollPane = new JScrollPane(engineerTable);
+    scrollPane.setPreferredSize(new Dimension(715, 363));
+    employeeListPanel.setLayout(new BorderLayout());
+    employeeListPanel.add(scrollPane, BorderLayout.CENTER);
+}
+
 
 
         // bottomPanel にページネーション表示
@@ -305,9 +335,16 @@ public class ViewTopScreen extends SetUpTopScreen {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int row = engineerTable.rowAtPoint(e.getPoint());
+                int column = engineerTable.columnAtPoint(e.getPoint());
+
+                // 「詳細」ボタン列は無視する（カラム名 or インデックスで判定）
+                String columnName = engineerTable.getColumnName(column);
+                if (columnName.equals("詳細")) {
+                    return; // 詳細ボタンは別のエディターで処理されるので、ここでは処理しない
+                }
+
                 if (row >= 0) {
                     String id = model.getValueAt(row, 0).toString();
-
                     ArrayList<String> selectedIds = new ArrayList<>();
                     selectedIds.add(id);
 
@@ -322,6 +359,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                 }
             }
         });
+
     }
     //ここまで
 
