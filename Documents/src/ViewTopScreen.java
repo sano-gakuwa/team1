@@ -311,13 +311,18 @@ public class ViewTopScreen extends SetUpTopScreen {
                     ArrayList<String> selectedIds = new ArrayList<>();
                     selectedIds.add(id);
 
+                    // ViewSelectedScreen に切り替える前に ViewTopScreen の画面をクリア
+                    SetUpJframe.fullScreenPanel.removeAll();
+                    SetUpJframe.fullScreenPanel.revalidate();
+                    SetUpJframe.fullScreenPanel.repaint();
+
+                    // ViewSelectedScreen に遷移
                     ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
                     selectedScreen.View(selectedIds, currentPage);
                 }
             }
         });
     }
-
     //ここまで
 
     
