@@ -3,7 +3,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.*;
@@ -22,10 +21,8 @@ public class ViewTopScreen extends SetUpTopScreen {
 
     private JTable engineerTable;
     private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);
-    private JPanel bottomPanel; // 追加で保持（再描画防止）
     public int currentPage = 1; // UpdateEmployee クラスからの外部アクセス
     public int totalPages = 1;
-    private Set<Integer> selectedRows = new HashSet<>(); // 選択操作
     private ArrayList<String> selected = new ArrayList<>();
     private DefaultTableModel model;
 
@@ -111,6 +108,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         } else {
             // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
             int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
+
             totalPages = Math.min((totalEmployees + 9) / 10, 100);
             DefaultTableModel tableModel = new DefaultTableModel(data, columnNames) {
                 public boolean isCellEditable(int row, int column) {
@@ -174,14 +172,20 @@ public class ViewTopScreen extends SetUpTopScreen {
             engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
         if (data.length != 0) {
-            TableColumn detailColumn = engineerTable.getColumn("詳細");
-            detailColumn.setCellRenderer(new ButtonRenderer());
-            detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
+            try {
+                TableColumn detailColumn = engineerTable.getColumn("詳細");
+                detailColumn.setCellRenderer(new ButtonRenderer());
+                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
+            } catch (IllegalArgumentException e) {
+                System.err.println("詳細列は詳細カラム作成後生成 " + e.getMessage());//このタイミングでは まだ"詳細" カラムない
+            }
+
             JScrollPane scrollPane = new JScrollPane(engineerTable);
             scrollPane.setPreferredSize(new Dimension(715, 363));
             employeeListPanel.setLayout(new BorderLayout());
             employeeListPanel.add(scrollPane, BorderLayout.CENTER);
         }
+
 
         // bottomPanel にページネーション表示
         JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
@@ -231,6 +235,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             totalPages = 1; // 0ページにならないように
 
         Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
+        
         // テーブルのヘッダー
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
 
@@ -273,16 +278,19 @@ public class ViewTopScreen extends SetUpTopScreen {
         engineerTable.setRowHeight(34);
         pageLabel.setText(currentPage + " / " + totalPages);
 
-        // 詳細ボタン再設定（データがある場合のみ安全に処理）
+        // 詳細ボタン再設定（データがある場合のみ安全に処理） 6/1追加
         if (pageData.length > 0) {
-            try {
-                TableColumn detailColumn = engineerTable.getColumn("詳細");
-                detailColumn.setCellRenderer(new ButtonRenderer());
-                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
-            } catch (IllegalArgumentException e) {
-                System.err.println("詳細列の設定失敗：" + e.getMessage());
-            }
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    TableColumn detailColumn = engineerTable.getColumn("詳細");
+                    detailColumn.setCellRenderer(new ButtonRenderer());
+                    detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
+                } catch (IllegalArgumentException e) {
+                    System.err.println("詳細列の設定失敗：" + e.getMessage());
+                }
+            });
         }
+
         // 表示更新の後で、マウスイベント登録メソッドを呼び出す
         setupTableClickEvent(model);
     }
@@ -406,7 +414,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
             displayList[i][2] = calcAge(empioyee.birthday, now);
             displayList[i][3] = empioyee.engineerDate;
-            displayList[i][4] = empioyee.useLanguageDate;
+            displayList[i][4] = empioyee.availableLanguages;
             displayList[i][5] = "詳細";
         }
         return displayList;
