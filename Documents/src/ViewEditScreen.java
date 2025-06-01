@@ -1,6 +1,6 @@
-
 import java.awt.*;
 import javax.swing.*;
+import java.util.Date;
 
 public class ViewEditScreen extends SetUpDetailsScreen {
 
@@ -163,6 +163,9 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupButtons(JPanel panel) {
         cancelButton = new JButton("< 編集キャンセル");
         cancelButton.setBounds(0, 470, 140, 30);
+        cancelButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(frame, "キャンセルしました。戻ります。");
+        });
         panel.add(cancelButton);
 
         saveButton = new JButton("保存");
@@ -170,15 +173,45 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(frame, "この情報で上書きしますか？", "確認", JOptionPane.YES_NO_OPTION);
             if (result == JOptionPane.YES_OPTION) {
+                saveEmployeeInfo();
                 JOptionPane.showMessageDialog(frame, "保存完了しました。");
-                // 編集のメソッド
-                // 一覧画面を表示
-            } else if (result == JOptionPane.NO_OPTION) {
             }
-
         });
-
         panel.add(saveButton);
+    }
+
+    // 保存処理（ダミー実装）
+    private void saveEmployeeInfo() {
+        try {
+            String empId = employeeIdField.getText();
+            String lastName = lastNameField.getText();
+            String firstName = firstNameField.getText();
+            String rubyLastName = rubyLastNameField.getText();
+            String rubyFirstName = rubyFirstNameField.getText();
+            Date birthDate = new Date();
+            Date joinDate = new Date();
+            int engMonths = Integer.parseInt(engYearBox.getSelectedItem().toString().replace("年", "")) * 12
+                    + Integer.parseInt(engMonthBox.getSelectedItem().toString().replace("月", ""));
+            String languages = languageField.getText();
+            String career = careerArea.getText();
+            String training = trainingArea.getText();
+            String remarks = remarksArea.getText();
+            double tech = Double.parseDouble(techCombo.getSelectedItem().toString());
+            double comm = Double.parseDouble(commCombo.getSelectedItem().toString());
+            double attitude = Double.parseDouble(attitudeCombo.getSelectedItem().toString());
+            double leader = Double.parseDouble(leaderCombo.getSelectedItem().toString());
+            Date updatedDay = new Date();
+
+            EmployeeInformation empInfo = new EmployeeInformation(empId, lastName, firstName, rubyLastName,
+                    rubyFirstName,
+                    birthDate, joinDate, engMonths, languages, career, training, tech, attitude, comm, leader, remarks,
+                    updatedDay);
+
+            EmployeeManager manager = new EmployeeManager();
+            manager.addEmployee(empInfo);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     // コンボボックス生成（年・月など）
@@ -192,7 +225,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
     // スキルスコア用の選択肢
     private JComboBox<String> createScoreCombo() {
-        String[] scores = {"1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0"};
+        String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
         return new JComboBox<>(scores);
     }
 
