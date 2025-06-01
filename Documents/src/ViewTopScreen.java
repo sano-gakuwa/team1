@@ -30,7 +30,6 @@ public class ViewTopScreen extends SetUpTopScreen {
         engineerTable = new JTable();// 先にテーブルを初期化してから refreshTable を呼ぶ
         setupEngineerList();
         refreshTable(); // 画面初期表示とデータ同期
-
     }
     private void setupEngineerList() {
         
@@ -115,9 +114,11 @@ public class ViewTopScreen extends SetUpTopScreen {
                     return column == 5;
                 }
             };
-            
-
-            
+            engineerTable.setModel(tableModel); // ←これが必要
+            // 詳細列レンダラ・エディタ設定を再度行う
+            TableColumn detailColumn = engineerTable.getColumn("詳細");
+            detailColumn.setCellRenderer(new ButtonRenderer());
+            detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));    
         }
 
         // ヘッダーソート状態マップ（0:ー, 1:↑, 2:↓）
@@ -166,57 +167,52 @@ public class ViewTopScreen extends SetUpTopScreen {
         });
         engineerTable.setRowHeight(34);
 
-// 全列中央寄せ
-DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-for (int i = 0; i < engineerTable.getColumnCount(); i++) {
-    engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-}
+        // 全列中央寄せ
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        for (int i = 0; i < engineerTable.getColumnCount(); i++) {
+            engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
 
-// 詳細ボタン列の設定
-if (data.length != 0) {
-    try {
-        TableColumn detailColumn = engineerTable.getColumn("詳細");
+        // 詳細ボタン列の設定
+        if (data.length != 0) {
+            try {
+                TableColumn detailColumn = engineerTable.getColumn("詳細");
 
-        // 詳細ボタンの表示（レンダラー）
-        detailColumn.setCellRenderer(new ButtonRenderer());
+                // 詳細ボタンの表示（レンダラー）
+                detailColumn.setCellRenderer(new ButtonRenderer());
 
-        // 詳細ボタンのアクション処理（エディター）
-        detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()) {
-            @Override
-            public Component getTableCellEditorComponent(JTable table, Object value,boolean isSelected, int row, int column) {
-                JButton button = (JButton) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+                // 詳細ボタンのアクション処理（エディター）
+                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()) {
+                    @Override
+                    public Component getTableCellEditorComponent(JTable table, Object value,boolean isSelected, int row, int column) {
+                        JButton button = (JButton) super.getTableCellEditorComponent(table, value, isSelected, row, column);
 
-                button.addActionListener(e -> {
-                    // 現在の行から社員IDなど必要情報を取得
-                    String engineerId = table.getValueAt(row, 0).toString();
+                        button.addActionListener(e -> {
+                            // 現在の行から社員IDなど必要情報を取得
+                            String engineerId = table.getValueAt(row, 0).toString();
 
-                    // ポップアップ表示（テスト用）
-                    JOptionPane.showMessageDialog(null, "クリックされました");
+                            // ポップアップ表示（テスト用）
+                            JOptionPane.showMessageDialog(null, "クリックされました");
 
-                    // ★将来的に詳細画面に遷移する処理（下記は例、今はコメントアウト）
-//                    ViewDetailsScreen detailScreen = new ViewDetailsScreen();
-//                    detailScreen.view(engineerId);
+                            // ★将来的に詳細画面に遷移する処理（下記は例、今はコメントアウト）
+                            //ViewDetailsScreen detailScreen = new ViewDetailsScreen();
+                            //detailScreen.view(engineerId);
+                            fireEditingStopped(); // 編集完了を明示（これがないとボタンが残る）
+                        });
 
-                    fireEditingStopped(); // 編集完了を明示（これがないとボタンが残る）
+                        return button;
+                    }
                 });
-
-                return button;
+            } catch (IllegalArgumentException e) {
+                System.err.println("詳細列は詳細カラム作成後生成 " + e.getMessage());
             }
-        });
 
-    } catch (IllegalArgumentException e) {
-        System.err.println("詳細列は詳細カラム作成後生成 " + e.getMessage());
-    }
-
-    JScrollPane scrollPane = new JScrollPane(engineerTable);
-    scrollPane.setPreferredSize(new Dimension(715, 363));
-    employeeListPanel.setLayout(new BorderLayout());
-    employeeListPanel.add(scrollPane, BorderLayout.CENTER);
-}
-
-
-
+            JScrollPane scrollPane = new JScrollPane(engineerTable);
+            scrollPane.setPreferredSize(new Dimension(715, 363));
+            employeeListPanel.setLayout(new BorderLayout());
+            employeeListPanel.add(scrollPane, BorderLayout.CENTER);
+        }
         // bottomPanel にページネーション表示
         JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
         JPanel bottomPanel = (JPanel) bottomWrapper.getComponent(0);
@@ -259,12 +255,14 @@ if (data.length != 0) {
      * EmployeeManager.getInitialData() は、最新の従業員データを2次元配列で返すメソッドであると仮定
      */
     public void refreshTable() {
+        
         int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分(本番時利用コード)
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
         if (totalPages == 0)
             totalPages = 1; // 0ページにならないように
 
         Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
+        
         
         // テーブルのヘッダー
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
@@ -310,15 +308,13 @@ if (data.length != 0) {
 
         // 詳細ボタン再設定（データがある場合のみ安全に処理） 6/1追加
         if (pageData.length > 0) {
-            SwingUtilities.invokeLater(() -> {
-                try {
-                    TableColumn detailColumn = engineerTable.getColumn("詳細");
-                    detailColumn.setCellRenderer(new ButtonRenderer());
-                    detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
-                } catch (IllegalArgumentException e) {
-                    System.err.println("詳細列の設定失敗：" + e.getMessage());
-                }
-            });
+            try {
+                TableColumn detailColumn = engineerTable.getColumn("詳細");
+                detailColumn.setCellRenderer(new ButtonRenderer());
+                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
+            } catch (IllegalArgumentException e) {
+                System.err.println("詳細列の設定失敗：" + e.getMessage());
+            }
         }
 
         // 表示更新の後で、マウスイベント登録メソッドを呼び出す
@@ -330,7 +326,6 @@ if (data.length != 0) {
         for (MouseListener listener : engineerTable.getMouseListeners()) {
             engineerTable.removeMouseListener(listener);
         }
-
         engineerTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -359,7 +354,6 @@ if (data.length != 0) {
                 }
             }
         });
-
     }
     //ここまで
 
@@ -400,16 +394,6 @@ if (data.length != 0) {
             clicked = true;
             return button;
         }
-
-        @Override
-        public Object getCellEditorValue() {
-            if (clicked) {
-                JOptionPane.showMessageDialog(button, "詳細ボタンがクリックされました: " + label);
-            }
-            clicked = false;
-            return label;
-        }
-
         @Override
         public boolean stopCellEditing() {
             clicked = false;
@@ -484,7 +468,6 @@ if (data.length != 0) {
                 age -= 1;
             }
         }
-
         return age;
     }
 }
