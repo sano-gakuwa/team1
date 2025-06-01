@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.Set;
 import javax.swing.*;
 import javax.swing.table.*;
-//5/24  下記３つ追記
-import java.awt.event.MouseListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-//import org.w3c.dom.events.MouseEvent;
+import java.awt.event.MouseListener;//5/24  追記
+import java.awt.event.MouseAdapter;//5/24  追記
+import java.awt.event.MouseEvent;//5/24  追記
 import java.util.Date;//下村追加分
+import java.awt.event.ActionListener;
+
 
 public class ViewTopScreen extends SetUpTopScreen {
     private JButton bulkSelectButton;// 選択操作
@@ -175,44 +175,53 @@ public class ViewTopScreen extends SetUpTopScreen {
         }
 
         // 詳細ボタン列の設定
+        
         if (data.length != 0) {
             try {
                 TableColumn detailColumn = engineerTable.getColumn("詳細");
 
-                // 詳細ボタンの表示（レンダラー）
-                detailColumn.setCellRenderer(new ButtonRenderer());
+        // 詳細ボタンの表示（レンダラー）
+        detailColumn.setCellRenderer(new ButtonRenderer());
 
-                // 詳細ボタンのアクション処理（エディター）
-                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()) {
-                    @Override
-                    public Component getTableCellEditorComponent(JTable table, Object value,boolean isSelected, int row, int column) {
-                        JButton button = (JButton) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+        // 詳細ボタンのアクション処理（エディター）
+        detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()) {
+            @Override
+            public Component getTableCellEditorComponent(JTable table, Object value,boolean isSelected, int row, int column) {
+                JButton button = (JButton) super.getTableCellEditorComponent(table, value, isSelected, row, column);
 
-                        button.addActionListener(e -> {
-                            // 現在の行から社員IDなど必要情報を取得
-                            String engineerId = table.getValueAt(row, 0).toString();
+                // 過剰登録を防ぐ（ボタン再生成時）
+                for (ActionListener al : button.getActionListeners()) {
+                    button.removeActionListener(al);
+                }
 
-                            // ポップアップ表示（テスト用）
-                            JOptionPane.showMessageDialog(null, "クリックされました");
+                button.addActionListener(e -> {
+                    String engineerId = table.getValueAt(row, 0).toString();
+                    // --- 詳細画面への遷移処理はここに記述してください ---
+                    JOptionPane.showMessageDialog(null, "詳細ボタンクリック");  // ポップアップ表示（テスト用）
 
-                            // ★将来的に詳細画面に遷移する処理（下記は例、今はコメントアウト）
-                            //ViewDetailsScreen detailScreen = new ViewDetailsScreen();
-                            //detailScreen.view(engineerId);
-                            fireEditingStopped(); // 編集完了を明示（これがないとボタンが残る）
-                        });
+                    // 例（担当別記載）:
+                    // ViewDetailsScreen detailScreen = new ViewDetailsScreen();
+                    // detailScreen.view(engineerId);
+                    // ---------------------------------------------------
 
-                        return button;
-                    }
+                    fireEditingStopped(); // ボタン押下後の状態解消
                 });
+
+                return button;
+            }
+            });
+
             } catch (IllegalArgumentException e) {
                 System.err.println("詳細列は詳細カラム作成後生成 " + e.getMessage());
             }
 
+            // スクロールペインにテーブルを追加
             JScrollPane scrollPane = new JScrollPane(engineerTable);
             scrollPane.setPreferredSize(new Dimension(715, 363));
             employeeListPanel.setLayout(new BorderLayout());
             employeeListPanel.add(scrollPane, BorderLayout.CENTER);
         }
+
         // bottomPanel にページネーション表示
         JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
         JPanel bottomPanel = (JPanel) bottomWrapper.getComponent(0);
@@ -311,7 +320,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             try {
                 TableColumn detailColumn = engineerTable.getColumn("詳細");
                 detailColumn.setCellRenderer(new ButtonRenderer());
-                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox()));
+                detailColumn.setCellEditor(new ButtonEditor(new JCheckBox())); 
             } catch (IllegalArgumentException e) {
                 System.err.println("詳細列の設定失敗：" + e.getMessage());
             }
@@ -320,7 +329,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         // 表示更新の後で、マウスイベント登録メソッドを呼び出す
         setupTableClickEvent(model);
     }
-    //  従業員欄押下後ViewSelectedScreen に遷移。マウスクリックイベントをテーブルに設定、クリック時の社員IDを取得
+    // 従業員欄押下後ViewSelectedScreen に遷移。マウスクリックイベントをテーブルに設定、クリック時の社員IDを取得
     private void setupTableClickEvent(DefaultTableModel model) {
         // 既存のマウスリスナーを削除（多重登録防止）
         for (MouseListener listener : engineerTable.getMouseListeners()) {
@@ -356,9 +365,6 @@ public class ViewTopScreen extends SetUpTopScreen {
         });
     }
     //ここまで
-
-    
-
     static class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
@@ -374,37 +380,47 @@ public class ViewTopScreen extends SetUpTopScreen {
         }
     }
 
-    static class ButtonEditor extends DefaultCellEditor {
-        private JButton button;
-        private String label;
-        private boolean clicked;
-
+    public class ButtonEditor extends DefaultCellEditor {
+    private JButton button;
+    private boolean clicked;
+    private JTable table;
         public ButtonEditor(JCheckBox checkBox) {
             super(checkBox);
             button = new JButton();
             button.setOpaque(true);
-            button.addActionListener(e -> fireEditingStopped());
+            // リスナーはコンストラクタ内で一度だけ追加
+            button.addActionListener(e -> {
+                if (clicked) {
+                    int row = table.getSelectedRow();
+                    if (row >= 0) {
+                        String engineerId = table.getValueAt(row, 0).toString();
+                        JOptionPane.showMessageDialog(null, "クリックされました：ID = " + engineerId);
+                        fireEditingStopped();
+                    }
+                }
+            });
         }
 
         @Override
-        public Component getTableCellEditorComponent(JTable table, Object value,
-                boolean isSelected, int row, int column) {
-            label = (value == null) ? "" : value.toString();
-            button.setText(label);
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row,
+                int column) {
+            this.table = table;
+            button.setText((value == null) ? "" : value.toString());
             clicked = true;
             return button;
+        }
+        @Override
+        public Object getCellEditorValue() {
+            clicked = false;
+            return button.getText();
         }
         @Override
         public boolean stopCellEditing() {
             clicked = false;
             return super.stopCellEditing();
         }
-
-        @Override
-        protected void fireEditingStopped() {
-            super.fireEditingStopped();
-        }
     }
+
 
     // ----------------------
     // 下村作成部分↓
