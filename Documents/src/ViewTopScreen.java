@@ -24,10 +24,12 @@ public class ViewTopScreen extends SetUpTopScreen {
     public int totalPages = 1;
     private ArrayList<String> selected = new ArrayList<>();
     private DefaultTableModel model;
+    private ArrayList<EmployeeInformation>tableEmployee=null;
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
         engineerTable = new JTable();// 先にテーブルを初期化してから refreshTable を呼ぶ
+        tableEmployee=EmployeeManager.employeeList;
         setupEngineerList();
         refreshTable(); // 画面初期表示とデータ同期
     }
@@ -93,23 +95,23 @@ public class ViewTopScreen extends SetUpTopScreen {
             }
             refreshUI();
             ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
-            selectedScreen.View(selected, currentPage);
+            selectedScreen.View(tableEmployee,selected, currentPage);
         });
         // テーブル構築
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
-        Object[][] data = getPageData(currentPage, 10);// 下村作成部分
+        Object[][] pageData = getPageData(currentPage, 10);// 下村作成部分
         // ソート対象外の列インデックス（「詳細」列）
         Set<Integer> unsortableColumns = Set.of(5);
 
         // 従業員０名時の表示
-        if (data.length == 0) {
+        if (pageData.length == 0) {
             showNoDataLabel(employeeListPanel);
         } else {
             // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
-            int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分
+            int totalEmployees = tableEmployee.size();// 下村作成部分
 
             totalPages = Math.min((totalEmployees + 9) / 10, 100);
-            DefaultTableModel tableModel = new DefaultTableModel(data, columnNames) {
+            DefaultTableModel tableModel = new DefaultTableModel(pageData, columnNames) {
                 public boolean isCellEditable(int row, int column) {
                     return column == 5;
                 }
@@ -176,7 +178,7 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         // 詳細ボタン列の設定
         
-        if (data.length != 0) {
+        if (pageData.length != 0) {
             try {
                 TableColumn detailColumn = engineerTable.getColumn("詳細");
 
@@ -198,7 +200,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                     String engineerId = table.getValueAt(row, 0).toString();
                     // --- 詳細画面への遷移処理はここに記述してください ---
                     JOptionPane.showMessageDialog(null, "詳細ボタンクリック");  // ポップアップ表示（テスト用）
-
+                    System.out.println("aaaa");
                     // 例（担当別記載）:
                     // ViewDetailsScreen detailScreen = new ViewDetailsScreen();
                     // detailScreen.view(engineerId);
@@ -265,7 +267,7 @@ public class ViewTopScreen extends SetUpTopScreen {
      */
     public void refreshTable() {
         
-        int totalEmployees = EmployeeManager.employeeList.size();// 下村作成部分(本番時利用コード)
+        int totalEmployees = tableEmployee.size();// 下村作成部分(本番時利用コード)
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
         if (totalPages == 0)
             totalPages = 1; // 0ページにならないように
@@ -325,7 +327,6 @@ public class ViewTopScreen extends SetUpTopScreen {
                 System.err.println("詳細列の設定失敗：" + e.getMessage());
             }
         }
-
         // 表示更新の後で、マウスイベント登録メソッドを呼び出す
         setupTableClickEvent(model);
     }
@@ -359,7 +360,7 @@ public class ViewTopScreen extends SetUpTopScreen {
 
                     // ViewSelectedScreen に遷移
                     ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
-                    selectedScreen.View(selectedIds, currentPage);
+                    selectedScreen.View(tableEmployee,selectedIds, currentPage);
                 }
             }
         });
@@ -435,7 +436,7 @@ public class ViewTopScreen extends SetUpTopScreen {
     }
 
     public Object[][] getPageData(int currentPage, int maxDisplayCount) {
-        int totalEmployees = EmployeeManager.employeeList.size(); 
+        int totalEmployees = tableEmployee.size(); 
 
         if (totalEmployees == 0) {
             return new Object[0][6]; // 0件時は空配列を返す処理
@@ -444,15 +445,15 @@ public class ViewTopScreen extends SetUpTopScreen {
         Date now = new Date();
         int displayCount;
 
-        if (EmployeeManager.employeeList.size() <= 10) {
-            displayCount = EmployeeManager.employeeList.size();// 社員数10以下
-        } else if (currentPage * maxDisplayCount < EmployeeManager.employeeList.size()) {
+        if (tableEmployee.size() <= 10) {
+            displayCount = tableEmployee.size();// 社員数10以下
+        } else if (currentPage * maxDisplayCount < tableEmployee.size()) {
             displayCount = maxDisplayCount;
         } else {
-            displayCount = EmployeeManager.employeeList.size() - ((currentPage - 1) * maxDisplayCount);
+            displayCount = tableEmployee.size() - ((currentPage - 1) * maxDisplayCount);
         }
         for (int i = 0; i < displayCount; i++) {
-            EmployeeInformation empioyee = EmployeeManager.employeeList.get(i + ((currentPage - 1) * maxDisplayCount));
+            EmployeeInformation empioyee = tableEmployee.get(i + ((currentPage - 1) * maxDisplayCount));
             displayList[i][0] = empioyee.employeeID;
             displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
             displayList[i][2] = calcAge(empioyee.birthday, now);
