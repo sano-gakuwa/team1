@@ -25,6 +25,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
     private ArrayList<String> selected = new ArrayList<>();
     private DefaultTableModel model;
     private EmployeeManager manager=new EmployeeManager();
+    private ArrayList<EmployeeInformation>tableEmployee=null;
 
     public ViewSelectedScreen() {
     }
@@ -109,11 +110,11 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         unsortableColumns = Set.of(5);
 
         // 従業員０名時の表示
-        if (EmployeeManager.employeeList.size()==0) {
+        if (tableEmployee.size()==0) {
             showNoDataLabel(employeeListPanel);
-        } else if(EmployeeManager.employeeList.size()>=1){
+        } else if(tableEmployee.size()>=1){
             // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
-            int totalEmployees = EmployeeManager.employeeList.size();
+            int totalEmployees = tableEmployee.size();
             totalPages = Math.min((totalEmployees + 9) / 10, 100);
             model = new DefaultTableModel(pageData, columnNames) {
                 public boolean isCellEditable(int row, int column) {
@@ -211,7 +212,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
 
     public void refreshTable() {
         //ページ数表示
-        int totalEmployees = EmployeeManager.employeeList.size();
+        int totalEmployees = tableEmployee.size();
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
         Object[][] pageData = getPageData(currentPage, 10);
         // テーブルモデル作成（編集不可）
@@ -317,9 +318,10 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         manager.LOGGER.info("一覧画面へ遷移");
     }
 
-    public void View(ArrayList<String> selected,int currentPage) {
+    public void View(ArrayList<EmployeeInformation>tableEmployee,ArrayList<String> selected,int currentPage) {
         this.currentPage=currentPage;
         this.selected=selected;
+        this.tableEmployee=tableEmployee;
         frame.setTitle("選択画面");
         setupEngineerList();
         refreshTable(); // 画面初期表示とデータ同期
@@ -328,27 +330,27 @@ public class ViewSelectedScreen extends SetUpTopScreen {
     }
 
     public Object[][] getPageData(int currentPage, int maxDisplayCount) {
-        int totalEmployees = EmployeeManager.employeeList.size();
+        int totalEmployees = tableEmployee.size();
         if (totalEmployees == 0) {
             return new Object[0][6]; // 0件時は空配列を返す処理
         }
         Object[][] displayList = new Object[10][6];
         Date now = new Date();
         int displayCount;
-        if (EmployeeManager.employeeList.size() <= 10) {
+        if (tableEmployee.size() <= 10) {
             // 社員数10名以下
-            displayCount = EmployeeManager.employeeList.size();
-        } else if (currentPage * maxDisplayCount < EmployeeManager.employeeList.size()) {
+            displayCount = tableEmployee.size();
+        } else if (currentPage * maxDisplayCount < tableEmployee.size()) {
             // 社員数10名以上で10名表示
             displayCount = maxDisplayCount;
         } else {
             // 社員数10名以上で10名未満表示
-            displayCount = EmployeeManager.employeeList.size() - ((currentPage - 1) * maxDisplayCount);
+            displayCount = tableEmployee.size() - ((currentPage - 1) * maxDisplayCount);
         }
         if (displayCount == 10) {
             //10名分表示
             for (int i = 0; i < displayCount; i++) {
-                EmployeeInformation empioyee = EmployeeManager.employeeList
+                EmployeeInformation empioyee = tableEmployee
                         .get(i + ((currentPage - 1) * maxDisplayCount));
                 displayList[i][0] = empioyee.employeeID;
                 displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
@@ -359,7 +361,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         } else {
             //社員〇人分＋空きスペース
             for (int i = 0; i < displayCount; i++) {
-                EmployeeInformation empioyee = EmployeeManager.employeeList
+                EmployeeInformation empioyee = tableEmployee
                         .get(i + ((currentPage - 1) * maxDisplayCount));
                 displayList[i][0] = empioyee.employeeID;
                 displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
