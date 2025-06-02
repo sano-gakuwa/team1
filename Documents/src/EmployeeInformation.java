@@ -9,7 +9,7 @@ public class EmployeeInformation {
     Date birthday;
     Date joiningDate;
     int engineerDate;
-    String availableLanguages; // 元が「useLanguageDate」だったので変更
+    String availableLanguages;
     String careerDate;
     String trainingDate;
     Double skillPoint;
