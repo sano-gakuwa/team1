@@ -1,16 +1,39 @@
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;//5/24  追記
+import java.awt.event.MouseEvent;//5/24  追記
+import java.awt.event.MouseListener;//5/24  追記
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;//下村追加分
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.event.MouseListener;//5/24  追記
-import java.awt.event.MouseAdapter;//5/24  追記
-import java.awt.event.MouseEvent;//5/24  追記
-import java.util.Date;//下村追加分
-import java.awt.event.ActionListener;
+
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 
 public class ViewTopScreen extends SetUpTopScreen {
@@ -82,10 +105,72 @@ public class ViewTopScreen extends SetUpTopScreen {
         functionButtonsPanel.add(loadButton);
 
         //「テンプレート出力」ボタン押下後イベント※{}内追記お願いします
-        templateButton.addActionListener(e -> {       
-        });
-        functionButtonsPanel.add(templateButton);
+        templateButton.addActionListener(e -> { //「テンプレート出力」ボタン押下後イベント
+templateButton.addActionListener(event -> {
+    String fileName = "employee_template.csv";
+    FileWriter writer = null;
+    File file = new File(fileName);
+
+    try {
+        writer = new FileWriter(file);
+
+        // ヘッダー行を書き込み
+        writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
+                   + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
+
+        // サンプルデータ行
+        writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
+                   + "4.5,5.0,4.0,3.5,特になし\n");
+
+        writer.close();
+        JOptionPane.showMessageDialog(null, "テンプレートファイル「" + fileName + "」を出力しました。");
+
+    } catch (IOException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
+
+        // エラーが発生したら途中で作られたファイルを削除
+        if (file.exists()) {
+            boolean deleted = file.delete();
+            if (!deleted) {
+                System.err.println("作成失敗したテンプレートファイルの削除に失敗しました: " + file.getAbsolutePath());
+            }
+        }
+
+    } finally {
+        // 念のため writer を閉じる（例外が出ないように）
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+});//「テンプレート出力」ボタン押下後イベント※{}内追記お願いします　6月7日追記
+templateButton.addActionListener(event -> {
+    try {
+        String fileName = "employee_template.csv";
+        FileWriter writer = new FileWriter(fileName);
+
+        // ヘッダー行を書き込み
+        writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
+                   + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
+
+        // サンプルデータ行（必要なら複数行）
+        writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
+                   + "4.5,5.0,4.0,3.5,特になし\n");
+
+        writer.close();
+        JOptionPane.showMessageDialog(null, "テンプレートファイル「" + fileName + "」を出力しました。");
+    } catch (IOException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
+    }
+});});functionButtonsPanel.add(templateButton);
         
+
+
         // 選択画面（ViewSelectedScreen ）に遷移
         bulkSelectButton = new JButton("ページ内一括選択");
         functionButtonsPanel.add(bulkSelectButton);
