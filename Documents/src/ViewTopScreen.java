@@ -21,6 +21,7 @@ import java.util.Set;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -104,70 +105,57 @@ public class ViewTopScreen extends SetUpTopScreen {
         });
         functionButtonsPanel.add(loadButton);
 
-        //「テンプレート出力」ボタン押下後イベント※{}内追記お願いします
-        templateButton.addActionListener(e -> { //「テンプレート出力」ボタン押下後イベント
+        // 「テンプレート出力」ボタン押下後イベント（保存先をユーザーが選択可能に）
 templateButton.addActionListener(event -> {
-    String fileName = "employee_template.csv";
-    FileWriter writer = null;
-    File file = new File(fileName);
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setDialogTitle("テンプレートファイルの保存先を選択してください");
+    fileChooser.setSelectedFile(new File("employee_template.csv")); // デフォルトファイル名
 
-    try {
-        writer = new FileWriter(file);
+    int userSelection = fileChooser.showSaveDialog(null);
 
-        // ヘッダー行を書き込み
-        writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
-                   + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
+    if (userSelection == JFileChooser.APPROVE_OPTION) {
+        File file = fileChooser.getSelectedFile();
+        FileWriter writer = null;
 
-        // サンプルデータ行
-        writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
-                   + "4.5,5.0,4.0,3.5,特になし\n");
+        try {
+            writer = new FileWriter(file);
 
-        writer.close();
-        JOptionPane.showMessageDialog(null, "テンプレートファイル「" + fileName + "」を出力しました。");
+            // ヘッダー行を書き込み
+            writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
+                       + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
 
-    } catch (IOException ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
+            // サンプルデータ行
+            writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
+                       + "4.5,5.0,4.0,3.5,特になし\n");
 
-        // エラーが発生したら途中で作られたファイルを削除
-        if (file.exists()) {
-            boolean deleted = file.delete();
-            if (!deleted) {
-                System.err.println("作成失敗したテンプレートファイルの削除に失敗しました: " + file.getAbsolutePath());
+            writer.close();
+            JOptionPane.showMessageDialog(null, "テンプレートファイル「" + file.getName() + "」を出力しました。");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
+
+            // 書き込み失敗時にファイル削除
+            if (file.exists()) {
+                if (!file.delete()) {
+                    System.err.println("作成失敗したテンプレートファイルの削除に失敗しました: " + file.getAbsolutePath());
+                }
             }
-        }
 
-    } finally {
-        // 念のため writer を閉じる（例外が出ないように）
-        if (writer != null) {
-            try {
-                writer.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }
-});//「テンプレート出力」ボタン押下後イベント※{}内追記お願いします　6月7日追記
-templateButton.addActionListener(event -> {
-    try {
-        String fileName = "employee_template.csv";
-        FileWriter writer = new FileWriter(fileName);
+});
 
-        // ヘッダー行を書き込み
-        writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
-                   + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
-
-        // サンプルデータ行（必要なら複数行）
-        writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
-                   + "4.5,5.0,4.0,3.5,特になし\n");
-
-        writer.close();
-        JOptionPane.showMessageDialog(null, "テンプレートファイル「" + fileName + "」を出力しました。");
-    } catch (IOException ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
-    }
-});});functionButtonsPanel.add(templateButton);
+// ボタンをパネルに追加（既に登録済みならこの行は不要）
+functionButtonsPanel.add(templateButton);
         
 
 
