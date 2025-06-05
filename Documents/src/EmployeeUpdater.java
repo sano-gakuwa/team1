@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -14,14 +13,14 @@ public class EmployeeUpdater extends Thread {
     private static EmployeeInformation newEmployee;
     private final ViewAdditionScreen CALLERSCREEN = new ViewAdditionScreen();
     private final EmployeeManager MANAGER = new EmployeeManager();
-    //下村追加分-------------------------------------------------------
+    // 下村追加分-------------------------------------------------------
     private final Lock LOCK = new ReentrantLock();
 
     /**
      * コンストラクタ 社員情報リスト、追加する社員情報、呼び出し元の画面を設定
      *
      * @param employeeList 社員情報を保持するリスト
-     * @param newEmployee 新規に追加する社員情報
+     * @param newEmployee  新規に追加する社員情報
      * @param CALLERSCREEN この処理を呼び出した画面
      */
     public EmployeeUpdater() {
@@ -57,7 +56,7 @@ public class EmployeeUpdater extends Thread {
         }
 
         // 重複チェック：既に同じ社員IDが存在していないか
-        for (EmployeeInformation existing : MANAGER.employeeList) {
+        for (EmployeeInformation existing : EmployeeManager.employeeList) {
             if (existing.employeeID.equals(newEmployee.employeeID)) {
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     CALLERSCREEN.showValidationError("社員IDが既に存在します。別のIDを入力してください。");
@@ -152,7 +151,7 @@ public class EmployeeUpdater extends Thread {
         }
 
         try {
-            MANAGER.employeeList.add(newE);
+            EmployeeManager.employeeList.add(newE);
             MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newE.employeeID + "）");
         } catch (Exception e) {
             MANAGER.printErrorLog(e, "社員リストに新規データを追加失敗（社員ID: " + newE.employeeID + "）");
@@ -211,8 +210,7 @@ public class EmployeeUpdater extends Thread {
                 String.valueOf(e.communicationPoint),
                 String.valueOf(e.leadershipPoint),
                 e.remarks,
-                EmployeeInformation.formatDate(e.updatedDay)
-        );
+                EmployeeInformation.formatDate(e.updatedDay));
     }
 
     /**
@@ -227,20 +225,20 @@ public class EmployeeUpdater extends Thread {
         });
     }
 
-    //-------------------------------------------------------
+    // -------------------------------------------------------
     // 下村作成部分
     public void delete(ArrayList<String> selected) {
         if (LOCK.tryLock()) {
             LOCK.lock();
-            //削除処理
+            // 削除処理
             try {
-                //社員情報リストから選択した社員情報を削除
+                // 社員情報リストから選択した社員情報を削除
                 ArrayList<EmployeeInformation> backupEmployeeList;
                 backupEmployeeList = EmployeeManager.employeeList;
                 synchronized (EmployeeManager.employeeList) {
                     try {
-                        for (Iterator<EmployeeInformation> employeeIterator = EmployeeManager.employeeList
-                                .iterator(); employeeIterator.hasNext();) {
+                        Iterator<EmployeeInformation> employeeIterator = EmployeeManager.employeeList.iterator();
+                        while (employeeIterator.hasNext()) {
                             EmployeeInformation employee = employeeIterator.next();
                             // 選択された社員情報と合致したら削除
                             if (selected.contains(employee.employeeID) == true) {
@@ -257,7 +255,7 @@ public class EmployeeUpdater extends Thread {
                         return;
                     }
                 }
-                //社員情報保存CSVから選択した社員情報を削除
+                // 社員情報保存CSVから選択した社員情報を削除
                 File originalFile = EmployeeManager.ENPLOYEE_CSV;
                 File backupFile = new File("CSV/employee_data_backup.csv");
                 try {
@@ -301,7 +299,7 @@ public class EmployeeUpdater extends Thread {
                 }
                 Files.deleteIfExists(backupFile.toPath());
             } catch (Exception e) {
-                //社員情報保存CSV＆社員情報リスト以外で例外が発生した場合　(メモリがいっぱいなど)
+                // 社員情報保存CSV＆社員情報リスト以外で例外が発生した場合 (メモリがいっぱいなど)
                 MANAGER.printErrorLog(e, "社員情報の削除に失敗しました");
                 showErrorDialog("社員情報の削除に失敗しました");
                 return;
