@@ -190,7 +190,7 @@ public class EmployeeListOperator {
         }
         return age;
     }
-    // ソートキー定義
+    // ソートキー定義※まだ
     public enum SortKey {
         EMPLOYEE_ID,
         NAME,
