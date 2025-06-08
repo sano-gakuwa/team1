@@ -29,6 +29,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import java.util.List;
+
+
 
 public class ViewTopScreen extends SetUpTopScreen {
     private JTable engineerTable;// 社員情報表示欄
@@ -242,22 +245,22 @@ public class ViewTopScreen extends SetUpTopScreen {
         panel.repaint();
     }
     // 検索処理（検索ボタン押下時に呼ばれる）
-     private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery, String langQuery) {
+    private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery, String langQuery) {
         employeeListOperator.searchAsync(
-              idQuery, nameQuery, ageQuery, engQuery, langQuery,
-              new EmployeeListOperator.SearchCallback() {
-                  @Override
-                  public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
-                       if (success) {
-                          tableEmployee = new ArrayList<>(results);
-                          refreshTable();
-                       } else {
-                          JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
-                       }
-                　}
-            　}
+            idQuery, nameQuery, ageQuery, engQuery, langQuery,
+            new EmployeeListOperator.SearchCallback() {
+                @Override
+                public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
+                    if (success) {
+                        tableEmployee = new ArrayList<>(results);
+                        refreshTable();
+                    } else {
+                        JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
         );
-     }
+    }
     private void showSearchResultUI() {
         JPanel centerPanel = (JPanel) ((JPanel) fullScreenPanel.getComponent(3)).getComponent(0);
         JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
@@ -290,15 +293,10 @@ public class ViewTopScreen extends SetUpTopScreen {
         JPanel centerPanel = (JPanel) ((JPanel) fullScreenPanel.getComponent(3)).getComponent(0);
         JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
         JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
-    
         functionButtonsPanel.removeAll();
-    
         functionButtonsPanel.add(new JLabel("エンジニア一覧"));
-    
-        addDefaultFunctionButtons(functionButtonsPanel); // ← ボタン再追加（共通化）
-    
+        //addDefaultFunctionButtons(functionButtonsPanel); // ← ボタン再追加（共通化）
         bottomWrapper.setVisible(true);
-    
         functionButtonsPanel.revalidate();
         functionButtonsPanel.repaint();
     }
