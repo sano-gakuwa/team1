@@ -39,11 +39,13 @@ public class ViewTopScreen extends SetUpTopScreen {
     private DefaultTableModel model;// JTablの表示モデル
     private ArrayList<EmployeeInformation> tableEmployee = null;// JTablに表示する社員情報
     private final EmployeeManager MANAGER = new EmployeeManager();// 社員情報の管理用
+    private EmployeeListOperator employeeListOperator;//検索機能　6/9追記
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
         engineerTable = new JTable();// 先にテーブルを初期化してから refreshTable を呼ぶ
         tableEmployee = EmployeeManager.employeeList;// JTablに表示用に社員情報リストからコピー
+        employeeListOperator = new EmployeeListOperator(tableEmployee);//
         setupViewTopScreen();// 一覧画面の初期化
         refreshTable(); // 画面初期表示とデータ同期
     }
@@ -66,6 +68,16 @@ public class ViewTopScreen extends SetUpTopScreen {
         searchButton.setBackground(new Color(30, 144, 255)); // ボタン枠内塗りつぶし
         searchButton.setForeground(Color.WHITE);// 白文字
         searchButton.setFocusPainted(false); // フォーカス枠非表示（シンプル化）
+        searchButton.addActionListener(e -> {
+            // 6/8 検索フィールドの値を取得（topPanelのコンポーネント順と合わせて取得）
+            String idQuery = ((JTextField)topPanel.getComponent(1)).getText();
+            String nameQuery = ((JTextField)topPanel.getComponent(3)).getText();
+            String ageQuery = ((JTextField)topPanel.getComponent(5)).getText();
+            String engQuery = ((JTextField)topPanel.getComponent(7)).getText();
+            String langQuery = ((JTextField)topPanel.getComponent(9)).getText();
+
+            executeSearch(idQuery, nameQuery, ageQuery, engQuery, langQuery);
+        });
         // centerPanel 取得
         JPanel centerWrapper = (JPanel) fullScreenPanel.getComponent(3);
         JPanel centerPanel = (JPanel) centerWrapper.getComponent(0);
@@ -228,6 +240,67 @@ public class ViewTopScreen extends SetUpTopScreen {
         panel.add(noDataLabel, BorderLayout.CENTER);
         panel.revalidate();
         panel.repaint();
+    }
+    // 検索処理（検索ボタン押下時に呼ばれる）
+     private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery, String langQuery) {
+        employeeListOperator.searchAsync(
+              idQuery, nameQuery, ageQuery, engQuery, langQuery,
+              new EmployeeListOperator.SearchCallback() {
+                  @Override
+                  public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
+                       if (success) {
+                          tableEmployee = new ArrayList<>(results);
+                          refreshTable();
+                       } else {
+                          JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
+                       }
+                　}
+            　}
+        );
+     }
+    private void showSearchResultUI() {
+        JPanel centerPanel = (JPanel) ((JPanel) fullScreenPanel.getComponent(3)).getComponent(0);
+        JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
+        JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
+
+        functionButtonsPanel.removeAll();
+        functionButtonsPanel.add(new JLabel("検索結果"));
+
+        JButton addEmployeeButton = new JButton("一覧へ戻る");
+        addEmployeeButton.setBackground(Color.WHITE);
+        addEmployeeButton.setForeground(Color.BLACK);
+        addEmployeeButton.setFocusPainted(false);
+        functionButtonsPanel.add(addEmployeeButton);
+
+        addEmployeeButton.addActionListener(e -> {
+            // 検索状態をリセット（必要に応じてEmployeeListOperatorに依頼）
+            tableEmployee = EmployeeManager.employeeList;
+            currentPage = 1;
+            refreshTable();
+            showNormalUI();
+        });
+
+        bottomWrapper.setVisible(false);
+
+        functionButtonsPanel.revalidate();
+        functionButtonsPanel.repaint();
+    }
+
+    private void showNormalUI() {
+        JPanel centerPanel = (JPanel) ((JPanel) fullScreenPanel.getComponent(3)).getComponent(0);
+        JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
+        JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
+    
+        functionButtonsPanel.removeAll();
+    
+        functionButtonsPanel.add(new JLabel("エンジニア一覧"));
+    
+        addDefaultFunctionButtons(functionButtonsPanel); // ← ボタン再追加（共通化）
+    
+        bottomWrapper.setVisible(true);
+    
+        functionButtonsPanel.revalidate();
+        functionButtonsPanel.repaint();
     }
 
     /*
