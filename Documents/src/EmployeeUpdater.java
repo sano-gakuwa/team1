@@ -10,7 +10,6 @@ import javax.swing.JOptionPane;
 
 public class EmployeeUpdater extends Thread {
 
-    private static EmployeeInformation newEmployee;
     private final ViewAdditionScreen CALLERSCREEN = new ViewAdditionScreen();
     private final EmployeeManager MANAGER = new EmployeeManager();
     // 下村追加分-------------------------------------------------------
@@ -45,29 +44,24 @@ public class EmployeeUpdater extends Thread {
      *
      * @author nishiyama
      */
-    public void addition(EmployeeInformation newE) {
+    public void addition(EmployeeInformation newEmployee) {
         // 必須項目が空か確認
-        if (!validateEmployee(newE)) {
-            javax.swing.SwingUtilities.invokeLater(() -> {
-                CALLERSCREEN.showValidationError("必須項目が入力されていません");
-                MANAGER.LOGGER.info("必須項目の未入力（社員ID: " + newE.employeeID + "）"); // 例外処理の記述がないためinfoLog扱い
-            });
+        if (!validateEmployee(newEmployee)) {
+            showErrorDialog("必須項目が入力されていません");
             return;
         }
-
         // 重複チェック：既に同じ社員IDが存在していないか
         for (EmployeeInformation existing : EmployeeManager.employeeList) {
             if (existing.employeeID.equals(newEmployee.employeeID)) {
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     CALLERSCREEN.showValidationError("社員IDが既に存在します。別のIDを入力してください。");
-                    MANAGER.LOGGER.info("新規追加処理: 重複する社員IDが存在します（社員ID: " + newE.employeeID + "）"); // 例外処理の記述がないためinfoLog扱い
+                    MANAGER.LOGGER.info("新規追加処理: 重複する社員IDが存在します（社員ID: " + newEmployee.employeeID + "）"); // 例外処理の記述がないためinfoLog扱い
                 });
                 return;
             }
         }
-
         // バックアップファイル作成
-        File originalFile = new File("employee_data.csv");
+        File originalFile = EmployeeManager.ENPLOYEE_CSV;
         File backupFile = new File("employee_data_backup.csv");
         try {
             Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -77,91 +71,70 @@ public class EmployeeUpdater extends Thread {
             showError("CSVバックアップ作成に失敗しました");
             return;
         }
-
         // CSVファイルのロック処理
-        synchronized (EmployeeUpdater.class) {
-            FileLock lock = null;
-            FileOutputStream fos = null;
-
+        FileLock lock = null;
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(originalFile, true);
+            FileChannel channel = fos.getChannel();
+            lock = channel.lock(); // CSVファイルの排他ロック（同時書き込み防止）
+            PrintWriter pw = new PrintWriter(new BufferedWriter(
+                    new OutputStreamWriter(fos, "Shift-JIS")));
+            // 追加情報を記述
+            pw.println(convertToCSV(newEmployee));
+            MANAGER.LOGGER.info("CSVファイルに社員情報を追記成功（社員ID: " + newEmployee.employeeID + "）");
+            pw.close();
+            MANAGER.LOGGER.info("ファイルロック解除成功");
+        } catch (IOException e) {
+            MANAGER.printErrorLog(e, "CSVファイル新規追加失敗しました");
+            // 追記中エラー時のロールバック処理を追加
             try {
-                fos = new FileOutputStream(originalFile, true);
-                FileChannel channel = fos.getChannel();
-
-                lock = channel.lock(); // CSVファイルの排他ロック（同時書き込み防止）
-
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-                // 追加情報を記述
-                bw.write(convertToCSV(newE));
-                MANAGER.LOGGER.info("入力情報をCSV形式の文字列に変換成功（社員ID: " + newE.employeeID + "）");
-                bw.newLine();
-                MANAGER.LOGGER.info("CSVファイルに社員情報を追記成功（社員ID: " + newE.employeeID + "）");
-                bw.flush();
-                bw.close();
-                MANAGER.LOGGER.info("CSVファイルへの書き込みとクローズ処理が正常に完了（社員ID: " + newE.employeeID + "）");
-                lock.release();
-                MANAGER.LOGGER.info("ファイルロック解除成功");
-
+                if (lock != null && lock.isValid()) {
+                    lock.release(); // エラーでもロック解除
+                    MANAGER.LOGGER.info("ファイルロック解除成功");
+                }
+            } catch (IOException ex) {
+                MANAGER.printErrorLog(e, "ファイルロック解除失敗");
+            }
+            try {
+                Files.deleteIfExists(originalFile.toPath()); // 失敗時にCSVファイルを削除
+                Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // バックアップを復元
+            } catch (IOException ex) {
+                MANAGER.printErrorLog(ex, "CSVファイルのロールバック処理に失敗");
+            }
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                CALLERSCREEN.showErrorMessageOnPanel("CSVファイルへの追加に失敗しました。"); // UIclassでエラーメッセージを表示
+            });
+            return; // スレッド終了（deactivateサブ）
+            // ファイル操作終了時、必ず対象ファイルに対するアクセス制御（ロック）や、開いたファイルのリソースを解放する
+        } finally {
+            try {
+                if (backupFile.exists()) {
+                    if (backupFile.delete()) {
+                        MANAGER.LOGGER.info("バックアップファイル削除成功");
+                    } else {
+                        MANAGER.LOGGER.warning("バックアップファイル削除失敗");
+                    }
+                }
+                if (lock != null && lock.isValid()) {
+                    lock.release();
+                    MANAGER.LOGGER.info("ファイルロック解除成功");
+                }
+                if (fos != null) {
+                    fos.close();
+                    MANAGER.LOGGER.info("ファイル出力ストリームクローズ成功");
+                }
             } catch (IOException e) {
-                // 追記中エラー時のロールバック処理を追加
-                try {
-                    if (lock != null && lock.isValid()) {
-                        lock.release(); // エラーでもロック解除
-                        MANAGER.LOGGER.info("ファイルロック解除成功");
-                    }
-                } catch (IOException ex) {
-                    MANAGER.printErrorLog(e, "ファイルロック解除失敗");
-                }
-
-                try {
-                    Files.deleteIfExists(originalFile.toPath()); // 失敗時にCSVファイルを削除
-                    Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // バックアップを復元
-                } catch (IOException ex) {
-                    MANAGER.printErrorLog(ex, "CSVファイルのロールバック処理に失敗");
-                }
-
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    CALLERSCREEN.showErrorMessageOnPanel("CSVファイルへの追加に失敗しました。"); // UIclassでエラーメッセージを表示
-                });
-
-                return; // スレッド終了（deactivateサブ）
-
-                // ファイル操作終了時、必ず対象ファイルに対するアクセス制御（ロック）や、開いたファイルのリソースを解放する
-            } finally {
-                try {
-                    if (backupFile.exists()) {
-                        if (backupFile.delete()) {
-                            MANAGER.LOGGER.info("バックアップファイル削除成功");
-                        } else {
-                            MANAGER.LOGGER.warning("バックアップファイル削除失敗");
-                        }
-                    }
-                    if (lock != null && lock.isValid()) {
-                        lock.release();
-                        MANAGER.LOGGER.info("ファイルロック解除成功");
-                    }
-                    if (fos != null) {
-                        fos.close();
-                        MANAGER.LOGGER.info("ファイル出力ストリームクローズ成功");
-                    }
-                } catch (IOException e) {
-                    MANAGER.printErrorLog(e, "finally句での後処理に失敗");
-                }
+                MANAGER.printErrorLog(e, "finally句での後処理に失敗");
             }
         }
 
         try {
-            EmployeeManager.employeeList.add(newE);
-            MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newE.employeeID + "）");
+            EmployeeManager.employeeList.add(newEmployee);
+            MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newEmployee.employeeID + "）");
         } catch (Exception e) {
-            MANAGER.printErrorLog(e, "社員リストに新規データを追加失敗（社員ID: " + newE.employeeID + "）");
+            MANAGER.printErrorLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.employeeID + "）");
         }
-
-        // リスト更新＋UI更新
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            CALLERSCREEN.showSuccessDialog("新規追加が完了しました。");
-            MANAGER.LOGGER.info("新規追加処理完了（社員ID: " + newE.employeeID + "）");
-        });
     }
 
     /**
@@ -172,17 +145,52 @@ public class EmployeeUpdater extends Thread {
      * @author nishiyama
      */
     private boolean validateEmployee(EmployeeInformation e) {
-        return e.employeeID != null && !e.employeeID.isEmpty()
-                && e.lastName != null && !e.lastName.isEmpty()
-                && e.firstname != null && !e.firstname.isEmpty()
-                && e.rubyLastName != null && !e.rubyLastName.isEmpty()
-                && e.rubyFirstname != null && !e.rubyFirstname.isEmpty()
-                && e.birthday != null
-                && e.joiningDate != null
-                && e.skillPoint != null
-                && e.attitudePoint != null
-                && e.communicationPoint != null
-                && e.leadershipPoint != null;
+        boolean validate = true;
+        if (e.employeeID == null || e.employeeID.isEmpty()) {
+            MANAGER.LOGGER.warning("社員ID欄が空欄です");
+            validate = false;
+        }
+        if (e.lastName == null || e.lastName.isEmpty()) {
+            MANAGER.LOGGER.warning("名字欄が空欄です");
+            validate = false;
+        }
+        if (e.firstname == null || e.firstname.isEmpty()) {
+            MANAGER.LOGGER.warning("名前欄が空欄です");
+            validate = false;
+        }
+        if (e.rubyLastName == null || e.rubyLastName.isEmpty()) {
+            MANAGER.LOGGER.warning("名字のフリガナ欄が空欄です");
+            validate = false;
+        }
+        if (e.rubyFirstname == null || e.rubyFirstname.isEmpty()) {
+            MANAGER.LOGGER.warning("名前のフリガナ欄が空欄です");
+            validate = false;
+        }
+        if (e.birthday == null) {
+            MANAGER.LOGGER.warning("誕生日欄が空欄です");
+            validate = false;
+        }
+        if (e.joiningDate == null) {
+            MANAGER.LOGGER.warning("入社年月欄が空欄です");
+            validate = false;
+        }
+        if (e.skillPoint == null) {
+            MANAGER.LOGGER.warning("技術欄が空欄です");
+            validate = false;
+        }
+        if (e.communicationPoint == null) {
+            MANAGER.LOGGER.warning("コミュニケーション能力欄が空欄です");
+            validate = false;
+        }
+        if (e.attitudePoint == null) {
+            MANAGER.LOGGER.warning("受講態度欄が空欄です");
+            validate = false;
+        }
+        if (e.leadershipPoint == null) {
+            MANAGER.LOGGER.warning("リーダーシップ欄が空欄です");
+            validate = false;
+        }
+        return validate;
     }
 
     /**
@@ -338,5 +346,6 @@ public class EmployeeUpdater extends Thread {
     private void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
+
     // -------------------
 }
