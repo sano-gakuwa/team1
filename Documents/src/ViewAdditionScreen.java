@@ -1,7 +1,6 @@
 
 import java.awt.*;
 import java.awt.event.*;
-
 import java.util.*;
 
 import javax.swing.*;
@@ -35,7 +34,9 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
     private JButton saveButton, backButton;
 
-    public ViewAdditionScreen()  {
+    private final EmployeeManager MANAGER = new EmployeeManager();
+
+    public ViewAdditionScreen() {
     }
 
     // メイン画面の表示処理
@@ -45,14 +46,12 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         frame.setTitle("エンジニア情報 新規追加画面");
         JPanel container = new JPanel(null);
         container.setBounds(25, 25, 800, 550);
-
         setupEmployeeId(container);
         setupNameFields(container);
         setupDateAndLanguageFields(container);
         setupCareerAndSkills(container);
         setupTrainingAndRemarks(container);
         setupButtons(container);
-
         fullScreenPanel.add(container);
         frame.setVisible(true);
     }
@@ -94,7 +93,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         panel.add(createLabel("扱える言語", 610, 130));
 
         // 生年月日
-        JComboBox<Integer>[] birthYear = new JComboBox[10];
+        JComboBox<Integer>[] birthYear = new JComboBox[1];
         JComboBox<Integer>[] birthMonth = new JComboBox[1];
         JComboBox<Integer>[] birthDay = new JComboBox[1];
         birthPanel = dateSelector(true, birthYear, birthMonth, birthDay);
@@ -187,7 +186,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
                     javax.swing.JOptionPane.WARNING_MESSAGE);
             if (result == javax.swing.JOptionPane.YES_OPTION) {
                 refreshUI();
-                ViewTopScreen top=new ViewTopScreen();
+                ViewTopScreen top = new ViewTopScreen();
                 top.View();
             } else if (result == JOptionPane.NO_OPTION) {
                 // NO_OPTION の場合は何もしない（入力画面に留まる）
@@ -195,13 +194,15 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         });
 
         // 保存ボタン（中央）
-        EmployeeInformation info = collectInputData();
         saveButton = new JButton("保存");
         saveButton.setBounds(350, 470, 80, 30);
-        saveButton.addActionListener(e->{
+        saveButton.addActionListener(e -> {
+            EmployeeInformation info = collectInputData();
             EmployeeUpdater Updater = new EmployeeUpdater();
-            Updater.addition(info); 
-            ViewTopScreen top=new ViewTopScreen();
+            Updater.addition(info);
+            MANAGER.LOGGER.info("新規社員情報の追加開始");
+            refreshUI();
+            ViewTopScreen top = new ViewTopScreen();
             top.View();
         });
         panel.add(saveButton);
@@ -403,23 +404,18 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             String firstName = getFieldValue(firstNameField, "太郎");
             String rubyLastName = getFieldValue(rubyLastNameField, "ヤマダ");
             String rubyFirstName = getFieldValue(rubyFirstNameField, "タロウ");
-
             Date birthday = getDateFromSelector(birthPanel);
             Date joiningDate = getDateFromSelector(joinPanel);
             int engineerDate = getYearMonthFromSelector(engPanel); // 月数換算
-
             String availableLanguages = getFieldValue(languageField, "html・CSS");
             String careerDate = getFieldValue(careerArea, "XXXXXXX");
-
             double skillPoint = parseScore(techCombo);
             double communicationPoint = parseScore(commCombo);
             double attitudePoint = parseScore(attitudeCombo);
             double leadershipPoint = parseScore(leaderCombo);
             String trainingDate = getFieldValue(remarksArea, "2000年4月1日株式会社XXXX入社");
             String remarks = getFieldValue(remarksArea, "特になし");
-
             Date updatedDay = new Date();
-
             return new EmployeeInformation(
                     employeeID, lastName, firstName, rubyLastName, rubyFirstName,
                     birthday, joiningDate, engineerDate, availableLanguages,
