@@ -4,19 +4,20 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.event.MouseAdapter;//5/24  追記
-import java.awt.event.MouseEvent;//5/24  追記
-import java.awt.event.MouseListener;//5/24  追記
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;//下村追加分
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -30,28 +31,24 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
 public class ViewTopScreen extends SetUpTopScreen {
-    private JButton bulkSelectButton;// 選択操作
-    JPanel topScreenPanel; // 一覧画面
-    JPanel selectedScreenPanel; // 選択画面
-
-    private JTable engineerTable;
-    private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);
-    public int currentPage = 1; // UpdateEmployee クラスからの外部アクセス
-    public int totalPages = 1;
-    private ArrayList<String> selected = new ArrayList<>();
-    private DefaultTableModel model;
-    private ArrayList<EmployeeInformation> tableEmployee = null;
-    private final EmployeeManager MANAGER = new EmployeeManager();
+    private JTable engineerTable;// 社員情報表示欄
+    private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);// ページ数表示箇所
+    public int currentPage = 1; // 現在のページ数
+    public int totalPages = 1;// ページ数
+    private ArrayList<String> selected = new ArrayList<>();// 選択された社員情報
+    private DefaultTableModel model;// JTablの表示モデル
+    private ArrayList<EmployeeInformation> tableEmployee = null;// JTablに表示する社員情報
+    private final EmployeeManager MANAGER = new EmployeeManager();// 社員情報の管理用
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
         engineerTable = new JTable();// 先にテーブルを初期化してから refreshTable を呼ぶ
-        tableEmployee = EmployeeManager.employeeList;
-        setupEngineerList();
+        tableEmployee = EmployeeManager.employeeList;// JTablに表示用に社員情報リストからコピー
+        setupViewTopScreen();// 一覧画面の初期化
         refreshTable(); // 画面初期表示とデータ同期
     }
 
-    private void setupEngineerList() {
+    private void setupViewTopScreen() {
 
         // 検索バー
         JPanel topWrapper = (JPanel) fullScreenPanel.getComponent(1);
@@ -75,13 +72,14 @@ public class ViewTopScreen extends SetUpTopScreen {
         JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
         JPanel employeeListPanel = (JPanel) centerPanel.getComponent(2);
         centerPanel.setOpaque(false);// 背景透過
-        // 仮ボタン配置
+        // ボタン配置
         functionButtonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
         functionButtonsPanel.setOpaque(false); // 背景透過
         functionButtonsPanel.add(new JLabel("エンジニア一覧"));
         JButton addEmployeeButton = new JButton("新規");
         JButton loadButton = new JButton("読込");
         JButton templateButton = new JButton("テンプレート出力");
+        JButton bulkSelectButton = new JButton("ページ内一括選択");
 
         // =============================================
         // 各種ボタンイベント設定（下記担当者記載）
@@ -89,11 +87,15 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         // 「新規追加」ボタン押下後イベント※{}内追記お願いします
         addEmployeeButton.addActionListener(e -> {
+            refreshUI();
+            ViewAdditionScreen addition = new ViewAdditionScreen();
+            addition.view();
         });
         functionButtonsPanel.add(addEmployeeButton);
 
         // 「読込」ボタン押下後イベント※{}内追記お願いします
         loadButton.addActionListener(e -> {
+            selectFile();
         });
         functionButtonsPanel.add(loadButton);
 
@@ -105,7 +107,6 @@ public class ViewTopScreen extends SetUpTopScreen {
         functionButtonsPanel.add(templateButton);
 
         // 選択画面（ViewSelectedScreen ）に遷移
-        bulkSelectButton = new JButton("ページ内一括選択");
         functionButtonsPanel.add(bulkSelectButton);
         bulkSelectButton.addActionListener(e -> {
             for (int i = 0; i < 10; i++) {
@@ -289,7 +290,6 @@ public class ViewTopScreen extends SetUpTopScreen {
         if (pageData.length > 0) {
             try {
                 TableColumn detailColumn = engineerTable.getColumn("詳細");
-                System.out.println(detailColumn);
                 detailColumn.setCellRenderer(new ButtonRenderer());
             } catch (IllegalArgumentException e) {
                 MANAGER.printErrorLog(e, "詳細列の設定失敗：");
@@ -432,5 +432,39 @@ public class ViewTopScreen extends SetUpTopScreen {
             }
         }
         return age;
+    }
+
+    private void selectFile() {
+        JFileChooser filechooser = new JFileChooser();
+        filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int selected = filechooser.showOpenDialog(filechooser);
+        if (selected == JFileChooser.APPROVE_OPTION) {
+            String selectedFilePath = filechooser.getSelectedFile().toString();
+            showCreateCsvDialog(selectedFilePath);
+        }
+    }
+
+    private void showCreateCsvDialog(String selectedFile) {
+        String[] label = { "読み込み", "キャンセル", "参照" };
+        int selectButton = JOptionPane.showOptionDialog(
+                null,
+                "以下のCSVファイルを読み込みます\n"
+                        + "選択中" + selectedFile,
+                "確認ダイアログ",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                label,
+                null);
+        if (selectButton == 0) {
+            MANAGER.LOGGER.info("CSV読み込みを開始");
+            CsvConverter csvConverter = new CsvConverter();
+            csvConverter.readCsv(selectedFile);
+        } else if (selectButton == 1) {
+            MANAGER.LOGGER.info("CSV読み込みをキャンセル");
+        } else if (selectButton == 2) {
+            MANAGER.LOGGER.info("読み込むCSVを変更");
+            selectFile();
+        }
     }
 }
