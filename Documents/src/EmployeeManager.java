@@ -26,7 +26,7 @@ public class EmployeeManager extends SystemLog {
             "扱える言語", "経歴", "研修の受講歴", "技術力", "受講態度", "コミュニケーション能力", "リーダーシップ",
             "備考", "更新日"
     };
-    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");// 木下変更yyyy/MM/ddから変更
+    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
 
     public void setUp() {
         setUpLog();
@@ -74,7 +74,7 @@ public class EmployeeManager extends SystemLog {
         try {
             Files.createFile(path);// ファイルが存在しない為、ファイルを新規作成
         } catch (FileAlreadyExistsException e) {
-            //ファイルがすでに存在する場合
+            // ファイルがすでに存在する場合
             printErrorLog(e, "同じファイルがすでに存在します");
         } catch (Exception e) {
             printErrorLog(e, "ファイル新規作成で例外が発生しました");
@@ -126,7 +126,6 @@ public class EmployeeManager extends SystemLog {
                 }
             } catch (Exception e) {
                 printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
-                ;
             }
             scanner.close();
         } catch (Exception e) {
@@ -144,6 +143,6 @@ public class EmployeeManager extends SystemLog {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
-        LOGGER.severe(String.format("%s¥n%s", errorString, sw.toString()));
+        LOGGER.severe(String.format("%s\n%s", errorString, sw.toString()));
     }
 }
