@@ -237,8 +237,8 @@ public class EmployeeUpdater extends Thread {
                 backupEmployeeList = EmployeeManager.employeeList;
                 synchronized (EmployeeManager.employeeList) {
                     try {
-                        Iterator<EmployeeInformation> employeeIterator = EmployeeManager.employeeList.iterator();
-                        while (employeeIterator.hasNext()) {
+                        for (Iterator<EmployeeInformation> employeeIterator = EmployeeManager.employeeList
+                                .iterator(); employeeIterator.hasNext();) {
                             EmployeeInformation employee = employeeIterator.next();
                             // 選択された社員情報と合致したら削除
                             if (selected.contains(employee.employeeID) == true) {
@@ -258,6 +258,8 @@ public class EmployeeUpdater extends Thread {
                 // 社員情報保存CSVから選択した社員情報を削除
                 File originalFile = EmployeeManager.ENPLOYEE_CSV;
                 File backupFile = new File("CSV/employee_data_backup.csv");
+                FileLock lock = null;
+                FileOutputStream fos = null;
                 try {
                     try {
                         // バックアップファイル作成
@@ -267,8 +269,11 @@ public class EmployeeUpdater extends Thread {
                         showErrorDialog("バックアップファイルの作成に失敗しました");
                         return;
                     }
+                    fos = new FileOutputStream(originalFile);
+                    FileChannel channel = fos.getChannel();
+                    lock = channel.lock(); // CSVファイルの排他ロック（同時書き込み防止）
                     PrintWriter pw = new PrintWriter(new BufferedWriter(
-                            new OutputStreamWriter(new FileOutputStream(originalFile), "Shift-JIS")));
+                            new OutputStreamWriter(fos, "Shift-JIS")));
                     // 社員情報保存CSVファイルの1行目に項目名を記載
                     for (String category : EmployeeManager.EMPLOYEE_CATEGORY) {
                         pw.append(category + ",");
@@ -280,7 +285,22 @@ public class EmployeeUpdater extends Thread {
                         pw.println(convertToCSV(employee));
                     }
                     pw.close();
+                    try {
+                        if (lock != null && lock.isValid()) {
+                            lock.release(); // エラーでもロック解除
+                        }
+                    } catch (IOException ex) {
+                        MANAGER.LOGGER.info("ロック解除失敗");
+                    }
                 } catch (Exception e) {
+                    // 追記中エラー時のロールバック処理を追加
+                    try {
+                        if (lock != null && lock.isValid()) {
+                            lock.release(); // エラーでもロック解除
+                        }
+                    } catch (IOException ex) {
+                        MANAGER.LOGGER.info("ロック解除失敗");
+                    }
                     MANAGER.printErrorLog(e, "削除後の社員情報リストの保存に失敗しました");
                     if (originalFile.exists() && backupFile.exists()) {
                         try {
