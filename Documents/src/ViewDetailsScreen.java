@@ -209,7 +209,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         buckButton = new JButton("< 一覧画面に戻る");
         buckButton.setBounds(0, 470, 140, 30);
         buckButton.addActionListener(e -> {
-            frame.setVisible(false); // dispose()は使わない
+            refreshUI();
         
             ViewTopScreen top = new ViewTopScreen();
             top.View(); // ViewTopScreenを表示
