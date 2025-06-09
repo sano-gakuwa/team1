@@ -8,30 +8,37 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
-// 詳細表示画面クラス（SetUpDetailsScreenを継承）
+/**
+ * エンジニア情報を表示する画面クラス（編集不可モード）
+ */
 public class ViewDetailsScreen extends SetUpDetailsScreen {
 
-    // 各UIコンポーネントのフィールド定義
+    // 各種入力コンポーネント
     private JTextField employeeIdField;
     private JTextField rubyLastNameField, rubyFirstNameField;
     private JTextField lastNameField, firstNameField;
-    private JComboBox<String> birthYearBox, birthMonthBox, birthDayBox;
-    private JComboBox<String> joinYearBox, joinMonthBox, joinDayBox;
-    private JComboBox<String> engYearBox, engMonthBox;
+    private JTextField birthDateField, joinDateField, engDurationField;
     private JTextField languageField;
     private JTextArea careerArea, trainingArea, remarksArea;
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
-    private JButton editButton, buckButton;
+    private JButton buckButton;
 
-    // コンストラクタ
-    public ViewDetailsScreen() {
-        super(); // SetUpDetailsScreenの初期化
+    // 表示対象のエンジニア情報
+    private EmployeeInformation employeeInformation;
+
+    /**
+     * コンストラクタ：エンジニア情報を受け取る
+     */
+    public ViewDetailsScreen(EmployeeInformation employeeInformation) {
+        super();
+        this.employeeInformation = employeeInformation;
     }
 
-    // 画面表示メソッド
+    /**
+     * 画面を構築・表示するメイン処理
+     */
     public void view() {
         fullScreenPanel.removeAll();
         fullScreenPanel.setLayout(null);
@@ -42,26 +49,33 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         JPanel container = new JPanel(null);
         container.setBounds(25, 25, 800, 550);
 
-        // 各UI要素をセットアップ
+        // 各UIセクションの構築
         setupEmployeeId(container);
         setupNameFields(container);
         setupDateAndLanguageFields(container);
         setupCareerAndSkills(container);
         setupTrainingAndRemarks(container);
-        setupButtons(container);
+        setupButtons(container); // 戻る・編集ボタン
 
         fullScreenPanel.add(container);
         frame.setContentPane(fullScreenPanel);
         frame.setVisible(true);
+
+        // 受け取ったエンジニア情報を各UIへ反映
+        setValues();
     }
 
-    // テキスト入力を編集不可にするユーティリティ
+    /**
+     * テキスト入力欄を全て読み取り専用（編集不可）にする共通処理
+     */
     private void makeTextComponentReadOnly(JTextComponent comp) {
         comp.setEditable(false);
         comp.setFocusable(false);
     }
 
-    // 社員IDフィールドの設定
+    /**
+     * 社員IDフィールドの設定
+     */
     private void setupEmployeeId(JPanel panel) {
         employeeIdField = new JTextField();
         employeeIdField.setBounds(0, 0, 130, 30);
@@ -69,8 +83,11 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         panel.add(employeeIdField);
     }
 
-    // 氏名関連の設定
+    /**
+     * 氏名・ふりがなの入力欄を設定
+     */
     private void setupNameFields(JPanel panel) {
+        // ふりがな
         rubyLastNameField = new JTextField();
         rubyLastNameField.setBounds(0, 40, 195, 30);
         makeTextComponentReadOnly(rubyLastNameField);
@@ -81,6 +98,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         makeTextComponentReadOnly(rubyFirstNameField);
         panel.add(rubyFirstNameField);
 
+        // 漢字氏名（太字フォント）
         lastNameField = new JTextField();
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
         lastNameField.setBounds(0, 80, 195, 40);
@@ -94,82 +112,58 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         panel.add(firstNameField);
     }
 
-    // 日付や言語入力のUIを構成
+    /**
+     * 生年月日、入社日、経験年数、言語入力欄の設定
+     */
     private void setupDateAndLanguageFields(JPanel panel) {
-        // ラベル配置
         panel.add(createLabel("生年月日", 0, 130));
-        panel.add(createLabel("入社年月", 220, 130));
+        panel.add(createLabel("入社年月日", 220, 130));
         panel.add(createLabel("エンジニア歴", 440, 130));
         panel.add(createLabel("扱える言語", 585, 130));
 
-        // 生年月日（年、月、日）
-        birthYearBox = createComboBox(1970, 2025, "年");
-        birthYearBox.setBounds(0, 150, 70, 25);
-        birthYearBox.setEnabled(false);
-        panel.add(birthYearBox);
+        birthDateField = new JTextField();
+        birthDateField.setBounds(0, 150, 195, 25);
+        makeTextComponentReadOnly(birthDateField);
+        panel.add(birthDateField);
 
-        birthMonthBox = createComboBox(1, 12, "月");
-        birthMonthBox.setBounds(75, 150, 60, 25);
-        birthMonthBox.setEnabled(false);
-        panel.add(birthMonthBox);
+        joinDateField = new JTextField();
+        joinDateField.setBounds(220, 150, 195, 25);
+        makeTextComponentReadOnly(joinDateField);
+        panel.add(joinDateField);
 
-        birthDayBox = createComboBox(1, 31, "日");
-        birthDayBox.setBounds(140, 150, 60, 25);
-        birthDayBox.setEnabled(false);
-        panel.add(birthDayBox);
+        engDurationField = new JTextField();
+        engDurationField.setBounds(440, 150, 130, 25);
+        makeTextComponentReadOnly(engDurationField);
+        panel.add(engDurationField);
 
-        // 入社年月（年、月、日）
-        joinYearBox = createComboBox(2000, 2025, "年");
-        joinYearBox.setBounds(220, 150, 70, 25);
-        joinYearBox.setEnabled(false);
-        panel.add(joinYearBox);
-
-        joinMonthBox = createComboBox(1, 12, "月");
-        joinMonthBox.setBounds(295, 150, 60, 25);
-        joinMonthBox.setEnabled(false);
-        panel.add(joinMonthBox);
-
-        joinDayBox = createComboBox(1, 31, "日");
-        joinDayBox.setBounds(360, 150, 60, 25);
-        joinDayBox.setEnabled(false);
-        panel.add(joinDayBox);
-
-        // エンジニア歴（年、月）
-        engYearBox = createComboBox(0, 50, "年");
-        engYearBox.setBounds(440, 150, 60, 25);
-        engYearBox.setEnabled(false);
-        panel.add(engYearBox);
-
-        engMonthBox = createComboBox(0, 11, "月");
-        engMonthBox.setBounds(505, 150, 60, 25);
-        engMonthBox.setEnabled(false);
-        panel.add(engMonthBox);
-
-        // 扱える言語
         languageField = new JTextField();
         languageField.setBounds(585, 150, 155, 25);
         makeTextComponentReadOnly(languageField);
         panel.add(languageField);
     }
 
-    // 経歴とスキル評価欄の構成
+    /**
+     * 経歴・スキル情報の表示パネル
+     */
     private void setupCareerAndSkills(JPanel panel) {
         panel.add(createLabel("経歴", 0, 190));
         panel.add(createLabel("スキル", 400, 190));
 
+        // 経歴（複数行）
         careerArea = new JTextArea();
         makeTextComponentReadOnly(careerArea);
         JScrollPane careerScroll = new JScrollPane(careerArea);
         careerScroll.setBounds(0, 210, 375, 120);
         panel.add(careerScroll);
 
-        // スキル評価（4つの評価項目）
+        // スキル（コンボボックス 4種）
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         techCombo = createScoreCombo();
         commCombo = createScoreCombo();
         attitudeCombo = createScoreCombo();
         leaderCombo = createScoreCombo();
 
+        // 編集不可にする
         techCombo.setEnabled(false);
         commCombo.setEnabled(false);
         attitudeCombo.setEnabled(false);
@@ -187,7 +181,9 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         panel.add(skillPanel);
     }
 
-    // 研修履歴と備考欄の設定
+    /**
+     * 研修履歴・備考欄の設定
+     */
     private void setupTrainingAndRemarks(JPanel panel) {
         panel.add(createLabel("研修受講歴", 0, 340));
         panel.add(createLabel("備考", 400, 340));
@@ -205,58 +201,79 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         panel.add(remarksScroll);
     }
 
-
-    // ラベル生成ヘルパー
+    /**
+     * 「一覧に戻る」「編集」ボタンの設定
+     */
+    private void setupButtons(JPanel panel) {
+        // 一覧に戻るボタン
+        buckButton = new JButton("< 一覧画面に戻る");
+        buckButton.setBounds(0, 470, 140, 30);
+        buckButton.addActionListener(e -> {
+            frame.setVisible(false); // dispose()は使わない
+        
+            ViewTopScreen top = new ViewTopScreen();
+            top.View(); // ViewTopScreenを表示
+        });
+        panel.add(buckButton);
+    
+    //     // 編集ボタン
+    //     JButton editButton = new JButton("編集 >");
+    //     editButton.setBounds(660, 470, 100, 30);
+    //     editButton.addActionListener(e -> {
+    //         frame.setVisible(false); // こちらも非表示にするだけ
+    //         ViewEditScreen editScreen = new ViewEditScreen(employeeInformation);
+    //         editScreen.view();  // 編集画面を開く
+    //     });
+    //     panel.add(editButton);
+    }
+    /**
+     * ラベルの共通作成処理
+     */
     private JLabel createLabel(String text, int x, int y) {
         JLabel label = new JLabel(text);
         label.setBounds(x, y, 100, 20);
         return label;
     }
 
-    // 年月日やスキル評価用のコンボボックス生成
-    private JComboBox<String> createComboBox(int from, int to, String suffix) {
-        JComboBox<String> box = new JComboBox<>();
-        for (int i = from; i <= to; i++) {
-            box.addItem(i + suffix);
-        }
-        return box;
-    }
-
-    // スキル評価（1.0〜5.0）の選択肢
+    /**
+     * スコア選択用コンボボックスを作成（1.0～5.0）
+     */
     private JComboBox<String> createScoreCombo() {
         String[] scores = {"1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0"};
         return new JComboBox<>(scores);
     }
 
+    /**
+     * エンジニア情報を各入力欄に反映する処理
+     */
+    private void setValues() {
+        employeeIdField.setText(employeeInformation.employeeID);
+        rubyLastNameField.setText(employeeInformation.rubyLastName);
+        rubyFirstNameField.setText(employeeInformation.rubyFirstname);
+        lastNameField.setText(employeeInformation.lastName);
+        firstNameField.setText(employeeInformation.firstname);
 
+        // 日付形式（yyyy/MM/dd）に変換して表示
+        String birthDateStr = EmployeeInformation.formatDate(employeeInformation.birthday);
+        birthDateField.setText(birthDateStr);
 
+        String joinDateStr = EmployeeInformation.formatDate(employeeInformation.joiningDate);
+        joinDateField.setText(joinDateStr);
 
-    // ボタン配置（戻る、編集）
-    private void setupButtons(JPanel panel) {
-        buckButton = new JButton("< 一覧画面に戻る");
-        buckButton.setBounds(0, 470, 140, 30);
-        buckButton.addActionListener(e -> {
-            frame.dispose(); // 現在の画面を閉じる
-            ViewTopScreen top = new ViewTopScreen();
-            top.View(); // 一覧画面を開く
-        });
-        panel.add(buckButton);
-    
-        editButton = new JButton("編集");
-        editButton.setBounds(360, 470, 80, 30);
-        editButton.addActionListener(e -> {
-            frame.dispose(); // 詳細画面を閉じる
-    
-            // 編集画面に選択中のエンジニア情報を渡して開く
-            ViewEditScreen editScreen = new ViewEditScreen(selectedEngineer);
-            editScreen.View(); // 編集画面を表示（Viewメソッドは適宜修正）
-        });
-        panel.add(editButton);
-    }
+        // 経験年数を表示（例：3年 0ヶ月）
+        String engDuration = employeeInformation.engineerDate + "年 0ヶ月";
+        engDurationField.setText(engDuration);
 
+        languageField.setText(employeeInformation.availableLanguages);
+        careerArea.setText(employeeInformation.careerDate);
 
-    // 起動用main関数
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ViewDetailsScreen().view());
+        // 各スキルポイントを反映
+        techCombo.setSelectedItem(String.format("%.1f", employeeInformation.skillPoint));
+        attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.attitudePoint));
+        commCombo.setSelectedItem(String.format("%.1f", employeeInformation.communicationPoint));
+        leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.leadershipPoint));
+
+        trainingArea.setText(employeeInformation.trainingDate);
+        remarksArea.setText(employeeInformation.remarks);
     }
 }
