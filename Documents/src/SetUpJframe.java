@@ -22,7 +22,8 @@ public abstract class SetUpJframe {
 
         // メインパネル
         // fullScreenPanel = new JPanel();
-        frame.add(fullScreenPanel);
+        //frame.add(fullScreenPanel);
+        frame.setContentPane(fullScreenPanel);
 
         // ✕ボタンのカスタム処理
         frame.addWindowListener(new WindowAdapter() {
