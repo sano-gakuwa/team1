@@ -4,6 +4,7 @@ import java.awt.GridLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -23,7 +24,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
     private JTextField languageField;
     private JTextArea careerArea, trainingArea, remarksArea;
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
-    private JButton buckButton;
+    private JButton buckButton, editButton;
 
     // 表示対象のエンジニア情報
     private EmployeeInformation employeeInformation;
@@ -63,6 +64,8 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
 
         // 受け取ったエンジニア情報を各UIへ反映
         setValues();
+
+        frame.setVisible(true);
     }
 
     /**
@@ -112,7 +115,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         panel.add(firstNameField);
     }
 
-    /**
+   /**
      * 生年月日、入社日、経験年数、言語入力欄の設定
      */
     private void setupDateAndLanguageFields(JPanel panel) {
@@ -210,22 +213,37 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         buckButton.setBounds(0, 470, 140, 30);
         buckButton.addActionListener(e -> {
             refreshUI();
-        
+
             ViewTopScreen top = new ViewTopScreen();
             top.View(); // ViewTopScreenを表示
         });
         panel.add(buckButton);
-    
-    //     // 編集ボタン
-    //     JButton editButton = new JButton("編集 >");
-    //     editButton.setBounds(660, 470, 100, 30);
-    //     editButton.addActionListener(e -> {
-    //         frame.setVisible(false); // こちらも非表示にするだけ
-    //         ViewEditScreen editScreen = new ViewEditScreen(employeeInformation);
-    //         editScreen.view();  // 編集画面を開く
-    //     });
-    //     panel.add(editButton);
+
+        editButton = new JButton("編集");
+        editButton.setBounds(350, 470, 80, 30);
+        editButton.addActionListener(e -> {
+            // 詳細画面のUI初期化（消す）
+            refreshUI();
+
+            // 編集画面のインスタンス生成（情報を渡す）
+            ViewEditScreen editScreen = new ViewEditScreen(employeeInformation);
+
+            // 編集画面を表示（編集可能）
+            editScreen.view();
+        });
+
+        panel.add(editButton);
+        // // 編集ボタン
+        // JButton editButton = new JButton("編集 >");
+        // editButton.setBounds(660, 470, 100, 30);
+        // editButton.addActionListener(e -> {
+        // frame.setVisible(false); // こちらも非表示にするだけ
+        // ViewEditScreen editScreen = new ViewEditScreen(employeeInformation);
+        // editScreen.view(); // 編集画面を開く
+        // });
+        // panel.add(editButton);
     }
+
     /**
      * ラベルの共通作成処理
      */
@@ -239,7 +257,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
      * スコア選択用コンボボックスを作成（1.0～5.0）
      */
     private JComboBox<String> createScoreCombo() {
-        String[] scores = {"1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0"};
+        String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
         return new JComboBox<>(scores);
     }
 
