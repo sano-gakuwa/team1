@@ -1,6 +1,7 @@
 
 import java.awt.*;
 import java.awt.event.*;
+import java.time.LocalDate;
 import java.util.*;
 
 import javax.swing.*;
@@ -13,23 +14,23 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     private JTextField rubyLastNameField, rubyFirstNameField;
     private JTextField lastNameField, firstNameField;
     // 生年月日
-    private JComboBox<Integer> birthYearCombo;
-    private JComboBox<Integer> birthMonthCombo;
-    private JComboBox<Integer> birthDayCombo;
+    private JComboBox<Integer> birthYearCombo = new JComboBox<>();
+    private JComboBox<Integer> birthMonthCombo = new JComboBox<>();
+    private JComboBox<Integer> birthDayCombo = new JComboBox<>();
 
     // 入社年月日
-    private JComboBox<Integer> joinYearCombo;
-    private JComboBox<Integer> joinMonthCombo;
-    private JComboBox<Integer> joinDayCombo;
+    private JComboBox<Integer> joinYearCombo = new JComboBox<>();
+    private JComboBox<Integer> joinMonthCombo = new JComboBox<>();
+    private JComboBox<Integer> joinDayCombo = new JComboBox<>();
 
     // エンジニア歴
-    private JComboBox<Integer> engYearCombo;
-    private JComboBox<Integer> engMonthCombo;
-    private JPanel birthPanel;
-    private JPanel joinPanel;
-    private JPanel engPanel;
+    private JComboBox<Integer> engYearCombo = new JComboBox<>();
+    private JComboBox<Integer> engMonthCombo = new JComboBox<>();
+    private JPanel birthPanel = new JPanel();
+    private JPanel joinPanel = new JPanel();
+    private JPanel engPanel = new JPanel();
     // 扱える言語
-    private JTextField languageField;
+    private JTextField availableLanguageField;
     private JTextArea careerArea, trainingArea, remarksArea;
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
     private JButton saveButton, backButton;
@@ -37,109 +38,106 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     private final EmployeeManager MANAGER = new EmployeeManager();
 
     public ViewAdditionScreen() {
+        frame.setTitle("エンジニア情報 新規追加画面");
+        setupViewAdditionScreen();
+
+    }
+
+    private void setupViewAdditionScreen() {
+        setupEmployeeId();
+        setupNameFields();
+        setupDateAndLanguageFields();
+        setupCareer();
+        setupSkills();
+        setupTraining();
+        setupRemarks();
+        setupButtons();
     }
 
     // メイン画面の表示処理
     public void view() {
-        refreshUI();
-        fullScreenPanel.setLayout(null);
-        frame.setTitle("エンジニア情報 新規追加画面");
-        JPanel container = new JPanel(null);
-        container.setBounds(25, 25, 800, 550);
-        setupEmployeeId(container);
-        setupNameFields(container);
-        setupDateAndLanguageFields(container);
-        setupCareerAndSkills(container);
-        setupTrainingAndRemarks(container);
-        setupButtons(container);
-        fullScreenPanel.add(container);
         frame.setVisible(true);
     }
 
     // 社員ID
-    private void setupEmployeeId(JPanel panel) {
+    private void setupEmployeeId() {
         employeeIdField = placeholderTextField("01234xx");
-        employeeIdField.setBounds(0, 0, 130, 30);
-        panel.add(employeeIdField);
+        employeeIdField.setBounds(15, 5, 130, 30);
+        idPanel.add(employeeIdField);
     }
 
     // 氏名（フリガナ + 氏名）
-    private void setupNameFields(JPanel panel) {
+    private void setupNameFields() {
         rubyLastNameField = placeholderTextField("ヤマダ");
-        rubyLastNameField.setBounds(0, 40, 195, 30);
-        panel.add(rubyLastNameField);
+        rubyLastNameField.setBounds(15, 15, 195, 30);
+        namePanel.add(rubyLastNameField);
 
         rubyFirstNameField = placeholderTextField("タロウ");
-        rubyFirstNameField.setBounds(205, 40, 195, 30);
-        panel.add(rubyFirstNameField);
+        rubyFirstNameField.setBounds(215, 15, 195, 30);
+        namePanel.add(rubyFirstNameField);
 
         lastNameField = placeholderTextField("山田");
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        lastNameField.setBounds(0, 80, 195, 40);
-        panel.add(lastNameField);
+        lastNameField.setBounds(15, 55, 195, 40);
+        namePanel.add(lastNameField);
 
         firstNameField = placeholderTextField("太郎");
         firstNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        firstNameField.setBounds(205, 80, 195, 40);
-        panel.add(firstNameField);
+        firstNameField.setBounds(215, 55, 195, 40);
+        namePanel.add(firstNameField);
     }
 
     // upperPanelに要素追加（生年月日、入社年月、エンジニア歴、扱える言語）
-    private void setupDateAndLanguageFields(JPanel panel) {
-        // ラベル
-        panel.add(createLabel("生年月日", 0, 130));
-        panel.add(createLabel("入社年月", 220, 130));
-        panel.add(createLabel("エンジニア歴", 440, 130));
-        panel.add(createLabel("扱える言語", 610, 130));
-
+    private void setupDateAndLanguageFields() {
         // 生年月日
-        JComboBox<Integer>[] birthYear = new JComboBox[1];
-        JComboBox<Integer>[] birthMonth = new JComboBox[1];
-        JComboBox<Integer>[] birthDay = new JComboBox[1];
-        birthPanel = dateSelector(true, birthYear, birthMonth, birthDay);
-        birthYearCombo = birthYear[0];
-        birthMonthCombo = birthMonth[0];
-        birthDayCombo = birthDay[0];
-        birthPanel.setBounds(0, 150, 210, 60);
-        panel.add(birthPanel);
-
+        birthdDayPanel.add(new JLabel("生年月日"), BorderLayout.NORTH);
+        birthPanel.add(dateSelector(birthYearCombo, birthMonthCombo, birthDayCombo));
+        birthPanel.setBackground(Color.WHITE);
+        birthdDayPanel.add(birthPanel, BorderLayout.SOUTH);
+        birthYearCombo.addActionListener(e -> {
+            updateDayCombo(birthYearCombo, birthMonthCombo, birthDayCombo);
+        });
+        birthMonthCombo.addActionListener(e -> {
+            updateDayCombo(birthYearCombo, birthMonthCombo, birthDayCombo);
+        });
         // 入社年月日
-        JComboBox<Integer>[] joinYear = new JComboBox[1];
-        JComboBox<Integer>[] joinMonth = new JComboBox[1];
-        JComboBox<Integer>[] joinDay = new JComboBox[1];
-        joinPanel = dateSelector(true, joinYear, joinMonth, joinDay);
-        joinYearCombo = joinYear[0];
-        joinMonthCombo = joinMonth[0];
-        joinDayCombo = joinDay[0];
-        joinPanel.setBounds(220, 150, 210, 60);
-        panel.add(joinPanel);
-
+        joiningDatePanel.add(new JLabel("入社年月"), BorderLayout.NORTH);
+        joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo));
+        joinPanel.setBackground(Color.WHITE);
+        joiningDatePanel.add(joinPanel, BorderLayout.SOUTH);
         // エンジニア歴
-        JComboBox<Integer>[] engYear = new JComboBox[1];
-        JComboBox<Integer>[] engMonth = new JComboBox[1];
-        engPanel = dateSelector(false, engYear, engMonth, null);
-        engYearCombo = engYear[0];
-        engMonthCombo = engMonth[0];
-        engPanel.setBounds(440, 150, 140, 60);
-        panel.add(engPanel);
-
+        engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
+        engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo));
+        engPanel.setBackground(Color.WHITE);
+        engineerDatePanel.add(engPanel, BorderLayout.SOUTH);
         // 扱える言語
-        languageField = placeholderTextField("html・CSS");
-        languageField.setBounds(610, 155, 170, 25);
-        panel.add(languageField);
+        JLabel availableLanguagesLabel = new JLabel("扱える言語");
+        availableLanguagesLabel.setBounds(0, -3, 100, 20);
+        availableLanguagesPanel.add(availableLanguagesLabel);
+        JPanel availableLanguageFieldPanel = new JPanel();
+        availableLanguageFieldPanel.setBounds(0, 15, 190, 40);
+        availableLanguageFieldPanel.setBackground(Color.LIGHT_GRAY);
+        availableLanguageFieldPanel.setLayout(null);
+        availableLanguageField = placeholderTextField("html・CSS");
+        availableLanguageField.setBounds(0, 5, 190, 30);
+        availableLanguageFieldPanel.add(availableLanguageField);
+        availableLanguagesPanel.add(availableLanguageFieldPanel);
     }
 
     // middlePanelの要素追加（経歴・スキル・スキルスコア）
-    private void setupCareerAndSkills(JPanel panel) {
-        panel.add(createLabel("経歴", 0, 190)); // 何かが上にのってる？
-        panel.add(createLabel("スキル", 440, 190)); // 何かが上にのってる？
-
-        careerArea = placeholderTextArea("XXXXXXX");
+    private void setupCareer() {
+        careerPanel.add(createLabel("経歴", 0, 0), BorderLayout.NORTH);
+        careerArea = new JTextArea(5, 30);
+        careerArea.setLineWrap(true);
+        placeholderTextArea("経歴", careerArea);
         JScrollPane careerScroll = new JScrollPane(careerArea);
-        careerScroll.setBounds(0, 210, 375, 120);
-        panel.add(careerScroll);
+        careerPanel.add(careerScroll, BorderLayout.CENTER);
+    }
 
+    private void setupSkills() {
+        skillsPanel.add(createLabel("スキル", 0, 0), BorderLayout.NORTH);
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        skillPanel.setBackground(Color.LIGHT_GRAY);
         techCombo = createScoreCombo();
         commCombo = createScoreCombo();
         attitudeCombo = createScoreCombo();
@@ -152,31 +150,35 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         skillPanel.add(attitudeCombo);
         skillPanel.add(new JLabel("リーダーシップ"));
         skillPanel.add(leaderCombo);
-        skillPanel.setBounds(440, 210, 360, 120);
-        panel.add(skillPanel);
+        skillPanel.setBounds(0, 10, 360, 10);
+        skillsPanel.add(skillPanel, BorderLayout.CENTER);
     }
 
     // 研修受講歴と備考
-    private void setupTrainingAndRemarks(JPanel panel) {
-        panel.add(createLabel("研修受講歴", 0, 340));
-        panel.add(createLabel("備考", 440, 340));
-
-        trainingArea = placeholderTextArea("2000年4月1日株式会社XXXX入社");
+    private void setupTraining() {
+        trainingRecordsPanel.add(createLabel("研修受講歴", 0, 0), BorderLayout.NORTH);
+        trainingArea = new JTextArea(5, 30);
+        trainingArea.setLineWrap(true);
+        placeholderTextArea("2000年4月1日株式会社XXXX入社", trainingArea);
         JScrollPane trainingScroll = new JScrollPane(trainingArea);
-        trainingScroll.setBounds(0, 360, 375, 100);
-        panel.add(trainingScroll);
+        trainingRecordsPanel.add(trainingScroll, BorderLayout.CENTER);
+    }
 
-        remarksArea = placeholderTextArea("特になし");
+    private void setupRemarks() {
+        remarksPanel.add(createLabel("備考", 440, 340), BorderLayout.NORTH);
+        remarksArea = new JTextArea(5, 30);
+        remarksArea.setLineWrap(true);
+        placeholderTextArea("特になし", remarksArea);
         JScrollPane remarksScroll = new JScrollPane(remarksArea);
-        remarksScroll.setBounds(440, 360, 340, 100);
-        panel.add(remarksScroll);
+        remarksPanel.add(remarksScroll, BorderLayout.CENTER);
     }
 
     // 保存・戻るボタン（左）
-    private void setupButtons(JPanel panel) {
+    private void setupButtons() {
+        bottomPanel.setLayout(null);
         backButton = new JButton("< 一覧画面へ戻る");
-        backButton.setBounds(0, 470, 140, 30);
-        panel.add(backButton);
+        backButton.setBounds(0, 0, 140, 30);
+        bottomPanel.add(backButton);
         backButton.addActionListener(e -> {
             int result = javax.swing.JOptionPane.showConfirmDialog(
                     null,
@@ -195,7 +197,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
 
         // 保存ボタン（中央）
         saveButton = new JButton("保存");
-        saveButton.setBounds(350, 470, 80, 30);
+        saveButton.setBounds(350, 0, 80, 30);
         saveButton.addActionListener(e -> {
             EmployeeInformation info = collectInputData();
             EmployeeUpdater Updater = new EmployeeUpdater();
@@ -205,7 +207,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             ViewTopScreen top = new ViewTopScreen();
             top.View();
         });
-        panel.add(saveButton);
+        bottomPanel.add(saveButton);
     }
 
     // 画面構成で呼び出すメソッド-------------------------------------------------------
@@ -226,69 +228,84 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     /**
      * 年月（必要に応じて日）を選択するためのセレクターパネルを作成。
      * 
-     * @param includeDay 日付の選択を含める場合は true、含めない場合は false
-     * @param yearBox    年の JComboBox の参照を格納する配列（長さ1の配列）
-     * @param monthBox   月の JComboBox の参照を格納する配列（長さ1の配列）
-     * @param dayBox     日の JComboBox の参照を格納する配列（長さ1の配列、includeDay=true 時のみ使用）
+     * @param yearBox  年の JComboBox の参照を格納する配列（長さ1の配列）
+     * @param monthBox 月の JComboBox の参照を格納する配列（長さ1の配列）
+     * @param dayBox   日の JComboBox の参照を格納する配列（長さ1の配列、includeDay=true 時のみ使用）
      * @return 年月（＋日）選択用の JPanel コンポネント
      * @author nishiyama
      */
-    private JPanel dateSelector(boolean includeDay,
-            JComboBox<Integer>[] yearBox,
-            JComboBox<Integer>[] monthBox,
-            JComboBox<Integer>[] dayBox) {
+    private JPanel dateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox, JComboBox<Integer> dayBox) {
+        LocalDate now = LocalDate.now();
+        Integer[] nowInteger = { now.getYear(), now.getMonthValue(), now.getDayOfMonth() };
+        //
+        Integer[] yearInteger = {};
+        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
         JPanel panel = new JPanel();
-        panel.setPreferredSize(new Dimension(200, 60));
+        Dimension size = new Dimension(205, 40);
+        int wrapperWidth = size.width;
+        int wrapperHeight = size.height;
+        panel.setPreferredSize(new Dimension(wrapperWidth, wrapperHeight));
+        panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
 
-        JComboBox<Integer> yearCombo = new JComboBox<>();
-        JComboBox<Integer> monthCombo = new JComboBox<>();
-        JComboBox<Integer> dayCombo = new JComboBox<>();
-
-        for (int i = 1900; i <= 2100; i++) {
-            yearCombo.addItem(i);
+        panel.setBackground(Color.LIGHT_GRAY);
+        for (int i = nowInteger[0] - 100; i <= nowInteger[0]; i++) {
+            yearModel.addElement(i);
         }
+        yearBox = new JComboBox<>(yearModel);
+        //
+        Integer[] monthInteger = {};
+        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
         for (int i = 1; i <= 12; i++) {
-            monthCombo.addItem(i);
+            monthModel.addElement(i);
         }
-
-        if (includeDay) {
-            int year = yearCombo.getItemAt(0);
-            int month = monthCombo.getItemAt(0);
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(year, month - 1, 1);
-            int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-            for (int i = 1; i <= maxDay; i++) {
-                dayCombo.addItem(i);
-            }
+        monthBox = new JComboBox<>(monthModel);
+        //
+        int year = yearModel.getElementAt(0);
+        int month = monthModel.getElementAt(0);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month - 1, 1);
+        int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        Integer[] dayInteger = {};
+        DefaultComboBoxModel<Integer> dayModel = new DefaultComboBoxModel<>(dayInteger);
+        for (int i = 1; i <= maxDay; i++) {
+            dayModel.addElement(i);
         }
-
-        yearCombo.addActionListener(e -> {
-            if (includeDay) {
-                updateDayCombo(yearCombo, monthCombo, dayCombo);
-            }
-        });
-        monthCombo.addActionListener(e -> {
-            if (includeDay) {
-                updateDayCombo(yearCombo, monthCombo, dayCombo);
-            }
-        });
-
-        panel.add(yearCombo);
+        dayBox = new JComboBox<>(dayModel);
+        panel.add(yearBox);
         panel.add(new JLabel("年"));
-        panel.add(monthCombo);
+        panel.add(monthBox);
         panel.add(new JLabel("月"));
-        if (includeDay) {
-            panel.add(dayCombo);
-            panel.add(new JLabel("日"));
-        }
+        panel.add(dayBox);
+        panel.add(new JLabel("日"));
+        return panel;
+    }
 
-        // 呼び出し元に参照を返す
-        yearBox[0] = yearCombo;
-        monthBox[0] = monthCombo;
-        if (includeDay) {
-            dayBox[0] = dayCombo;
-        }
+    private JPanel engineerDateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox) {
+        JPanel panel = new JPanel();
+        Dimension size = new Dimension(140, 40);
+        int wrapperWidth = size.width + 15;
+        int wrapperHeight = size.height;
+        panel.setPreferredSize(new Dimension(wrapperWidth, size.height));
+        panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
+        Integer[] yearInteger = {};
+        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
 
+        panel.setBackground(Color.LIGHT_GRAY);
+        for (int i = 0; i < 50; i++) {
+            yearModel.addElement(i);
+        }
+        yearBox = new JComboBox<>(yearModel);
+        //
+        Integer[] monthInteger = {};
+        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
+        for (int i = 0; i <= 11; i++) {
+            monthModel.addElement(i);
+        }
+        monthBox = new JComboBox<>(monthModel);
+        panel.add(yearBox);
+        panel.add(new JLabel("年"));
+        panel.add(monthBox);
+        panel.add(new JLabel("月"));
         return panel;
     }
 
@@ -309,8 +326,10 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         calendar.set(year, month - 1, 1);
         int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         dayCombo.removeAllItems();
+        Integer[] dayInteger = {};
+        DefaultComboBoxModel<Integer> dayModel = new DefaultComboBoxModel<>(dayInteger);
         for (int i = 1; i <= maxDay; i++) {
-            dayCombo.addItem(i);
+            dayModel.addElement(i);
         }
     }
 
@@ -360,8 +379,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @return プレースホルダー付きの JTextArea オブジェクト
      * @author nishiyama
      */
-    private JTextArea placeholderTextArea(String placeholder) {
-        JTextArea textArea = new JTextArea(5, 30);
+    private JTextArea placeholderTextArea(String placeholder, JTextArea textArea) {
         textArea.setText(placeholder);
         textArea.setForeground(Color.GRAY);
 
@@ -407,7 +425,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             Date birthday = getDateFromSelector(birthPanel);
             Date joiningDate = getDateFromSelector(joinPanel);
             int engineerDate = getYearMonthFromSelector(engPanel); // 月数換算
-            String availableLanguages = getFieldValue(languageField, "html・CSS");
+            String availableLanguages = getFieldValue(availableLanguageField, "html・CSS");
             String careerDate = getFieldValue(careerArea, "XXXXXXX");
             double skillPoint = parseScore(techCombo);
             double communicationPoint = parseScore(commCombo);
