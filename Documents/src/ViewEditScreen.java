@@ -1,311 +1,522 @@
 import java.awt.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import javax.swing.*;
+import java.awt.event.*;
+import java.time.LocalDate;
+import java.util.*;
 
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+
+/**
+ * エンジニア情報を表示する画面クラス（編集不可モード）
+ */
 public class ViewEditScreen extends SetUpDetailsScreen {
 
-    private EmployeeInformation editedEmployee;
-    JTextField employeeIdField;
+    // UIコンポーネント（インスタンス変数）
+    private JTextField employeeIdField;
     private JTextField rubyLastNameField, rubyFirstNameField;
     private JTextField lastNameField, firstNameField;
-    private JComboBox<String> birthYearBox, birthMonthBox, birthDayBox;
-    private JComboBox<String> joinYearBox, joinMonthBox, joinDayBox;
-    private JComboBox<String> engYearBox, engMonthBox;
-    private JTextField languageField;
+    // 生年月日
+    private JComboBox<Integer> birthYearCombo = new JComboBox<>();
+    private JComboBox<Integer> birthMonthCombo = new JComboBox<>();
+    private JComboBox<Integer> birthDayCombo = new JComboBox<>();
+
+    // 入社年月日
+    private JComboBox<Integer> joinYearCombo = new JComboBox<>();
+    private JComboBox<Integer> joinMonthCombo = new JComboBox<>();
+    private JComboBox<Integer> joinDayCombo = new JComboBox<>();
+
+    // エンジニア歴
+    private JComboBox<Integer> engYearCombo = new JComboBox<>();
+    private JComboBox<Integer> engMonthCombo = new JComboBox<>();
+    private JPanel birthPanel = new JPanel();
+    private JPanel joinPanel = new JPanel();
+    private JPanel engPanel = new JPanel();
+    // 扱える言語
+    private JTextField availableLanguageField;
     private JTextArea careerArea, trainingArea, remarksArea;
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
-    private JButton saveButton, cancelButton;
+    private JButton saveButton, backButton;
 
+    private final EmployeeManager MANAGER = new EmployeeManager();
+
+    // 表示対象のエンジニア情報
     private EmployeeInformation employeeInformation;
 
-    public ViewEditScreen(EmployeeInformation employeeInformation) {
-        super();
-        this.employeeInformation = employeeInformation;
-    }
-
-    public void view() {
-        System.out.println("編集画面に遷移しました");
-        System.out.println("社員ID: " + employeeInformation.employeeID);
-        System.out.println("名前: " + employeeInformation.lastName + " " + employeeInformation.firstname);
-
-        fullScreenPanel.removeAll();
-        fullScreenPanel.setLayout(null);
-
+    /**
+     * コンストラクタ：エンジニア情報を受け取る
+     */
+    public ViewEditScreen() {
         frame.setTitle("エンジニア情報 編集画面");
-        frame.setSize(850, 600);
-        frame.setResizable(false);
+    }
 
-        JPanel container = new JPanel(null);
-        container.setBounds(25, 25, 800, 550);
+    private void setupDetailsScreen() {
+        setupEmployeeId();
+        setupNameFields();
+        setupDateAndLanguageFields();
+        setupCareer();
+        setupSkills();
+        setupTraining();
+        setupRemarks();
+        setupButtons();
+    }
 
-        setupEmployeeId(container);
-        setupNameFields(container);
-        setupDateAndLanguageFields(container);
-        setupCareerAndSkills(container);
-        setupTrainingAndRemarks(container);
-        setupButtons(container);
-
-        fullScreenPanel.add(container);
-        frame.setContentPane(fullScreenPanel);
-        fullScreenPanel.revalidate();
-        fullScreenPanel.repaint();
-        frame.setVisible(true);
-
+    // メイン画面の表示処理
+    public void view(EmployeeInformation employeeInformation) {
+        this.employeeInformation = employeeInformation;
+        setupDetailsScreen();
         setValues();
-        setEditableFields(true);
+        frame.setVisible(true);
     }
 
-    private void setupEmployeeId(JPanel panel) {
-        employeeIdField = new JTextField();
-        employeeIdField.setBounds(0, 0, 130, 30);
-        employeeIdField.setEditable(false);
-        panel.add(employeeIdField);
+    // 社員ID
+    private void setupEmployeeId() {
+        employeeIdField = placeholderTextField("01234xx");
+        employeeIdField.setBounds(15, 5, 130, 30);
+        idPanel.add(employeeIdField);
     }
 
-    private void setupNameFields(JPanel panel) {
-        rubyLastNameField = new JTextField();
-        rubyLastNameField.setBounds(0, 40, 195, 30);
-        panel.add(rubyLastNameField);
+    // 氏名（フリガナ + 氏名）
+    private void setupNameFields() {
+        rubyLastNameField = placeholderTextField("ヤマダ");
+        rubyLastNameField.setBounds(15, 15, 195, 30);
+        namePanel.add(rubyLastNameField);
 
-        rubyFirstNameField = new JTextField();
-        rubyFirstNameField.setBounds(205, 40, 195, 30);
-        panel.add(rubyFirstNameField);
+        rubyFirstNameField = placeholderTextField("タロウ");
+        rubyFirstNameField.setBounds(215, 15, 195, 30);
+        namePanel.add(rubyFirstNameField);
 
-        lastNameField = new JTextField();
+        lastNameField = placeholderTextField("山田");
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        lastNameField.setBounds(0, 80, 195, 40);
-        panel.add(lastNameField);
+        lastNameField.setBounds(15, 55, 195, 40);
+        namePanel.add(lastNameField);
 
-        firstNameField = new JTextField();
+        firstNameField = placeholderTextField("太郎");
         firstNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        firstNameField.setBounds(205, 80, 195, 40);
-        panel.add(firstNameField);
+        firstNameField.setBounds(215, 55, 195, 40);
+        namePanel.add(firstNameField);
     }
 
-    private void setupDateAndLanguageFields(JPanel panel) {
-        panel.add(createLabel("生年月日", 0, 130));
-        panel.add(createLabel("入社年月", 220, 130));
-        panel.add(createLabel("エンジニア歴", 440, 130));
-        panel.add(createLabel("扱える言語", 585, 130));
-
-        birthYearBox = new JComboBox<>();
-        birthYearBox.setBounds(0, 150, 70, 25);
-        panel.add(birthYearBox);
-
-        birthMonthBox = new JComboBox<>();
-        birthMonthBox.setBounds(75, 150, 60, 25);
-        panel.add(birthMonthBox);
-
-        birthDayBox = new JComboBox<>();
-        birthDayBox.setBounds(140, 150, 60, 25);
-        panel.add(birthDayBox);
-
-        joinYearBox = new JComboBox<>();
-        joinYearBox.setBounds(220, 150, 70, 25);
-        panel.add(joinYearBox);
-
-        joinMonthBox = new JComboBox<>();
-        joinMonthBox.setBounds(295, 150, 60, 25);
-        panel.add(joinMonthBox);
-
-        joinDayBox = new JComboBox<>();
-        joinDayBox.setBounds(360, 150, 60, 25);
-        panel.add(joinDayBox);
-
-        engYearBox = new JComboBox<>();
-        engYearBox.setBounds(440, 150, 60, 25);
-        panel.add(engYearBox);
-
-        engMonthBox = new JComboBox<>();
-        engMonthBox.setBounds(505, 150, 60, 25);
-        panel.add(engMonthBox);
-
-        languageField = new JTextField();
-        languageField.setBounds(585, 150, 155, 25);
-        panel.add(languageField);
+    // upperPanelに要素追加（生年月日、入社年月、エンジニア歴、扱える言語）
+    private void setupDateAndLanguageFields() {
+        // 生年月日
+        birthdDayPanel.add(new JLabel("生年月日"), BorderLayout.NORTH);
+        birthPanel.add(dateSelector(birthYearCombo, birthMonthCombo, birthDayCombo));
+        birthPanel.setBackground(Color.WHITE);
+        birthdDayPanel.add(birthPanel, BorderLayout.SOUTH);
+        // 入社年月日
+        joiningDatePanel.add(new JLabel("入社年月"), BorderLayout.NORTH);
+        joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo));
+        joinPanel.setBackground(Color.WHITE);
+        joiningDatePanel.add(joinPanel, BorderLayout.SOUTH);
+        // エンジニア歴
+        engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
+        engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo));
+        engPanel.setBackground(Color.WHITE);
+        engineerDatePanel.add(engPanel, BorderLayout.SOUTH);
+        // 扱える言語
+        JLabel availableLanguagesLabel = new JLabel("扱える言語");
+        availableLanguagesLabel.setBounds(0, -3, 100, 20);
+        availableLanguagesPanel.add(availableLanguagesLabel);
+        JPanel availableLanguageFieldPanel = new JPanel();
+        availableLanguageFieldPanel.setBounds(0, 15, 190, 40);
+        availableLanguageFieldPanel.setBackground(Color.LIGHT_GRAY);
+        availableLanguageFieldPanel.setLayout(null);
+        availableLanguageField = placeholderTextField("html・CSS");
+        availableLanguageField.setBounds(0, 5, 190, 30);
+        availableLanguageFieldPanel.add(availableLanguageField);
+        availableLanguagesPanel.add(availableLanguageFieldPanel);
     }
 
-    private void setupCareerAndSkills(JPanel panel) {
-        panel.add(createLabel("経歴", 0, 190));
-        careerArea = new JTextArea();
-        JScrollPane scroll1 = new JScrollPane(careerArea);
-        scroll1.setBounds(0, 210, 375, 120);
-        panel.add(scroll1);
+    // middlePanelの要素追加（経歴・スキル・スキルスコア）
+    private void setupCareer() {
+        careerPanel.add(createLabel("経歴", 0, 0), BorderLayout.NORTH);
+        careerArea = new JTextArea(5, 30);
+        careerArea.setLineWrap(true);
+        placeholderTextArea("経歴", careerArea);
+        JScrollPane careerScroll = new JScrollPane(careerArea);
+        careerPanel.add(careerScroll, BorderLayout.CENTER);
+    }
 
-        panel.add(createLabel("スキル", 400, 190));
-
+    private void setupSkills() {
+        skillsPanel.add(createLabel("スキル", 0, 0), BorderLayout.NORTH);
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
-        skillPanel.setBounds(400, 210, 265, 120);
-
+        skillPanel.setBackground(Color.LIGHT_GRAY);
+        techCombo = createScoreCombo();
+        commCombo = createScoreCombo();
+        attitudeCombo = createScoreCombo();
+        leaderCombo = createScoreCombo();
         skillPanel.add(new JLabel("技術力"));
-        techCombo = new JComboBox<>();
         skillPanel.add(techCombo);
-
         skillPanel.add(new JLabel("コミュニケーション能力"));
-        commCombo = new JComboBox<>();
         skillPanel.add(commCombo);
-
         skillPanel.add(new JLabel("受講態度"));
-        attitudeCombo = new JComboBox<>();
         skillPanel.add(attitudeCombo);
-
         skillPanel.add(new JLabel("リーダーシップ"));
-        leaderCombo = new JComboBox<>();
         skillPanel.add(leaderCombo);
-
-        panel.add(skillPanel);
+        skillPanel.setBounds(0, 10, 360, 10);
+        skillsPanel.add(skillPanel, BorderLayout.CENTER);
     }
 
-    private void setupTrainingAndRemarks(JPanel panel) {
-        panel.add(createLabel("研修受講歴", 0, 340));
-        trainingArea = new JTextArea();
-        JScrollPane scroll2 = new JScrollPane(trainingArea);
-        scroll2.setBounds(0, 360, 375, 100);
-        panel.add(scroll2);
-
-        panel.add(createLabel("備考", 400, 340));
-        remarksArea = new JTextArea();
-        JScrollPane scroll3 = new JScrollPane(remarksArea);
-        scroll3.setBounds(400, 360, 340, 100);
-        panel.add(scroll3);
+    // 研修受講歴と備考
+    private void setupTraining() {
+        trainingRecordsPanel.add(createLabel("研修受講歴", 0, 0), BorderLayout.NORTH);
+        trainingArea = new JTextArea(5, 30);
+        trainingArea.setLineWrap(true);
+        placeholderTextArea("2000年4月1日株式会社XXXX入社", trainingArea);
+        JScrollPane trainingScroll = new JScrollPane(trainingArea);
+        trainingRecordsPanel.add(trainingScroll, BorderLayout.CENTER);
     }
 
-    private void setupButtons(JPanel panel) {
-        cancelButton = new JButton("＜編集キャンセル");
-        cancelButton.setBounds(0, 470, 140, 30);
-        cancelButton.addActionListener(e -> {
-            int confirmCancel = JOptionPane.showConfirmDialog(
-                    frame,
-                    "保存せずに前の画面に戻ると編集中の内容は破棄されますが本当によろしいですか？",
+    private void setupRemarks() {
+        remarksPanel.add(createLabel("備考", 440, 340), BorderLayout.NORTH);
+        remarksArea = new JTextArea(5, 30);
+        remarksArea.setLineWrap(true);
+        placeholderTextArea("特になし", remarksArea);
+        JScrollPane remarksScroll = new JScrollPane(remarksArea);
+        remarksPanel.add(remarksScroll, BorderLayout.CENTER);
+    }
+
+    // 保存・戻るボタン（左）
+    private void setupButtons() {
+        bottomPanel.setLayout(null);
+        backButton = new JButton("< 編集画面へ戻る");
+        backButton.setBounds(0, 0, 140, 30);
+        bottomPanel.add(backButton);
+        backButton.addActionListener(e -> {
+            int result = javax.swing.JOptionPane.showConfirmDialog(
+                    null,
+                    "現在の入力内容を破棄してもよろしいですか？",
                     "確認",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE);
-            if (confirmCancel == JOptionPane.YES_OPTION) {
-                frame.dispose(); // 編集画面を閉じる
-                ViewDetailsScreen detailsScreen = new ViewDetailsScreen(editedEmployee);
-                detailsScreen.view();
+                    javax.swing.JOptionPane.YES_NO_OPTION,
+                    javax.swing.JOptionPane.WARNING_MESSAGE);
+            if (result == javax.swing.JOptionPane.YES_OPTION) {
+                refreshUI();
+                ViewDetailsScreen details=new ViewDetailsScreen();
+                details.view(employeeInformation);
+            } else if (result == JOptionPane.NO_OPTION) {
+                // NO_OPTION の場合は何もしない（入力画面に留まる）
             }
         });
-        panel.add(cancelButton);
 
-        saveButton = new JButton("保存");
-        saveButton.setBounds(350, 470, 80, 30);
+        // 保存ボタン（中央）
+        saveButton = new JButton("編集");
+        saveButton.setBounds(350, 0, 80, 30);
         saveButton.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                    frame,
-                    "編集内容を保存してよろしいですか？",
-                    "保存確認",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE);
-            if (confirm == JOptionPane.YES_OPTION) {
-                saveEmployeeInfo();
-            }
+            MANAGER.LOGGER.info("編集画面に遷移");
+            EmployeeInformation editInfo = collectInputData();
+            //(編集メソッド追加)
+            refreshUI();
+            ViewTopScreen top = new ViewTopScreen();
+            top.View();
         });
-        panel.add(saveButton);
+        bottomPanel.add(saveButton);
     }
 
-    private void saveEmployeeInfo() {
-        try {
-            EmployeeInformation updatedInfo = new EmployeeInformation(
-                    employeeIdField.getText(),
-                    rubyLastNameField.getText(),
-                    rubyFirstNameField.getText(),
-                    lastNameField.getText(),
-                    firstNameField.getText(),
-                    parseDateFromComboBox(birthYearBox, birthMonthBox, birthDayBox),
-                    parseDateFromComboBox(joinYearBox, joinMonthBox, joinDayBox),
-                    getEngineerExperience(),
-                    languageField.getText(),
-                    careerArea.getText(),
-                    trainingArea.getText(),
-                    Double.parseDouble(techCombo.getSelectedItem().toString()),
-                    Double.parseDouble(commCombo.getSelectedItem().toString()),
-                    Double.parseDouble(attitudeCombo.getSelectedItem().toString()),
-                    Double.parseDouble(leaderCombo.getSelectedItem().toString()),
-                    remarksArea.getText(),
-                    parseDateFromComboBox(engYearBox, engMonthBox));
+    // 画面構成で呼び出すメソッド-------------------------------------------------------
+    // ラベル生成
+    private JLabel createLabel(String title, int x, int y) {
+        JLabel label = new JLabel(title);
+        label.setBounds(x, y, 100, 20);
+        return label;
+    }
 
-            EmployeeUpdater updater = new EmployeeUpdater();
-            boolean success = updater.updateEmployee(updatedInfo);
+    // スキルスコア
+    private JComboBox<String> createScoreCombo() {
+        String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
+        JComboBox<String> comboBox = new JComboBox<>(scores);
+        return comboBox;
+    }
 
-            if (success) {
-                JOptionPane.showMessageDialog(frame, "保存が完了しました。", "成功", JOptionPane.INFORMATION_MESSAGE);
-                frame.dispose();
-                ViewTopScreen topScreen = new ViewTopScreen();
-                topScreen.View();
-            } else {
-                JOptionPane.showMessageDialog(frame, "保存に失敗しました。", "エラー", JOptionPane.ERROR_MESSAGE);
+    /**
+     * 年月（必要に応じて日）を選択するためのセレクターパネルを作成。
+     * 
+     * @param yearBox  年の JComboBox の参照を格納する配列（長さ1の配列）
+     * @param monthBox 月の JComboBox の参照を格納する配列（長さ1の配列）
+     * @param dayBox   日の JComboBox の参照を格納する配列（長さ1の配列、includeDay=true 時のみ使用）
+     * @return 年月（＋日）選択用の JPanel コンポネント
+     * @author nishiyama
+     */
+    private JPanel dateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox, JComboBox<Integer> dayBox) {
+        LocalDate now = LocalDate.now();
+        Integer[] nowInteger = { now.getYear(), now.getMonthValue(), now.getDayOfMonth() };
+        //
+        Integer[] yearInteger = {};
+        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
+        JPanel panel = new JPanel();
+        Dimension size = new Dimension(205, 40);
+        int wrapperWidth = size.width;
+        int wrapperHeight = size.height;
+        panel.setPreferredSize(new Dimension(wrapperWidth, wrapperHeight));
+        panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
+
+        panel.setBackground(Color.LIGHT_GRAY);
+        for (int i = nowInteger[0] - 100; i <= nowInteger[0]; i++) {
+            yearModel.addElement(i);
+        }
+        yearBox = new JComboBox<>(yearModel);
+        //
+        Integer[] monthInteger = {};
+        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
+        for (int i = 1; i <= 12; i++) {
+            monthModel.addElement(i);
+        }
+        monthBox = new JComboBox<>(monthModel);
+        //
+        int year = yearModel.getElementAt(0);
+        int month = monthModel.getElementAt(0);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month - 1, 1);
+        int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        Integer[] dayInteger = {};
+        DefaultComboBoxModel<Integer> dayModel = new DefaultComboBoxModel<>(dayInteger);
+        for (int i = 1; i <= maxDay; i++) {
+            dayModel.addElement(i);
+        }
+        dayBox = new JComboBox<>(dayModel);
+        panel.add(yearBox);
+        panel.add(new JLabel("年"));
+        panel.add(monthBox);
+        panel.add(new JLabel("月"));
+        panel.add(dayBox);
+        panel.add(new JLabel("日"));
+        return panel;
+    }
+
+    private JPanel engineerDateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox) {
+        JPanel panel = new JPanel();
+        Dimension size = new Dimension(140, 40);
+        int wrapperWidth = size.width + 15;
+        int wrapperHeight = size.height;
+        panel.setPreferredSize(new Dimension(wrapperWidth, size.height));
+        panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
+        Integer[] yearInteger = {};
+        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
+
+        panel.setBackground(Color.LIGHT_GRAY);
+        for (int i = 0; i < 50; i++) {
+            yearModel.addElement(i);
+        }
+        yearBox = new JComboBox<>(yearModel);
+        //
+        Integer[] monthInteger = {};
+        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
+        for (int i = 0; i <= 11; i++) {
+            monthModel.addElement(i);
+        }
+        monthBox = new JComboBox<>(monthModel);
+        panel.add(yearBox);
+        panel.add(new JLabel("年"));
+        panel.add(monthBox);
+        panel.add(new JLabel("月"));
+        return panel;
+    }
+
+    /**
+     * プレースホルダー付きの JTextField を作成。
+     * ユーザーがフィールドにフォーカスすると、プレースホルダーが消え入力可能。
+     * フォーカスが外れ、入力が空の場合は再びプレースホルダーが表示される。
+     *
+     * @param placeholder 初期表示されるプレースホルダーテキスト
+     * @return プレースホルダー付きの JTextField オブジェクト
+     * @author nishiyama
+     */
+    private JTextField placeholderTextField(String placeholder) {
+        JTextField textField = new JTextField(placeholder, 7);
+        textField.setForeground(Color.GRAY);
+        return textField;
+    }
+
+    /**
+     * プレースホルダー付きの JTextArea を作成。
+     * ユーザーがフィールドにフォーカスすると、プレースホルダーが消え入力可能。
+     * フォーカスが外れ、入力が空の場合は再びプレースホルダーが表示される。
+     * 
+     * @param placeholder 初期表示されるプレースホルダーテキスト
+     * @return プレースホルダー付きの JTextArea オブジェクト
+     * @author nishiyama
+     */
+    private JTextArea placeholderTextArea(String placeholder, JTextArea textArea) {
+        textArea.setText(placeholder);
+        textArea.setForeground(Color.GRAY);
+
+        // フォーカスが当たった時
+        textArea.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (textArea.getText().equals(placeholder)) {
+                    textArea.setText("");
+                    textArea.setForeground(Color.BLACK);
+                }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(frame, "保存処理中にエラーが発生しました:\n" + ex.getMessage(), "エラー",
-                    JOptionPane.ERROR_MESSAGE);
+
+            // フォーカスが外れた時
+            public void focusLost(FocusEvent e) {
+                if (textArea.getText().isEmpty()) {
+                    textArea.setText(placeholder);
+                    textArea.setForeground(Color.GRAY);
+                }
+            }
+        });
+
+        return textArea;
+    }
+
+    // 入力データ取得＆保存メソッド呼び出し------------------------------------------
+
+    /**
+     * GUIの各入力フィールドから情報を取得し、EmployeeInformation オブジェクトにまとめて返却。
+     * 
+     * @return EmployeeInformation:入力された社員情報を格納したインスタンス
+     *         取得中にエラーが発生した場合は null を返却し、エラーメッセージを表示
+     * @throws Exception 例外発生時、 showValidationError("データ取得中にエラーが発生しました")
+     *                   を呼び出し、ユーザーに通知
+     * @author nishiyama
+     */
+    public EmployeeInformation collectInputData() {
+        try {
+            String employeeID = getFieldValue(employeeIdField, "01234xx");
+            String lastName = getFieldValue(lastNameField, "山田");
+            String firstName = getFieldValue(firstNameField, "太郎");
+            String rubyLastName = getFieldValue(rubyLastNameField, "ヤマダ");
+            String rubyFirstName = getFieldValue(rubyFirstNameField, "タロウ");
+            Date birthday = getDateFromSelector(birthPanel);
+            Date joiningDate = getDateFromSelector(joinPanel);
+            int engineerDate = getYearMonthFromSelector(engPanel); // 月数換算
+            String availableLanguages = getFieldValue(availableLanguageField, "html・CSS");
+            String careerDate = getFieldValue(careerArea, "XXXXXXX");
+            double skillPoint = parseScore(techCombo);
+            double communicationPoint = parseScore(commCombo);
+            double attitudePoint = parseScore(attitudeCombo);
+            double leadershipPoint = parseScore(leaderCombo);
+            String trainingDate = getFieldValue(remarksArea, "2000年4月1日株式会社XXXX入社");
+            String remarks = getFieldValue(remarksArea, "特になし");
+            Date updatedDay = new Date();
+            return new EmployeeInformation(
+                    employeeID, lastName, firstName, rubyLastName, rubyFirstName,
+                    birthday, joiningDate, engineerDate, availableLanguages,
+                    careerDate, trainingDate, skillPoint, attitudePoint,
+                    communicationPoint, leadershipPoint, remarks, updatedDay);
+        } catch (Exception e) {
+            showValidationError("データ取得中にエラーが発生しました");
+            return null;
         }
     }
 
-    private Date parseDateFromComboBox(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox)
-            throws Exception {
-        String y = yearBox.getSelectedItem().toString();
-        String m = monthBox.getSelectedItem().toString();
-        String d = dayBox.getSelectedItem().toString();
-        return new SimpleDateFormat("yyyy-MM-dd").parse(y + "-" + m + "-" + d);
+    /**
+     * プレースホルダーと同じ値が入力されていた場合は空文字列を返却。それ以外は実際の入力値を返却。
+     * 
+     * @param field       入力フィールド (JTextField や JTextAreaなど)
+     * @param placeholder 初期表示されるプレースホルダー文字列
+     * @return 実際の入力値または空文字列
+     * @author nishiyama
+     */
+    private String getFieldValue(JTextComponent field, String placeholder) {
+        String text = field.getText();
+        return text.equals(placeholder) ? "" : text;
     }
 
-    private Date parseDateFromComboBox(JComboBox<String> yearBox, JComboBox<String> monthBox) throws Exception {
-        String y = yearBox.getSelectedItem().toString();
-        String m = monthBox.getSelectedItem().toString();
-        return new SimpleDateFormat("yyyy-MM").parse(y + "-" + m);
+    /**
+     * 年・月・日が選択可能な JPanel から Date 型の日時を構築して返す。
+     * 
+     * @param panel Jpanelに配置されたJcomboBox
+     *              0番目: 年の JComboBox
+     *              2番目: 月の JComboBox
+     *              4番目（存在する場合）: 日の JComboBox
+     * @return Date: 選択された年月日を表す java.util.Date オブジェクト
+     * @author nishiyama
+     */
+    private Date getDateFromSelector(JPanel panel) {
+        JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
+        JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
+        JComboBox<?> dayBox = panel.getComponentCount() > 4 ? (JComboBox<?>) panel.getComponent(4) : null;
+
+        int year = (int) yearBox.getSelectedItem();
+        int month = (int) monthBox.getSelectedItem() - 1;
+        int day = dayBox != null ? (int) dayBox.getSelectedItem() : 1;
+
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month, day);
+        return cal.getTime();
     }
 
-    private int getEngineerExperience() {
-        int y = Integer.parseInt(engYearBox.getSelectedItem().toString());
-        int m = Integer.parseInt(engMonthBox.getSelectedItem().toString());
-        return y * 12 + m;
+    /**
+     * 経歴年数のような年＋月情報を月単位に変換して返す
+     * 
+     * @param panel Jpanelに配置されたJcomboBox
+     *              0番目: 年の JComboBox
+     *              2番目: 月の JComboBox
+     * @return int: 総月数（年×12 + 月）
+     * @author nishiyama
+     */
+    private int getYearMonthFromSelector(JPanel panel) {
+        JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
+        JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
+        int years = (int) yearBox.getSelectedItem();
+        int months = (int) monthBox.getSelectedItem();
+        return years * 12 + months;
     }
 
+    /**
+     * JComboBox から選択された数値文字列を double に変換して返す。
+     * 
+     * @param combo スコアが格納された JComboBox<String>
+     * @return double: スコア値
+     * @author nishiyama
+     */
+    private double parseScore(JComboBox<String> combo) {
+        return Double.parseDouble((String) combo.getSelectedItem());
+    }
+
+    // ダイアログ関係-------------------------------------------------------
+    /**
+     * エラーメッセージを保存ボタン上部に表示。
+     *
+     * @param message 表示するエラーメッセージ
+     * @author nishiyama
+     */
+    public void showErrorMessageOnPanel(String message) {
+        errorPanel.removeAll();
+        JLabel errorLabel = new JLabel(message);
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 12));
+        errorPanel.add(errorLabel);
+    }
+
+    /**
+     * 新規追加成功時に表示されるダイアログ
+     *
+     * @param message ダイアログに表示される新規追加処理完了メッセージ
+     */
+    public void showSuccessDialog(String message) {
+        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+     * 新規追加成功失敗時に表示されるダイアログ
+     *
+     * @param message 表示されるエラーメッセージ
+     * @author nishiyama
+     */
+    public void showValidationError(String message) {
+        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * エンジニア情報を各入力欄に反映する処理
+     */
     private void setValues() {
         employeeIdField.setText(employeeInformation.employeeID);
         rubyLastNameField.setText(employeeInformation.rubyLastName);
         rubyFirstNameField.setText(employeeInformation.rubyFirstname);
         lastNameField.setText(employeeInformation.lastName);
         firstNameField.setText(employeeInformation.firstname);
-        languageField.setText(employeeInformation.availableLanguages);
+        availableLanguageField.setText(employeeInformation.availableLanguages);
         careerArea.setText(employeeInformation.careerDate);
+        // 各スキルポイントを反映
+        techCombo.setSelectedItem(String.format("%.1f", employeeInformation.skillPoint));
+        attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.attitudePoint));
+        commCombo.setSelectedItem(String.format("%.1f", employeeInformation.communicationPoint));
+        leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.leadershipPoint));
         trainingArea.setText(employeeInformation.trainingDate);
         remarksArea.setText(employeeInformation.remarks);
-        techCombo.setSelectedItem(String.format("%.1f", employeeInformation.skillPoint));
-        commCombo.setSelectedItem(String.format("%.1f", employeeInformation.communicationPoint));
-        attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.attitudePoint));
-        leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.leadershipPoint));
-    }
-
-    private void setEditableFields(boolean editable) {
-        rubyLastNameField.setEditable(editable);
-        rubyFirstNameField.setEditable(editable);
-        lastNameField.setEditable(editable);
-        firstNameField.setEditable(editable);
-        birthYearBox.setEnabled(editable);
-        birthMonthBox.setEnabled(editable);
-        birthDayBox.setEnabled(editable);
-        joinYearBox.setEnabled(editable);
-        joinMonthBox.setEnabled(editable);
-        joinDayBox.setEnabled(editable);
-        engYearBox.setEnabled(editable);
-        engMonthBox.setEnabled(editable);
-        languageField.setEditable(editable);
-        careerArea.setEditable(editable);
-        trainingArea.setEditable(editable);
-        remarksArea.setEditable(editable);
-        techCombo.setEnabled(editable);
-        commCombo.setEnabled(editable);
-        attitudeCombo.setEnabled(editable);
-        leaderCombo.setEnabled(editable);
-    }
-
-    private JLabel createLabel(String text, int x, int y) {
-        JLabel label = new JLabel(text);
-        label.setBounds(x, y, 100, 20);
-        return label;
     }
 }
