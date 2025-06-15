@@ -49,7 +49,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         frame.setTitle("エンジニア情報 編集画面");
     }
 
-    private void setupDetailsScreen() {
+    private void setupEditScreen() {
         setupEmployeeId();
         setupNameFields();
         setupDateAndLanguageFields();
@@ -63,7 +63,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     // メイン画面の表示処理
     public void view(EmployeeInformation employeeInformation) {
         this.employeeInformation = employeeInformation;
-        setupDetailsScreen();
+        setupEditScreen();
         setValues();
         frame.setVisible(true);
     }
@@ -191,7 +191,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     javax.swing.JOptionPane.WARNING_MESSAGE);
             if (result == javax.swing.JOptionPane.YES_OPTION) {
                 refreshUI();
-                ViewDetailsScreen details=new ViewDetailsScreen();
+                ViewDetailsScreen details = new ViewDetailsScreen();
                 details.view(employeeInformation);
             } else if (result == JOptionPane.NO_OPTION) {
                 // NO_OPTION の場合は何もしない（入力画面に留まる）
@@ -204,7 +204,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton.addActionListener(e -> {
             MANAGER.LOGGER.info("編集画面に遷移");
             EmployeeInformation editInfo = collectInputData();
-            //(編集メソッド追加)
+            // (編集メソッド追加)
             refreshUI();
             ViewTopScreen top = new ViewTopScreen();
             top.View();
