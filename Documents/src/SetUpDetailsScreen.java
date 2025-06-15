@@ -1,15 +1,19 @@
-
 import java.awt.*;
 import javax.swing.*;
 
 public abstract class SetUpDetailsScreen extends SetUpJframe {
 
     JPanel topPanel;// 上段パネル（750*135px）
+    JPanel idPanel;
+    JPanel namePanel;
     JPanel upperPanel;// upperパネル（750*60px）
+    JPanel birthdDayPanel;
+    JPanel joiningDatePanel;
+    JPanel engineerDatePanel;
+    JPanel availableLanguagesPanel;
     JPanel middlePanel;// middleパネル（750*245px）
     JPanel careerPanel;// 1段目 経歴（375*120px）
     JPanel skillsPanel;// 1段目 スキル（265*120px）
-    JPanel skillsScorePanel;// 1段目 スキルスコア（75*120px）
     JPanel trainingRecordsPanel;// 2段目 研修受講歴（375*105px）
     JPanel remarksPanel;// 2段目 備考（340*105px）
     JPanel errorPanel;// エラーパネル（750*26px）
@@ -19,9 +23,7 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
     int horizontalGap = 35;
 
     protected SetUpDetailsScreen() {
-        fullScreenPanel.removeAll();
-        layoutPanels();  // 新しいレイアウトを設定
-        refreshUI();  // 画面の再描画
+        layoutPanels(); // 新しいレイアウトを設定
     }
 
     private void layoutPanels() {
@@ -33,18 +35,21 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
 
         // 上段パネル（750*135px）
         topPanel = createPanel(new Dimension(750, 135));
+        topPanel.setOpaque(false);
         topPanel.setLayout(new BorderLayout());
 
         // topパネル_社員ID（130*40px）
-        topPanel.add(createPaddedPanel(new Dimension(135, 40), 0, 0, Color.DARK_GRAY), BorderLayout.NORTH);
+        idPanel = createPaddedPanel(new Dimension(155, 40), 0, 0);
+        topPanel.add(idPanel, BorderLayout.NORTH);
 
         // topパネル_上下段ギャップ（15px）
         JPanel gapPanel = createPanel(new Dimension(0, 15));
-        gapPanel.setOpaque(false);  // あえて背景透過
+        gapPanel.setOpaque(false); // あえて背景透過
         topPanel.add(gapPanel);
 
         // topパネル_氏名（405*80px）
-        topPanel.add(createPaddedPanel(new Dimension(405, 80), 0, 0, Color.DARK_GRAY), BorderLayout.SOUTH);
+        namePanel = createPaddedPanel(new Dimension(420, 100), 0, 0);
+        topPanel.add(namePanel, BorderLayout.SOUTH);
 
         // topPanelをfullScreenPanelに追加（中央寄せ）
         fullScreenPanel.add(wrapCentered(topPanel));
@@ -54,20 +59,28 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
 
         // upperパネル（750*60px）
         upperPanel = createPanel(new Dimension(750, 60));
-        upperPanel.setLayout(new BoxLayout(upperPanel, BoxLayout.X_AXIS)); // 横並び
+        upperPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0)); // 横並び
 
-        // ★ まじでわからん 61-72行目まで「子パネルの高さが倍近く必要になる問題」
         // upperパネル_生年月日（185 + 15）
-        upperPanel.add(createPaddedPanel(new Dimension(185, 115), 15, 0, Color.DARK_GRAY));
+        birthdDayPanel = createPanel(new Dimension(205, 60), 0, 0);
+        birthdDayPanel.setLayout(new BorderLayout());
+
+        upperPanel.add(birthdDayPanel);
 
         // upperパネル_入社年月（185 + 15）
-        upperPanel.add(createPaddedPanel(new Dimension(185, 115), 15, 0, Color.DARK_GRAY));
+        joiningDatePanel = createPanel(new Dimension(205, 60), 0, 0);
+        joiningDatePanel.setLayout(new BorderLayout());
+        upperPanel.add(joiningDatePanel);
 
         // upperパネル_エンジニア歴（140 + 15）
-        upperPanel.add(createPaddedPanel(new Dimension(140, 115), 15, 0, Color.DARK_GRAY));
+        engineerDatePanel = createPanel(new Dimension(125, 60), 0, 0);
+        engineerDatePanel.setLayout(new BorderLayout());
+        upperPanel.add(engineerDatePanel);
 
         // upperパネル_扱える言語(195 + 0)
-        upperPanel.add(createPaddedPanel(new Dimension(195, 115), 0, 0, Color.DARK_GRAY));
+        availableLanguagesPanel = createPanel(new Dimension(190, 60), 0, 0);
+        availableLanguagesPanel.setLayout(null);
+        upperPanel.add(availableLanguagesPanel);
 
         // upperPanelをfullScreenPanelに追加（中央寄せ）
         fullScreenPanel.add(wrapCentered(upperPanel));
@@ -77,40 +90,45 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
 
         middlePanel = new JPanel();
         middlePanel.setPreferredSize(new Dimension(750, 245));
-        middlePanel.setLayout(null); // 手動配置
-        middlePanel.setBackground(Color.PINK); // 赤枠デバッグ用
+        middlePanel.setLayout(null);
 
         // 1段目 経歴
-        careerPanel = createPaddedPanel(new Dimension(375, 120), 0, 0, Color.GREEN);
+        careerPanel = new JPanel();
+        careerPanel.setPreferredSize(new Dimension(375, 120));
         careerPanel.setBounds(0, 0, 375, 120);
+        careerPanel.setLayout(new BorderLayout());
+        careerPanel.setBackground(Color.WHITE);
         middlePanel.add(careerPanel);
 
         // 1段目 スキル
-        skillsPanel = createPaddedPanel(new Dimension(265, 120), 0, 0, Color.BLUE);
-        skillsPanel.setBounds(375 + horizontalGap, 0, 340, 120);
+        skillsPanel = new JPanel();
+        skillsPanel.setPreferredSize(new Dimension(375, 120));
+        skillsPanel.setBounds(410, 0, 335, 120);
+        skillsPanel.setLayout(new BorderLayout());
+        skillsPanel.setBackground(Color.WHITE);
         middlePanel.add(skillsPanel);
 
-        // 1段目 スキルスコア
-        skillsScorePanel = createPaddedPanel(new Dimension(75, 120), 0, 0, Color.GREEN);
-        skillsScorePanel.setBounds(715, 0, 75, 120); // 750-75=675
-        skillsScorePanel.setBounds(375 + horizontalGap + 265, 0, 75, 120);
-        middlePanel.add(skillsScorePanel);
-
         // 2段目 研修受講歴
-        trainingRecordsPanel = createPaddedPanel(new Dimension(375, 105), 0, 0, Color.GREEN);
-        trainingRecordsPanel.setBounds(0, 120 + verticalGap, 375, 105);
+        trainingRecordsPanel = new JPanel();
+        trainingRecordsPanel.setPreferredSize(new Dimension(375, 105));
+        trainingRecordsPanel.setBounds(0, 140, 375, 120);
+        trainingRecordsPanel.setLayout(new BorderLayout());
+        trainingRecordsPanel.setBackground(Color.WHITE);
         middlePanel.add(trainingRecordsPanel);
 
         // 2段目 備考
-        remarksPanel = createPaddedPanel(new Dimension(340, 105), 0, 0, Color.GREEN);
-        remarksPanel.setBounds(375 + horizontalGap, 120 + verticalGap, 340, 105);
+        remarksPanel = new JPanel();
+        remarksPanel.setPreferredSize(new Dimension(340, 105));
+        remarksPanel.setBounds(410, 140, 340, 120);
+        remarksPanel.setLayout(new BorderLayout());
+        remarksPanel.setBackground(Color.WHITE);
         middlePanel.add(remarksPanel);
 
         // ラップして中央寄せ（外枠パネルに追加）
         fullScreenPanel.add(wrapCentered(middlePanel));
 
         // エラー出るパネル（26px）
-        errorPanel = createPanel(new Dimension(750,26));
+        errorPanel = createPanel(new Dimension(750, 26));
         fullScreenPanel.add(wrapCentered(errorPanel));
 
         // 下段パネル（715*34px）
@@ -136,7 +154,7 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
         JPanel panel = new JPanel();
         panel.setPreferredSize(size); // コンポーネントが「希望するサイズ」を指定
         panel.setMaximumSize(size); // 意図しない引き伸ばしを避ける
-        panel.setBackground(Color.LIGHT_GRAY); // 仮背景色
+        panel.setBackground(Color.WHITE); // 仮背景色
         return panel;
     }
 
@@ -147,33 +165,41 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
      * パディングが必要な場合は、ラッパー用のパネルを作成し、レイアウトを null に設定して 内部パネル（コンテンツ）を手動配置する。
      * </p>
      *
-     * @param size コンテンツパネルのサイズ（幅と高さ）
-     * @param rightPadding 右側に追加する余白のピクセル数
+     * @param size          コンテンツパネルのサイズ（幅と高さ）
+     * @param rightPadding  右側に追加する余白のピクセル数
      * @param bottomPadding 下側に追加する余白のピクセル数
-     * @param bgColor コンテンツパネルの仮背景色
+     * @param bgColor       コンテンツパネルの仮背景色
      * @return 必要なパディングを含んだJPanel。パディングが不要な場合はコンテンツパネル自体を返す
      *
      * @author nishiyama
      */
-    private JPanel createPaddedPanel(Dimension size, int rightPadding, int bottomPadding, Color bgColor) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0)); // レイアウトをここで明示
-        panel.setPreferredSize(size);
-        panel.setMaximumSize(size);
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.setBackground(bgColor);
-
+    private JPanel createPaddedPanel(Dimension size, int rightPadding, int bottomPadding) {
+        JPanel panel = new JPanel(); // レイアウトをここで明示
+        panel.setBackground(Color.LIGHT_GRAY);
         int wrapperWidth = size.width + rightPadding;
         int wrapperHeight = size.height + bottomPadding;
-
         JPanel wrapper = new JPanel(null);
-        wrapper.setOpaque(false);
+        wrapper.setBackground(Color.WHITE);
         wrapper.setPreferredSize(new Dimension(wrapperWidth, wrapperHeight));
         wrapper.setMaximumSize(new Dimension(wrapperWidth, wrapperHeight));
-
         panel.setBounds(0, 0, size.width, size.height);
+        panel.setPreferredSize(size);
+        panel.setMaximumSize(size);
+        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
         wrapper.add(panel);
-
         return wrapper;
+    }
+
+    private JPanel createPanel(Dimension size, int rightPadding, int bottomPadding) {
+        JPanel panel = new JPanel();
+        int wrapperWidth = size.width + rightPadding;
+        int wrapperHeight = size.height + bottomPadding;
+        panel.setBackground(Color.WHITE);
+        panel.setPreferredSize(new Dimension(size.width, size.height));
+        panel.setMaximumSize(new Dimension(wrapperWidth, wrapperHeight));
+        panel.setBounds(0, 0, size.width, size.height);
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return panel;
     }
 
     /**
