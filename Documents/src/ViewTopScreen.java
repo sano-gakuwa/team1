@@ -8,8 +8,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -50,6 +48,7 @@ public class ViewTopScreen extends SetUpTopScreen {
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
+        frame.setTitle("一覧画面");
         engineerTable = new JTable();// 先にテーブルを初期化してから refreshTable を呼ぶ
         tableEmployee = EmployeeManager.employeeList;// JTablに表示用に社員情報リストからコピー
         employeeListOperator = new EmployeeListOperator(tableEmployee);//
@@ -128,7 +127,6 @@ public class ViewTopScreen extends SetUpTopScreen {
 
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 File selectedDir = fileChooser.getSelectedFile();
-
                 // 保存確認ダイアログ
                 int saveConfirm = JOptionPane.showConfirmDialog(
                         null,
@@ -136,46 +134,11 @@ public class ViewTopScreen extends SetUpTopScreen {
                         "保存確認",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE);
-
                 if (saveConfirm != JOptionPane.YES_OPTION) {
                     return;
                 }
-
-                // 固定ファイル名で保存先ファイルを作成
-                File file = new File(selectedDir, "employee_template.csv");
-
-                // 上書き確認（存在する場合のみ）
-                if (file.exists()) {
-                    int overwriteConfirm = JOptionPane.showConfirmDialog(
-                            null,
-                            "ファイル「employee_template.csv」は既に存在します。上書きしてもよろしいですか？",
-                            "上書き確認",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.WARNING_MESSAGE);
-                    if (overwriteConfirm != JOptionPane.YES_OPTION) {
-                        return;
-                    }
-                }
-
-                // ファイル書き出し処理
-                try (FileWriter writer = new FileWriter(file)) {
-                    writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
-                            + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
-                    writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
-                            + "4.5,5.0,4.0,3.5,特になし\n");
-
-                    JOptionPane.showMessageDialog(null, "テンプレートファイル「employee_template.csv」を出力しました。");
-
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
-
-                    if (file.exists()) {
-                        if (!file.delete()) {
-                            System.err.println("作成失敗したテンプレートファイルの削除に失敗しました: " + file.getAbsolutePath());
-                        }
-                    }
-                }
+                CsvConverter converter=new CsvConverter();
+                converter.createTemplate(selectedDir);
             }
         });
         // ボタンをパネルに追加
@@ -378,7 +341,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
 
         // テーブルモデル作成（編集不可）
-        DefaultTableModel model = new DefaultTableModel(pageData, columnNames) {
+        model = new DefaultTableModel(pageData, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -466,10 +429,9 @@ public class ViewTopScreen extends SetUpTopScreen {
                         MANAGER.LOGGER.info("社員番号が" + selectID + "の社員情報を表示");
                         // ここに詳細画面表示メソッド実装よろしく！！
                         // 詳細画面を開く処理
-                        frame.dispose(); // もし一覧画面のフレームを閉じたい場合
-
-                        ViewDetailsScreen detailsScreen = new ViewDetailsScreen(selectedEmployee);
-                        detailsScreen.view(); // 詳細画面の表示メソッド呼び出し
+                        refreshUI();
+                        ViewDetailsScreen detailsScreen = new ViewDetailsScreen();
+                        detailsScreen.view(selectedEmployee); // 詳細画面の表示メソッド呼び出し
                     }
                     return;
                 }
