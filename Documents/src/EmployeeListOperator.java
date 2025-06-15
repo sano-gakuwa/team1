@@ -1,6 +1,4 @@
-import java.util.stream.Collectors;
 import java.util.*;
-import java.util.concurrent.*;
 import java.text.Normalizer;
 
 public class EmployeeListOperator {
@@ -199,37 +197,9 @@ public class EmployeeListOperator {
         AVAILABLE_LANGUAGES
     }
     // ソート実行
-    public void sort(SortKey key, boolean ascending) {
-        synchronized (lock) {
-            Comparator<EmployeeInformation> comparator = getComparator(key);
-            if (comparator == null) return;
-            if (!ascending) {
-                comparator = comparator.reversed();
-            }
-            filteredList.sort(comparator);
-        }
-    }
+    
     // ソート用コンパレータ生成
-    private Comparator<EmployeeInformation> getComparator(SortKey key) {
-        Date now = new Date();
-        switch (key) {
-            case EMPLOYEE_ID:
-                return Comparator.comparing(emp -> emp.employeeID, Comparator.nullsLast(String::compareTo));
-            case NAME:
-                return Comparator.comparing(emp -> emp.lastName + emp.firstname, Comparator.nullsLast(String::compareTo));
-            case AGE:
-                return Comparator.comparingInt(emp -> calcAge(emp.birthday));
-            case ENGINEER_DATE:
-                return Comparator.comparingInt(emp -> emp.engineerDate);
-            case AVAILABLE_LANGUAGES:
-                return Comparator.comparing(emp -> emp.availableLanguages, Comparator.nullsLast(String::compareTo));
-            default:
-                return null;
-        }
-    }
-    public boolean isSearching() {
-        return isSearching;
-    }
+    
     // 検索完了コールバック
     public interface SearchCallback {
         /**
