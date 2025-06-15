@@ -283,45 +283,8 @@ public class ViewTopScreen extends SetUpTopScreen {
             }
         );
     }
-    private void showSearchResultUI() {
-        JPanel centerPanel = (JPanel) ((JPanel) fullScreenPanel.getComponent(3)).getComponent(0);
-        JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
-        JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
+    
 
-        functionButtonsPanel.removeAll();
-        functionButtonsPanel.add(new JLabel("検索結果"));
-
-        JButton addEmployeeButton = new JButton("一覧へ戻る");
-        addEmployeeButton.setBackground(Color.WHITE);
-        addEmployeeButton.setForeground(Color.BLACK);
-        addEmployeeButton.setFocusPainted(false);
-        functionButtonsPanel.add(addEmployeeButton);
-
-        addEmployeeButton.addActionListener(e -> {
-            // 検索状態をリセット（必要に応じてEmployeeListOperatorに依頼）
-            tableEmployee = EmployeeManager.employeeList;
-            currentPage = 1;
-            refreshTable();
-            showNormalUI();
-        });
-
-        bottomWrapper.setVisible(false);
-
-        functionButtonsPanel.revalidate();
-        functionButtonsPanel.repaint();
-    }
-
-    private void showNormalUI() {
-        JPanel centerPanel = (JPanel) ((JPanel) fullScreenPanel.getComponent(3)).getComponent(0);
-        JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
-        JPanel bottomWrapper = (JPanel) fullScreenPanel.getComponent(5);
-        functionButtonsPanel.removeAll();
-        functionButtonsPanel.add(new JLabel("エンジニア一覧"));
-        //addDefaultFunctionButtons(functionButtonsPanel); // ← ボタン再追加（共通化）
-        bottomWrapper.setVisible(true);
-        functionButtonsPanel.revalidate();
-        functionButtonsPanel.repaint();
-    }
 
     /*
      * refreshTableメソッドはengineerTable のデータモデルを更新
