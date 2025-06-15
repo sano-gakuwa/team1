@@ -26,7 +26,7 @@ public class EmployeeManager extends SystemLog {
             "扱える言語", "経歴", "研修の受講歴", "技術力", "受講態度", "コミュニケーション能力", "リーダーシップ",
             "備考", "更新日"
     };
-    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
 
     public void setUp() {
         setUpLog();
