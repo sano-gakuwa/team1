@@ -204,12 +204,18 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton.addActionListener(e -> {
             MANAGER.LOGGER.info("編集画面に遷移");
             EmployeeInformation editInfo = collectInputData();
-            // (編集メソッド追加)
+
+            // --- ここで入力データが null でなければ更新処理を行う ---
+            if (editInfo != null) {
+                new EmployeeUpdater().update(editInfo); // 社員情報を更新
+            }
+
             refreshUI();
             ViewTopScreen top = new ViewTopScreen();
             top.View();
         });
         bottomPanel.add(saveButton);
+
     }
 
     // 画面構成で呼び出すメソッド-------------------------------------------------------
@@ -253,14 +259,14 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         for (int i = nowInteger[0] - 100; i <= nowInteger[0]; i++) {
             yearModel.addElement(i);
         }
-        yearBox = new JComboBox<>(yearModel);
+        yearBox.setModel(yearModel);
         //
         Integer[] monthInteger = {};
         DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
         for (int i = 1; i <= 12; i++) {
             monthModel.addElement(i);
         }
-        monthBox = new JComboBox<>(monthModel);
+        monthBox.setModel(monthModel);
         //
         int year = yearModel.getElementAt(0);
         int month = monthModel.getElementAt(0);
@@ -296,14 +302,14 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         for (int i = 0; i < 50; i++) {
             yearModel.addElement(i);
         }
-        yearBox = new JComboBox<>(yearModel);
+        yearBox.setModel(yearModel);
         //
         Integer[] monthInteger = {};
         DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
         for (int i = 0; i <= 11; i++) {
             monthModel.addElement(i);
         }
-        monthBox = new JComboBox<>(monthModel);
+        monthBox.setModel(monthModel);
         panel.add(yearBox);
         panel.add(new JLabel("年"));
         panel.add(monthBox);
@@ -504,6 +510,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * エンジニア情報を各入力欄に反映する処理
      */
     private void setValues() {
+        // 社員情報をテキストフィールドに設定
         employeeIdField.setText(employeeInformation.employeeID);
         rubyLastNameField.setText(employeeInformation.rubyLastName);
         rubyFirstNameField.setText(employeeInformation.rubyFirstname);
@@ -511,6 +518,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         firstNameField.setText(employeeInformation.firstname);
         availableLanguageField.setText(employeeInformation.availableLanguages);
         careerArea.setText(employeeInformation.careerDate);
+
         // 各スキルポイントを反映
         techCombo.setSelectedItem(String.format("%.1f", employeeInformation.skillPoint));
         attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.attitudePoint));
@@ -518,5 +526,25 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.leadershipPoint));
         trainingArea.setText(employeeInformation.trainingDate);
         remarksArea.setText(employeeInformation.remarks);
+
+        // 生年月日をコンボボックスに設定
+        Calendar birthCal = Calendar.getInstance();
+        birthCal.setTime(employeeInformation.birthday);
+        birthYearCombo.setSelectedItem(birthCal.get(Calendar.YEAR));
+        birthMonthCombo.setSelectedItem(birthCal.get(Calendar.MONTH) + 1);
+        birthDayCombo.setSelectedItem(birthCal.get(Calendar.DAY_OF_MONTH));
+
+        // 入社年月日をコンボボックスに設定
+        Calendar joinCal = Calendar.getInstance();
+        joinCal.setTime(employeeInformation.joiningDate);
+        joinYearCombo.setSelectedItem(joinCal.get(Calendar.YEAR));
+        joinMonthCombo.setSelectedItem(joinCal.get(Calendar.MONTH) + 1);
+        joinDayCombo.setSelectedItem(joinCal.get(Calendar.DAY_OF_MONTH));
+
+        // エンジニア歴を年・月に分解してコンボボックスに設定
+        int totalMonths = employeeInformation.engineerDate;
+        engYearCombo.setSelectedItem(totalMonths / 12);
+        engMonthCombo.setSelectedItem(totalMonths % 12);
     }
+
 }
