@@ -16,6 +16,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
+/**
+ * 社員情報を登録・管理するためのマネージャークラス
+ * <ul>
+ *  <li>呼び出せる変数
+ *      <ul>
+ *      <li>employeeList 読み込んだ社員情報リスト
+ *      <li>LOGGER ログ
+ *          <ul>
+ *          <li>LOGGER.info(String {文言}) ログに情報を残すために使用
+ *          <li>LOGGER.warning(String {文言}) ログにヒューマンエラーを残すために使用
+ *          </ul>
+ *      <li>ENPLOYEE_CSV　社員情報保存用CSVファイル
+ *      <li>EMPLOYEE_CATEGORY　社員情報のカテゴリー
+ *      </ul>
+ *  <li>呼び出せるメソッド
+ *      <ul>
+ *      <li>printErrorLog(Exception e, String errorString) ログにシステムエラーを残すために使用
+ *      </ul>
+ * </ul>
+ * 
+ * @atuthor 下村
+ */
 public class EmployeeManager extends SystemLog {
     public static ArrayList<EmployeeInformation> employeeList = new ArrayList<>();
     private static final String CSV_FOLDER = "CSV";
@@ -27,7 +49,13 @@ public class EmployeeManager extends SystemLog {
             "備考", "更新日"
     };
     public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
-
+    public EmployeeManager(){
+        //インスタンス生成時のメソッド等無し
+    }
+    /**
+     * EmployeeManagerの起動
+     * @author 下村
+     */
     public void setUp() {
         setUpLog();
         LOGGER.info("起動");
@@ -35,8 +63,11 @@ public class EmployeeManager extends SystemLog {
         ViewTopScreen top = new ViewTopScreen();
         top.View();
     }
-
-    protected void setUpCSV() {
+    /**
+     * 社員情報保存用CSVから社員情報を読み込み
+     * @author 下村
+     */
+    private void setUpCSV() {
         try {
             Files.createDirectories(Paths.get(CSV_FOLDER));
             if (verificationEmployeeData()) {
@@ -49,7 +80,11 @@ public class EmployeeManager extends SystemLog {
         }
     }
 
-    // 社員情報を登録・管理するためのCSVファイルの存在確認用
+    /**
+     * 社員情報を登録・管理するためのCSVファイルの存在確認用
+     * @return　社員情報CSVの存在するかの真偽
+     * @author 下村
+     */
     private boolean verificationEmployeeData() {
         try {
             if (ENPLOYEE_CSV.exists()) {
@@ -59,7 +94,6 @@ public class EmployeeManager extends SystemLog {
             } else {
                 makeEmployeeData();
                 LOGGER.info("社員情報保存用CSVファイル作成");
-                ;
                 return true;
             }
         } catch (Exception e) {
@@ -68,7 +102,10 @@ public class EmployeeManager extends SystemLog {
         return false;
     }
 
-    // CSVファイルが存在しない場合に新規作成する用
+    /**
+     * CSVファイルが存在しない場合に新規作成する用
+     * @author 下村
+    */
     private void makeEmployeeData() {
         Path path = Paths.get(CSV_FILEPATH);
         try {
@@ -95,12 +132,15 @@ public class EmployeeManager extends SystemLog {
             }
         }
     }
-
+    /**
+     * 社員情報の読み込み
+     * @author 下村
+     */
     private void employeeLoading() {
         try {
-            FileInputStream fis = new FileInputStream(ENPLOYEE_CSV);
-            BufferedReader b_reader = new BufferedReader(new InputStreamReader(fis, "Shift-JIS"));
-            Scanner scanner = new Scanner(b_reader);
+            FileInputStream fileInputStream = new FileInputStream(ENPLOYEE_CSV);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream, "Shift-JIS"));
+            Scanner scanner = new Scanner(reader);
             scanner.next();
             try {
                 while (scanner.hasNext()) { // 次に読み込むべき行があるか判定
@@ -135,14 +175,14 @@ public class EmployeeManager extends SystemLog {
 
     /**
      * ログにスタックトレースを出力する
-     * 
      * @param e           スタックトレースを持っている例外クラス
      * @param errorString ログに出力するエラー文言
+     * @author 下村
      */
     public void printErrorLog(Exception e, String errorString) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        LOGGER.severe(String.format("%s\n%s", errorString, sw.toString()));
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter  = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter );
+        LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
 }
