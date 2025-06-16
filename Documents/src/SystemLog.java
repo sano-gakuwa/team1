@@ -17,7 +17,10 @@ public abstract class SystemLog {
     protected static final File SYSTEM_LOG = new File(LOG_FILEPATH);
     public final Logger LOGGER = Logger.getLogger("SystemLog");;
 
-    // ログファイルの読み込み。
+    /**
+     * ログファイルの読み込み。
+     * @author 下村
+     */
     protected void setUpLog() {
         try {
             Files.createDirectories(Paths.get(LOG_FOLDER));
@@ -31,11 +34,16 @@ public abstract class SystemLog {
                 LOGGER.addHandler(fileHandler);
             }
         } catch (Exception e) {
-            printLogStackTrace(e, "ログ設定で例外が発生しました");
+            printErrorLog(e, "ログ設定で例外が発生しました");
         }
     }
 
-    // ログファイルの存在確認用。
+    // 
+    /**
+     * ログファイルの存在確認用。
+     * @return ログファイルの存在確認するかの真偽
+     * @author 下村
+     */
     protected boolean verificationLogFile() {
         try {
             if (SYSTEM_LOG.exists()) {
@@ -47,31 +55,34 @@ public abstract class SystemLog {
                 return true;
             }
         } catch (Exception e) {
-            printLogStackTrace(e, "ログファイルの存在確認で例外が発生しました");
+            printErrorLog(e, "ログファイルの存在確認で例外が発生しました");
         }
         return false;
     }
 
-    // ログファイルが存在しない場合にログファイルを作成する用。
+    /**
+     * ログファイルが存在しない場合にログファイルを作成する用。
+     * @author 下村
+     */
     protected void makeLogFile() {
         Path path = Paths.get(LOG_FILEPATH);
         try {
             Files.createFile(path);// ファイルが存在しない為、ファイルを新規作成
         } catch (Exception e) {
-            printLogStackTrace(e, "ログファイルの新規作成で例外が発生しました");
+            printErrorLog(e, "ログファイルの新規作成で例外が発生しました");
         }
     }
 
     /**
      * ログにスタックトレースを出力する
-     * 
      * @param e           スタックトレースを持っている例外クラス
      * @param errorString ログに出力するエラー文言
+     * @author 下村
      */
-    private void printLogStackTrace(Exception e, String errorString) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        LOGGER.severe(String.format("%s¥n%s", errorString, sw.toString()));
+    public void printErrorLog(Exception e, String errorString) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter  = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter );
+        LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
 }
