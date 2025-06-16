@@ -348,4 +348,89 @@ public class EmployeeUpdater extends Thread {
     }
 
     // -------------------
+    // 佐野作成部分
+       /**
+     * 指定された社員IDの情報を更新するメソッド
+     * 既存の社員情報リストとCSVファイルの内容を、新しい情報で上書きします。
+     *
+     * @param updatedEmployee 編集後の社員情報
+     */
+    public void update(EmployeeInformation updatedEmployee) {
+        // --- 入力内容のチェック（必須項目が空ならエラーダイアログ表示） ---
+        if (!validateEmployee(updatedEmployee)) {
+            showErrorDialog("必須項目が入力されていません");
+            return;
+        }
+
+        // --- 社員リストの中から該当する社員IDのデータを検索し、差し替える ---
+        boolean found = false;
+        for (int i = 0; i < EmployeeManager.employeeList.size(); i++) {
+            EmployeeInformation current = EmployeeManager.employeeList.get(i);
+            if (current.employeeID.equals(updatedEmployee.employeeID)) {
+                EmployeeManager.employeeList.set(i, updatedEmployee);  // 上書き
+                found = true;
+                break;
+            }
+        }
+
+        // --- 該当する社員が見つからなかった場合はエラー終了 ---
+        if (!found) {
+            showErrorDialog("指定された社員情報が見つかりません");
+            return;
+        }
+
+        // --- CSVファイル更新処理（安全性のためバックアップ＋排他ロックを使用） ---
+        File originalFile = EmployeeManager.ENPLOYEE_CSV;                          // 元のCSVファイル
+        File backupFile = new File("CSV/employee_data_backup.csv");                // バックアップファイル
+        FileLock lock = null;                                                      // ファイルロック用
+        FileOutputStream fos = null;                                               // 出力ストリーム
+
+        try {
+            // --- 元のCSVファイルをバックアップ ---
+            Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+            // --- CSVファイル書き込みの準備（ロック取得） ---
+            fos = new FileOutputStream(originalFile);  // 上書きモードで開く
+            FileChannel channel = fos.getChannel();
+            lock = channel.lock();  // 排他ロック
+
+            // --- CSVファイルにヘッダと社員情報を書き出し ---
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(fos, "Shift-JIS")));
+
+            // カテゴリ（1行目）出力
+            for (String category : EmployeeManager.EMPLOYEE_CATEGORY) {
+                pw.print(category + ",");
+            }
+            pw.println();  // 改行
+
+            // 社員リスト全件をCSV形式で出力
+            for (EmployeeInformation employee : EmployeeManager.employeeList) {
+                pw.println(convertToCSV(employee));
+            }
+
+            pw.close();
+            MANAGER.LOGGER.info("社員情報更新成功（社員ID: " + updatedEmployee.employeeID + "）");
+
+        } catch (IOException e) {
+            // --- 書き込みエラー時：ロールバック処理（元に戻す） ---
+            MANAGER.printErrorLog(e, "社員情報更新失敗");
+            try {
+                Files.deleteIfExists(originalFile.toPath());  // 壊れたファイル削除
+                Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING);  // バックアップ復元
+            } catch (IOException ex) {
+                MANAGER.printErrorLog(ex, "CSVロールバック失敗");
+            }
+            showErrorDialog("社員情報の保存に失敗しました");
+            return;
+        } finally {
+            // --- ファイルロックやリソースの後始末 ---
+            try {
+                if (lock != null && lock.isValid()) lock.release();  // ロック解除
+                if (fos != null) fos.close();                         // ストリームクローズ
+                Files.deleteIfExists(backupFile.toPath());           // バックアップ削除
+            } catch (IOException e) {
+                MANAGER.printErrorLog(e, "リソースの解放に失敗しました");
+            }
+        }
+    }
 }
