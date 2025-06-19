@@ -179,7 +179,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     // 保存・戻るボタン（左）
     private void setupButtons() {
         bottomPanel.setLayout(null);
-        backButton = new JButton("< 編集画面へ戻る");
+        backButton = new JButton("< 詳細画面へ戻る");
         backButton.setBounds(0, 0, 140, 30);
         bottomPanel.add(backButton);
         backButton.addActionListener(e -> {
@@ -199,17 +199,16 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         });
 
         // 保存ボタン（中央）
-        saveButton = new JButton("編集");
+        saveButton = new JButton("保存");
         saveButton.setBounds(350, 0, 80, 30);
         saveButton.addActionListener(e -> {
-            MANAGER.LOGGER.info("編集画面に遷移");
+            MANAGER.LOGGER.info("一覧画面に遷移");
             EmployeeInformation editInfo = collectInputData();
 
             // --- ここで入力データが null でなければ更新処理を行う ---
             if (editInfo != null) {
                 new EmployeeUpdater().update(editInfo); // 社員情報を更新
             }
-
             refreshUI();
             ViewTopScreen top = new ViewTopScreen();
             top.View();
@@ -278,7 +277,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         for (int i = 1; i <= maxDay; i++) {
             dayModel.addElement(i);
         }
-        dayBox = new JComboBox<>(dayModel);
+        dayBox.setModel(dayModel);
         panel.add(yearBox);
         panel.add(new JLabel("年"));
         panel.add(monthBox);
@@ -379,29 +378,62 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      */
     public EmployeeInformation collectInputData() {
         try {
+
+            // --- DEBUG --- データ取得前ログ出力
+            System.out.println("【DEBUG】データ取得開始");
+
             String employeeID = getFieldValue(employeeIdField, "01234xx");
+            System.out.println("社員ID: " + employeeID);
+
             String lastName = getFieldValue(lastNameField, "山田");
             String firstName = getFieldValue(firstNameField, "太郎");
+            System.out.println("氏名: " + lastName + " " + firstName);
+
             String rubyLastName = getFieldValue(rubyLastNameField, "ヤマダ");
             String rubyFirstName = getFieldValue(rubyFirstNameField, "タロウ");
-            Date birthday = getDateFromSelector(birthPanel);
-            Date joiningDate = getDateFromSelector(joinPanel);
-            int engineerDate = getYearMonthFromSelector(engPanel); // 月数換算
+            System.out.println("フリガナ: " + rubyLastName + " " + rubyFirstName);
+
+            Date birthday = getDateFromComboBoxes(birthYearCombo, birthMonthCombo, birthDayCombo);
+            System.out.println("生年月日: " + birthday);
+
+            Date joiningDate = getDateFromComboBoxes(joinYearCombo, joinMonthCombo, joinDayCombo);
+            System.out.println("入社年月日: " + joiningDate);
+
+            int years = (int) engYearCombo.getSelectedItem();
+            int months = (int) engMonthCombo.getSelectedItem();
+            int engineerDate = years * 12 + months;
+            System.out.println("エンジニア歴（月）: " + engineerDate);
+
             String availableLanguages = getFieldValue(availableLanguageField, "html・CSS");
+            System.out.println("扱える言語: " + availableLanguages);
+
             String careerDate = getFieldValue(careerArea, "XXXXXXX");
+            System.out.println("経歴: " + careerDate);
+
             double skillPoint = parseScore(techCombo);
             double communicationPoint = parseScore(commCombo);
             double attitudePoint = parseScore(attitudeCombo);
             double leadershipPoint = parseScore(leaderCombo);
+            System.out.println("スキルスコア: 技術=" + skillPoint + "、コミュ=" + communicationPoint + "、態度=" + attitudePoint
+                    + "、リーダー=" + leadershipPoint);
+
             String trainingDate = getFieldValue(remarksArea, "2000年4月1日株式会社XXXX入社");
             String remarks = getFieldValue(remarksArea, "特になし");
+            System.out.println("研修: " + trainingDate);
+            System.out.println("備考: " + remarks);
+
             Date updatedDay = new Date();
+            System.out.println("【DEBUG】データ取得完了");
+            // --- END DEBUG ---
+
             return new EmployeeInformation(
                     employeeID, lastName, firstName, rubyLastName, rubyFirstName,
                     birthday, joiningDate, engineerDate, availableLanguages,
                     careerDate, trainingDate, skillPoint, attitudePoint,
                     communicationPoint, leadershipPoint, remarks, updatedDay);
+
         } catch (Exception e) {
+            e.printStackTrace(); // ← ターミナル出力
             showValidationError("データ取得中にエラーが発生しました");
             return null;
         }
@@ -430,36 +462,31 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * @return Date: 選択された年月日を表す java.util.Date オブジェクト
      * @author nishiyama
      */
-    private Date getDateFromSelector(JPanel panel) {
-        JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
-        JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
-        JComboBox<?> dayBox = panel.getComponentCount() > 4 ? (JComboBox<?>) panel.getComponent(4) : null;
 
-        int year = (int) yearBox.getSelectedItem();
-        int month = (int) monthBox.getSelectedItem() - 1;
-        int day = dayBox != null ? (int) dayBox.getSelectedItem() : 1;
-
-        Calendar cal = Calendar.getInstance();
-        cal.set(year, month, day);
-        return cal.getTime();
-    }
-
-    /**
-     * 経歴年数のような年＋月情報を月単位に変換して返す
+    /*
+     * private Date getDateFromSelector(JPanel panel) {
+     * JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
+     * JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
+     * JComboBox<?> dayBox = panel.getComponentCount() > 4 ? (JComboBox<?>)
+     * panel.getComponent(4) : null;
      * 
-     * @param panel Jpanelに配置されたJcomboBox
-     *              0番目: 年の JComboBox
-     *              2番目: 月の JComboBox
-     * @return int: 総月数（年×12 + 月）
-     * @author nishiyama
+     * int year = (int) yearBox.getSelectedItem();
+     * int month = (int) monthBox.getSelectedItem() - 1;
+     * int day = dayBox != null ? (int) dayBox.getSelectedItem() : 1;
+     * 
+     * Calendar cal = Calendar.getInstance();
+     * cal.set(year, month, day);
+     * return cal.getTime();
+     * }
+     * 
+     * private int getYearMonthFromSelector(JPanel panel) {
+     * JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
+     * JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
+     * int years = (int) yearBox.getSelectedItem();
+     * int months = (int) monthBox.getSelectedItem();
+     * return years * 12 + months;
+     * }
      */
-    private int getYearMonthFromSelector(JPanel panel) {
-        JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
-        JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
-        int years = (int) yearBox.getSelectedItem();
-        int months = (int) monthBox.getSelectedItem();
-        return years * 12 + months;
-    }
 
     /**
      * JComboBox から選択された数値文字列を double に変換して返す。
@@ -470,6 +497,26 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      */
     private double parseScore(JComboBox<String> combo) {
         return Double.parseDouble((String) combo.getSelectedItem());
+    }
+
+    /**
+     * 年・月・日が選択された JComboBox から Date を構築する安全な方法。
+     * あらかじめ定義されたコンボボックス変数を直接使う。
+     *
+     * @param yearCombo  年の JComboBox
+     * @param monthCombo 月の JComboBox
+     * @param dayCombo   日の JComboBox（null許容）
+     * @return Date 型の日付
+     */
+    private Date getDateFromComboBoxes(JComboBox<Integer> yearCombo, JComboBox<Integer> monthCombo,
+            JComboBox<Integer> dayCombo) {
+        int year = (int) yearCombo.getSelectedItem();
+        int month = (int) monthCombo.getSelectedItem() - 1;
+        int day = (dayCombo != null) ? (int) dayCombo.getSelectedItem() : 1;
+
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month, day);
+        return cal.getTime();
     }
 
     // ダイアログ関係-------------------------------------------------------
