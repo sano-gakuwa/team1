@@ -89,7 +89,7 @@ public class CsvConverter {
             scanner.close();
             // -------------------------------------------------------
             // 読み込んだ社員情報を保存用CSVファイルに追加
-            File originalFile = EmployeeManager.ENPLOYEE_CSV;
+            File originalFile = EmployeeManager.EMPLOYEE_CSV;
             File backupFile = new File("CSV/employee_data_backup.csv");
             FileLock originalFileLock = null;
             FileOutputStream fos = null;
