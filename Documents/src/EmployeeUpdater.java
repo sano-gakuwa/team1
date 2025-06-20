@@ -264,7 +264,7 @@ public class EmployeeUpdater extends Thread {
                     }
                 }
                 // 社員情報保存CSVから選択した社員情報を削除
-                File originalFile = EmployeeManager.ENPLOYEE_CSV;
+                File originalFile = EmployeeManager.EMPLOYEE_CSV;
                 File backupFile = new File("CSV/employee_data_backup.csv");
                 FileLock lock = null;
                 FileOutputStream fos = null;
@@ -283,11 +283,7 @@ public class EmployeeUpdater extends Thread {
                     PrintWriter pw = new PrintWriter(new BufferedWriter(
                             new OutputStreamWriter(fos, "Shift-JIS")));
                     // 社員情報保存CSVファイルの1行目に項目名を記載
-                    for (String category : EmployeeManager.EMPLOYEE_CATEGORY) {
-                        pw.append(category + ",");
-                    }
-                    // 行の最後で改行
-                    pw.append("\n");
+                    pw.println(String.join(",", EmployeeManager.EMPLOYEE_CATEGORY));
                     // 社員情報リストの内容を社員情報保存CSVに上書き保存
                     for (EmployeeInformation employee : EmployeeManager.employeeList) {
                         pw.println(convertToCSV(employee));
