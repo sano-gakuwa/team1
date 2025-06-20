@@ -27,7 +27,7 @@ import java.util.Scanner;
  *          <li>LOGGER.info(String {文言}) ログに情報を残すために使用
  *          <li>LOGGER.warning(String {文言}) ログにヒューマンエラーを残すために使用
  *          </ul>
- *      <li>ENPLOYEE_CSV　社員情報保存用CSVファイル
+ *      <li>EMPLOYEE_CSV　社員情報保存用CSVファイル
  *      <li>EMPLOYEE_CATEGORY　社員情報のカテゴリー
  *      </ul>
  *  <li>呼び出せるメソッド
@@ -42,7 +42,7 @@ public class EmployeeManager extends SystemLog {
     public static ArrayList<EmployeeInformation> employeeList = new ArrayList<>();
     private static final String CSV_FOLDER = "CSV";
     private static final String CSV_FILEPATH = CSV_FOLDER + "/employee_data.csv";
-    public static final File ENPLOYEE_CSV = new File(CSV_FILEPATH);
+    public static final File EMPLOYEE_CSV = new File(CSV_FILEPATH);
     public static final String[] EMPLOYEE_CATEGORY = {
             "社員ID", "名字", "名前", "名字フリガナ", "名前フリガナ", "生年月日（西暦）", "入社年月", "エンジニア歴",
             "扱える言語", "経歴", "研修の受講歴", "技術力", "受講態度", "コミュニケーション能力", "リーダーシップ",
@@ -87,8 +87,8 @@ public class EmployeeManager extends SystemLog {
      */
     private boolean verificationEmployeeData() {
         try {
-            if (ENPLOYEE_CSV.exists()) {
-                if (ENPLOYEE_CSV.isFile() && ENPLOYEE_CSV.canWrite()) {
+            if (EMPLOYEE_CSV.exists()) {
+                if (EMPLOYEE_CSV.isFile() && EMPLOYEE_CSV.canWrite()) {
                     return true;
                 }
             } else {
@@ -116,7 +116,7 @@ public class EmployeeManager extends SystemLog {
         } catch (Exception e) {
             printErrorLog(e, "ファイル新規作成で例外が発生しました");
         }
-        if (ENPLOYEE_CSV.isFile() && ENPLOYEE_CSV.canWrite()) {
+        if (EMPLOYEE_CSV.isFile() && EMPLOYEE_CSV.canWrite()) {
             try {
                 // 文字コードを指定する
                 PrintWriter newFileWriter = new PrintWriter(
@@ -138,7 +138,7 @@ public class EmployeeManager extends SystemLog {
      */
     private void employeeLoading() {
         try {
-            FileInputStream fileInputStream = new FileInputStream(ENPLOYEE_CSV);
+            FileInputStream fileInputStream = new FileInputStream(EMPLOYEE_CSV);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream, "Shift-JIS"));
             Scanner scanner = new Scanner(reader);
             scanner.next();
