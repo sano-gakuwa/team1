@@ -61,7 +61,7 @@ public class EmployeeUpdater extends Thread {
             }
         }
         // バックアップファイル作成
-        File originalFile = EmployeeManager.ENPLOYEE_CSV;
+        File originalFile = EmployeeManager.EMPLOYEE_CSV;
         File backupFile = new File("employee_data_backup.csv");
         try {
             Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -379,7 +379,7 @@ public class EmployeeUpdater extends Thread {
         }
 
         // --- CSVファイル更新処理（安全性のためバックアップ＋排他ロックを使用） ---
-        File originalFile = EmployeeManager.ENPLOYEE_CSV;                          // 元のCSVファイル
+        File originalFile = EmployeeManager.EMPLOYEE_CSV;                          // 元のCSVファイル
         File backupFile = new File("CSV/employee_data_backup.csv");                // バックアップファイル
         FileLock lock = null;                                                      // ファイルロック用
         FileOutputStream fos = null;                                               // 出力ストリーム
