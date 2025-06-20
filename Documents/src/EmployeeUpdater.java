@@ -292,18 +292,20 @@ public class EmployeeUpdater extends Thread {
                     try {
                         if (lock != null && lock.isValid()) {
                             lock.release(); // エラーでもロック解除
+                            MANAGER.LOGGER.info("社員情報保存CSVファイルロック解除成功");
                         }
                     } catch (IOException ex) {
-                        MANAGER.LOGGER.info("ロック解除失敗");
+                        MANAGER.LOGGER.info("社員情報保存CSVファイルのロック解除失敗");
                     }
                 } catch (Exception e) {
                     // 追記中エラー時のロールバック処理を追加
                     try {
                         if (lock != null && lock.isValid()) {
                             lock.release(); // エラーでもロック解除
+                            MANAGER.LOGGER.info("社員情報保存CSVファイルロック解除成功");
                         }
                     } catch (IOException ex) {
-                        MANAGER.LOGGER.info("ロック解除失敗");
+                        MANAGER.LOGGER.info("社員情報保存CSVファイルロック解除失敗");
                     }
                     MANAGER.printErrorLog(e, "削除後の社員情報リストの保存に失敗しました");
                     if (originalFile.exists() && backupFile.exists()) {
@@ -329,6 +331,7 @@ public class EmployeeUpdater extends Thread {
                 return;
             } finally {
                 LOCK.unlock();
+                MANAGER.LOGGER.info("deleteメソッドの解除成功");
             }
         }
     }
