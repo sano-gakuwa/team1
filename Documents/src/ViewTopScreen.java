@@ -33,8 +33,6 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
-
-
 public class ViewTopScreen extends SetUpTopScreen {
     private JTable engineerTable;// 社員情報表示欄
     private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);// ページ数表示箇所
@@ -44,7 +42,7 @@ public class ViewTopScreen extends SetUpTopScreen {
     private DefaultTableModel model;// JTablの表示モデル
     private ArrayList<EmployeeInformation> tableEmployee = null;// JTablに表示する社員情報
     private final EmployeeManager MANAGER = new EmployeeManager();// 社員情報の管理用
-    private EmployeeListOperator employeeListOperator;//検索機能　6/9追記
+    private EmployeeListOperator employeeListOperator;// 検索機能 6/9追記
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
@@ -76,11 +74,11 @@ public class ViewTopScreen extends SetUpTopScreen {
         searchButton.setFocusPainted(false); // フォーカス枠非表示（シンプル化）
         searchButton.addActionListener(e -> {
             // 6/8 検索フィールドの値を取得（topPanelのコンポーネント順と合わせて取得）
-            String idQuery = ((JTextField)topPanel.getComponent(1)).getText();
-            String nameQuery = ((JTextField)topPanel.getComponent(3)).getText();
-            String ageQuery = ((JTextField)topPanel.getComponent(5)).getText();
-            String engQuery = ((JTextField)topPanel.getComponent(7)).getText();
-            String langQuery = ((JTextField)topPanel.getComponent(9)).getText();
+            String idQuery = ((JTextField) topPanel.getComponent(1)).getText();
+            String nameQuery = ((JTextField) topPanel.getComponent(3)).getText();
+            String ageQuery = ((JTextField) topPanel.getComponent(5)).getText();
+            String engQuery = ((JTextField) topPanel.getComponent(7)).getText();
+            String langQuery = ((JTextField) topPanel.getComponent(9)).getText();
 
             executeSearch(idQuery, nameQuery, ageQuery, engQuery, langQuery);
         });
@@ -137,7 +135,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                 if (saveConfirm != JOptionPane.YES_OPTION) {
                     return;
                 }
-                CsvConverter converter=new CsvConverter();
+                CsvConverter converter = new CsvConverter();
                 converter.createTemplate(selectedDir);
             }
         });
@@ -266,25 +264,24 @@ public class ViewTopScreen extends SetUpTopScreen {
         panel.revalidate();
         panel.repaint();
     }
+
     // 検索処理（検索ボタン押下時に呼ばれる）
     private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery, String langQuery) {
         employeeListOperator.searchAsync(
-            idQuery, nameQuery, ageQuery, engQuery, langQuery,
-            new EmployeeListOperator.SearchCallback() {
-                @Override
-                public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
-                    if (success) {
-                        tableEmployee = new ArrayList<>(results);
-                        refreshTable();
-                    } else {
-                        JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
+                idQuery, nameQuery, ageQuery, engQuery, langQuery,
+                new EmployeeListOperator.SearchCallback() {
+                    @Override
+                    public void onSearchFinished(boolean success, List<EmployeeInformation> results,
+                            String errorMessage) {
+                        if (success) {
+                            tableEmployee = new ArrayList<>(results);
+                            refreshTable();
+                        } else {
+                            JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
+                        }
                     }
-                }
-            }
-        );
+                });
     }
-    
-
 
     /*
      * refreshTableメソッドはengineerTable のデータモデルを更新
@@ -380,7 +377,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                             Iterator<EmployeeInformation> employeeIterator = tableEmployee.iterator();
                             while (employeeIterator.hasNext()) {
                                 EmployeeInformation employee = employeeIterator.next();
-                                if (selectID == employee.employeeID) {
+                                if (selectID == employee.getEmployeeID()) {
                                     selectedEmployee = employee;
                                     break;
                                 }
@@ -435,9 +432,9 @@ public class ViewTopScreen extends SetUpTopScreen {
         frame.setVisible(true);
     }
 
-    public void View(ArrayList<EmployeeInformation>tableEmployee,int currentPage) {
-        this.currentPage=currentPage;
-        this.tableEmployee=tableEmployee;
+    public void View(ArrayList<EmployeeInformation> tableEmployee, int currentPage) {
+        this.currentPage = currentPage;
+        this.tableEmployee = tableEmployee;
         refreshTable(); // 画面初期表示とデータ同期
         frame.setVisible(true);
     }
@@ -461,11 +458,11 @@ public class ViewTopScreen extends SetUpTopScreen {
         }
         for (int i = 0; i < displayCount; i++) {
             EmployeeInformation empioyee = tableEmployee.get(i + ((currentPage - 1) * maxDisplayCount));
-            displayList[i][0] = empioyee.employeeID;
-            displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
-            displayList[i][2] = calcAge(empioyee.birthday, now);
-            displayList[i][3] = empioyee.engineerDate;
-            displayList[i][4] = empioyee.availableLanguages;
+            displayList[i][0] = empioyee.getEmployeeID();
+            displayList[i][1] = empioyee.getLastName() + " " + empioyee.getLastName();
+            displayList[i][2] = calcAge(empioyee.getBirthday(), now);
+            displayList[i][3] = empioyee.getEngineerDate() + "歳";
+            displayList[i][4] = empioyee.getAvailableLanguages() + "カ月";
             displayList[i][5] = "詳細";
         }
         return displayList;
