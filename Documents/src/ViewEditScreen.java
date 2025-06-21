@@ -67,21 +67,21 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
     // 編集画面の構成要素をまとめて初期化する
     private void setupEditScreen() {
-        setupEmployeeId();           // 社員ID欄を設定
-        setupNameFields();           // 氏名欄（漢字・フリガナ）を設定
+        setupEmployeeId(); // 社員ID欄を設定
+        setupNameFields(); // 氏名欄（漢字・フリガナ）を設定
         setupDateAndLanguageFields();// 生年月日、入社年月日、言語欄を設定
-        setupCareer();               // 経歴欄の設定
-        setupSkills();               // スキルスコア欄の設定
-        setupTraining();             // 研修受講歴の設定
-        setupRemarks();              // 備考欄の設定
-        setupButtons();              // 保存・戻るボタンの設定
+        setupCareer(); // 経歴欄の設定
+        setupSkills(); // スキルスコア欄の設定
+        setupTraining(); // 研修受講歴の設定
+        setupRemarks(); // 備考欄の設定
+        setupButtons(); // 保存・戻るボタンの設定
     }
 
     // 表示処理（外部からこの画面を表示するために使用）
     public void view(EmployeeInformation employeeInformation) {
         this.employeeInformation = employeeInformation; // 編集対象の情報を保存
         setupEditScreen(); // UI構築
-        setValues();       // 画面に社員情報を反映
+        setValues(); // 画面に社員情報を反映
         frame.setVisible(true); // 画面表示
     }
 
@@ -170,10 +170,10 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         skillPanel.setBackground(Color.LIGHT_GRAY);
 
-        techCombo = createScoreCombo();      // 技術力
-        commCombo = createScoreCombo();      // コミュニケーション
-        attitudeCombo = createScoreCombo();  // 受講態度
-        leaderCombo = createScoreCombo();    // リーダーシップ
+        techCombo = createScoreCombo(); // 技術力
+        commCombo = createScoreCombo(); // コミュニケーション
+        attitudeCombo = createScoreCombo(); // 受講態度
+        leaderCombo = createScoreCombo(); // リーダーシップ
 
         skillPanel.add(new JLabel("技術力"));
         skillPanel.add(techCombo);
@@ -220,12 +220,11 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         // 戻るボタン押下時の確認ダイアログ
         backButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(
-                null,
-                "現在の入力内容を破棄してもよろしいですか？",
-                "確認",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-            );
+                    null,
+                    "現在の入力内容を破棄してもよろしいですか？",
+                    "確認",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
             if (result == JOptionPane.YES_OPTION) {
                 refreshUI();
                 ViewDetailsScreen details = new ViewDetailsScreen();
@@ -253,6 +252,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             top.View(); // 一覧画面に戻る
         });
     }
+
     // ラベル（JLabel）を生成する汎用メソッド
     private JLabel createLabel(String title, int x, int y) {
         JLabel label = new JLabel(title);
@@ -386,39 +386,29 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             System.out.println("【DEBUG】データ取得開始");
 
             // 各フィールドの入力値を取得（プレースホルダーは無視）
-            String employeeID = getFieldValue(employeeIdField, "01234xx");
-            String lastName = getFieldValue(lastNameField, "山田");
-            String firstName = getFieldValue(firstNameField, "太郎");
-            String rubyLastName = getFieldValue(rubyLastNameField, "ヤマダ");
-            String rubyFirstName = getFieldValue(rubyFirstNameField, "タロウ");
-            Date birthday = getDateFromComboBoxes(birthYearCombo, birthMonthCombo, birthDayCombo);
-            Date joiningDate = getDateFromComboBoxes(joinYearCombo, joinMonthCombo, joinDayCombo);
+            EmployeeInformation employee = new EmployeeInformation();
+            employee.setEmployeeID(getFieldValue(employeeIdField, "01234xx"));
+            employee.setlastName(getFieldValue(lastNameField, "山田"));
+            employee.setFirstname(getFieldValue(firstNameField, "太郎"));
+            employee.setRubyLastName(getFieldValue(rubyLastNameField, "ヤマダ"));
+            employee.setRubyFirstname(getFieldValue(rubyFirstNameField, "タロウ"));
+            employee.setBirthday(getDateFromComboBoxes(birthYearCombo, birthMonthCombo, birthDayCombo));
+            employee.setJoiningDate(getDateFromComboBoxes(joinYearCombo, joinMonthCombo, joinDayCombo));
             int years = (int) engYearCombo.getSelectedItem();
             int months = (int) engMonthCombo.getSelectedItem();
-            int engineerDate = years * 12 + months;
-            String availableLanguages = getFieldValue(availableLanguageField, "html・CSS");
-            String careerDate = getFieldValue(careerArea, "XXXXXXX");
-
+            employee.setEngineerDate(years * 12 + months);
+            employee.setAvailableLanguages(getFieldValue(availableLanguageField, "html・CSS"));
+            employee.setCareerDate(getFieldValue(careerArea, "XXXXXXX"));
             // スキルスコア
-            double skillPoint = parseScore(techCombo);
-            double communicationPoint = parseScore(commCombo);
-            double attitudePoint = parseScore(attitudeCombo);
-            double leadershipPoint = parseScore(leaderCombo);
-
-            String trainingDate = getFieldValue(remarksArea, "2000年4月1日株式会社XXXX入社");
-            String remarks = getFieldValue(remarksArea, "特になし");
-
-            Date updatedDay = new Date();
-
+            employee.setSkillPoint(parseScore(techCombo));
+            employee.setAttitudePoint(parseScore(attitudeCombo));
+            employee.setCommunicationPoint(parseScore(commCombo));
+            employee.setLeadershipPoint(parseScore(leaderCombo));
+            employee.setTrainingDate(getFieldValue(trainingArea, "2000年4月1日株式会社XXXX入社"));
+            employee.setRemarks(getFieldValue(remarksArea, "特になし"));
+            employee.setUpdatedDay(new Date()); // 更新日時は現在時刻
             System.out.println("【DEBUG】データ取得完了");
-
-            // 入力データから新しい EmployeeInformation を作成して返す
-            return new EmployeeInformation(
-                employeeID, lastName, firstName, rubyLastName, rubyFirstName,
-                birthday, joiningDate, engineerDate, availableLanguages,
-                careerDate, trainingDate, skillPoint, attitudePoint,
-                communicationPoint, leadershipPoint, remarks, updatedDay);
-
+            return employee;
         } catch (Exception e) {
             e.printStackTrace(); // エラーの詳細をコンソールに出力
             showValidationError("データ取得中にエラーが発生しました");
@@ -445,7 +435,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * 年・月・日のコンボボックスから Date を生成
      */
     private Date getDateFromComboBoxes(JComboBox<Integer> yearCombo, JComboBox<Integer> monthCombo,
-                                       JComboBox<Integer> dayCombo) {
+            JComboBox<Integer> dayCombo) {
         int year = (int) yearCombo.getSelectedItem();
         int month = (int) monthCombo.getSelectedItem() - 1; // 月は0始まり
         int day = (dayCombo != null) ? (int) dayCombo.getSelectedItem() : 1;
@@ -487,40 +477,40 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      */
     private void setValues() {
         // 社員ID・名前など基本情報のセット
-        employeeIdField.setText(employeeInformation.employeeID);
-        rubyLastNameField.setText(employeeInformation.rubyLastName);
-        rubyFirstNameField.setText(employeeInformation.rubyFirstname);
-        lastNameField.setText(employeeInformation.lastName);
-        firstNameField.setText(employeeInformation.firstname);
-        availableLanguageField.setText(employeeInformation.availableLanguages);
-        careerArea.setText(employeeInformation.careerDate);
+        employeeIdField.setText(employeeInformation.getEmployeeID());
+        rubyLastNameField.setText(employeeInformation.getRubyLastName());
+        rubyFirstNameField.setText(employeeInformation.getRubyFirstname());
+        lastNameField.setText(employeeInformation.getLastName());
+        firstNameField.setText(employeeInformation.getFirstname());
+        availableLanguageField.setText(employeeInformation.getAvailableLanguages());
+        careerArea.setText(employeeInformation.getCareerDate());
 
         // スキルスコアの反映
-        techCombo.setSelectedItem(String.format("%.1f", employeeInformation.skillPoint));
-        attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.attitudePoint));
-        commCombo.setSelectedItem(String.format("%.1f", employeeInformation.communicationPoint));
-        leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.leadershipPoint));
+        techCombo.setSelectedItem(String.format("%.1f", employeeInformation.getSkillPoint()));
+        attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.getAttitudePoint()));
+        commCombo.setSelectedItem(String.format("%.1f", employeeInformation.getCommunicationPoint()));
+        leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.getLeadershipPoint()));
 
         // 研修履歴・備考
-        trainingArea.setText(employeeInformation.trainingDate);
-        remarksArea.setText(employeeInformation.remarks);
+        trainingArea.setText(employeeInformation.getTrainingDate());
+        remarksArea.setText(employeeInformation.getRemarks());
 
         // 生年月日
         Calendar birthCal = Calendar.getInstance();
-        birthCal.setTime(employeeInformation.birthday);
+        birthCal.setTime(employeeInformation.getBirthday());
         birthYearCombo.setSelectedItem(birthCal.get(Calendar.YEAR));
         birthMonthCombo.setSelectedItem(birthCal.get(Calendar.MONTH) + 1);
         birthDayCombo.setSelectedItem(birthCal.get(Calendar.DAY_OF_MONTH));
 
         // 入社年月日
         Calendar joinCal = Calendar.getInstance();
-        joinCal.setTime(employeeInformation.joiningDate);
+        joinCal.setTime(employeeInformation.getJoiningDate());
         joinYearCombo.setSelectedItem(joinCal.get(Calendar.YEAR));
         joinMonthCombo.setSelectedItem(joinCal.get(Calendar.MONTH) + 1);
         joinDayCombo.setSelectedItem(joinCal.get(Calendar.DAY_OF_MONTH));
 
         // エンジニア歴（月→年+月 に分割）
-        int totalMonths = employeeInformation.engineerDate;
+        int totalMonths = employeeInformation.getEngineerDate();
         engYearCombo.setSelectedItem(totalMonths / 12);
         engMonthCombo.setSelectedItem(totalMonths % 12);
     }
