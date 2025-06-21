@@ -19,6 +19,7 @@ public abstract class SystemLog {
 
     /**
      * ログファイルの読み込み。
+     * 
      * @author 下村
      */
     protected void setUpLog() {
@@ -38,9 +39,10 @@ public abstract class SystemLog {
         }
     }
 
-    // 
+    //
     /**
      * ログファイルの存在確認用。
+     * 
      * @return ログファイルの存在確認するかの真偽
      * @author 下村
      */
@@ -62,6 +64,7 @@ public abstract class SystemLog {
 
     /**
      * ログファイルが存在しない場合にログファイルを作成する用。
+     * 
      * @author 下村
      */
     protected void makeLogFile() {
@@ -75,14 +78,15 @@ public abstract class SystemLog {
 
     /**
      * ログにスタックトレースを出力する
+     * 
      * @param e           スタックトレースを持っている例外クラス
      * @param errorString ログに出力するエラー文言
      * @author 下村
      */
     public void printErrorLog(Exception e, String errorString) {
         StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter  = new PrintWriter(stringWriter);
-        e.printStackTrace(printWriter );
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
         LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
 }
