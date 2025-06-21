@@ -459,10 +459,10 @@ public class ViewTopScreen extends SetUpTopScreen {
         for (int i = 0; i < displayCount; i++) {
             EmployeeInformation empioyee = tableEmployee.get(i + ((currentPage - 1) * maxDisplayCount));
             displayList[i][0] = empioyee.getEmployeeID();
-            displayList[i][1] = empioyee.getLastName() + " " + empioyee.getLastName();
-            displayList[i][2] = calcAge(empioyee.getBirthday(), now);
-            displayList[i][3] = empioyee.getEngineerDate() + "歳";
-            displayList[i][4] = empioyee.getAvailableLanguages() + "カ月";
+            displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
+            displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
+            displayList[i][3] = empioyee.getEngineerDate() + "カ月";
+            displayList[i][4] = empioyee.getAvailableLanguages();
             displayList[i][5] = "詳細";
         }
         return displayList;
