@@ -352,22 +352,22 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             for (int i = 0; i < displayCount; i++) {
                 EmployeeInformation empioyee = tableEmployee
                         .get(i + ((currentPage - 1) * maxDisplayCount));
-                displayList[i][0] = empioyee.employeeID;
-                displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
-                displayList[i][2] = calcAge(empioyee.birthday, now);
-                displayList[i][3] = empioyee.engineerDate;
-                displayList[i][4] = empioyee.availableLanguages;
+                displayList[i][0] = empioyee.getEmployeeID();
+                displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
+                displayList[i][2] = calcAge(empioyee.getBirthday(), now);
+                displayList[i][3] = empioyee.getEngineerDate();
+                displayList[i][4] = empioyee.getAvailableLanguages();
             }
         } else {
             //社員〇人分＋空きスペース
             for (int i = 0; i < displayCount; i++) {
                 EmployeeInformation empioyee = tableEmployee
                         .get(i + ((currentPage - 1) * maxDisplayCount));
-                displayList[i][0] = empioyee.employeeID;
-                displayList[i][1] = empioyee.lastName + " " + empioyee.firstname;
-                displayList[i][2] = calcAge(empioyee.birthday, now);
-                displayList[i][3] = empioyee.engineerDate;
-                displayList[i][4] = empioyee.availableLanguages;
+                displayList[i][0] = empioyee.getEmployeeID();
+                displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
+                displayList[i][2] = calcAge(empioyee.getBirthday(), now);
+                displayList[i][3] = empioyee.getEngineerDate();
+                displayList[i][4] = empioyee.getAvailableLanguages();
             }
             for(int i=displayCount;i<maxDisplayCount;i++){
                 displayList[i][0] = "";
