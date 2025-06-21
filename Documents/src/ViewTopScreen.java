@@ -527,4 +527,21 @@ public class ViewTopScreen extends SetUpTopScreen {
             selectFile();
         }
     }
+    // JTextField用：最大文字数を制限するDocumentクラス※6/17追記
+    class LimitedDocument extends PlainDocument {
+        private final int limit;
+
+        public LimitedDocument(int limit) {
+            this.limit = limit;
+        }
+
+        @Override
+        public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
+            if (str == null) return;
+
+            if ((getLength() + str.length()) <= limit) {
+                super.insertString(offset, str, attr);
+            }
+        }
+    }
 }
