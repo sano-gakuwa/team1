@@ -41,15 +41,13 @@ public class CsvConverter {
      * @author 下村
      */
     public void readCsv(String selectedFilePath) {
-        FileInputStream fis = null;
         ArrayList<EmployeeInformation> newEmployeeList = new ArrayList<EmployeeInformation>();
         try {
             File selectedFile = new File(selectedFilePath);
-            fis = new FileInputStream(selectedFile);
-            BufferedReader b_reader = new BufferedReader(new InputStreamReader(fis, "Shift-JIS"));
-            Scanner scanner = new Scanner(b_reader);
-            scanner.next();
-            try {
+            FileInputStream fileInputStream = new FileInputStream(selectedFile);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream, "Shift-JIS"));
+            try (Scanner scanner = new Scanner(bufferedReader)) {
+                scanner.next();
                 // 次に読み込むべき行が無くなるまでループ
                 while (scanner.hasNext()) {
                     ArrayList<String> loadEmployeeDate = new ArrayList<String>(
@@ -58,76 +56,70 @@ public class CsvConverter {
                         String message = "指定されたCSVファイルに形式エラーが有ります";
                         MANAGER.LOGGER.warning(message);
                         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-                        scanner.close();
                         return;
                     }
-                    EmployeeInformation employee = new EmployeeInformation(
-                            loadEmployeeDate.get(0),
-                            loadEmployeeDate.get(1), loadEmployeeDate.get(2),
-                            loadEmployeeDate.get(3), loadEmployeeDate.get(4),
-                            dateFormat.parse(loadEmployeeDate.get(5)),
-                            dateFormat.parse(loadEmployeeDate.get(6)),
-                            Integer.parseInt(loadEmployeeDate.get(7)),
-                            loadEmployeeDate.get(8),
-                            loadEmployeeDate.get(9),
-                            loadEmployeeDate.get(10),
-                            Double.parseDouble(loadEmployeeDate.get(11)),
-                            Double.parseDouble(loadEmployeeDate.get(12)),
-                            Double.parseDouble(loadEmployeeDate.get(13)),
-                            Double.parseDouble(loadEmployeeDate.get(14)),
-                            loadEmployeeDate.get(15),
-                            dateFormat.parse(loadEmployeeDate.get(16)));
+                    EmployeeInformation employee = new EmployeeInformation();
+                    employee.setEmployeeID(loadEmployeeDate.get(0));
+                    employee.setlastName(loadEmployeeDate.get(1));
+                    employee.setFirstname(loadEmployeeDate.get(2));
+                    employee.setRubyLastName(loadEmployeeDate.get(3));
+                    employee.setRubyFirstname(loadEmployeeDate.get(4));
+                    employee.setBirthday(dateFormat.parse(loadEmployeeDate.get(5)));
+                    employee.setJoiningDate(dateFormat.parse(loadEmployeeDate.get(6)));
+                    employee.setEngineerDate(Integer.parseInt(loadEmployeeDate.get(7)));
+                    employee.setAvailableLanguages(loadEmployeeDate.get(8));
+                    employee.setCareerDate(loadEmployeeDate.get(9));
+                    employee.setTrainingDate(loadEmployeeDate.get(10));
+                    employee.setSkillPoint(Double.parseDouble(loadEmployeeDate.get(11)));
+                    employee.setAttitudePoint(Double.parseDouble(loadEmployeeDate.get(12)));
+                    employee.setCommunicationPoint(Double.parseDouble(loadEmployeeDate.get(13)));
+                    employee.setLeadershipPoint(Double.parseDouble(loadEmployeeDate.get(14)));
+                    employee.setRemarks(loadEmployeeDate.get(15));
+                    employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
                     newEmployeeList.add(employee);
                 }
             } catch (Exception e) {
                 String message = "指定されたCSVファイルから情報の読み込みが出来ませんでした";
                 MANAGER.printErrorLog(e, message);
                 JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-                scanner.close();
                 return;
             }
-            scanner.close();
             // -------------------------------------------------------
             // 読み込んだ社員情報を保存用CSVファイルに追加
             File originalFile = EmployeeManager.EMPLOYEE_CSV;
             File backupFile = new File("CSV/employee_data_backup.csv");
-            FileLock originalFileLock = null;
-            FileOutputStream fos = null;
             try {
-                try {
-                    // バックアップファイル作成
-                    Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    MANAGER.printErrorLog(e, "バックアップファイルの作成に失敗しました");
-                    showErrorDialog("バックアップファイルの作成に失敗しました");
+                // バックアップファイル作成
+                Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                MANAGER.printErrorLog(e, "バックアップファイルの作成に失敗しました");
+                showErrorDialog("バックアップファイルの作成に失敗しました");
+                return;
+            }
+            FileOutputStream fileOutputStream = new FileOutputStream(originalFile, true);
+            FileChannel originalFilechannel = fileOutputStream.getChannel();
+            // CSVファイルの排他ロック（同時書き込み防止）
+            try (FileLock originalFileLock = originalFilechannel.lock()) {
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, "Shift-JIS");
+                BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+                try (PrintWriter pw = new PrintWriter(bufferedWriter)) {
+                    // 読み込んだ社員情報リストの内容を社員情報保存CSVに保存
+                    for (EmployeeInformation employee : newEmployeeList) {
+                        pw.println(convertToCSV(employee));
+                    }
+                } catch (Exception e) {
+                    MANAGER.printErrorLog(e, "社員情報リストの内容を社員情報保存CSVに保存失敗");
                     return;
                 }
-                fos = new FileOutputStream(originalFile, true);
-                FileChannel originalFilechannel = fos.getChannel();
-                originalFileLock = originalFilechannel.lock(); // CSVファイルの排他ロック（同時書き込み防止）
-                PrintWriter pw = new PrintWriter(new BufferedWriter(
-                        new OutputStreamWriter(fos, "Shift-JIS")));
-                // 読み込んだ社員情報リストの内容を社員情報保存CSVに保存
-                for (EmployeeInformation employee : newEmployeeList) {
-                    pw.println(convertToCSV(employee));
-                }
-                pw.close();
                 try {
                     if (originalFileLock != null && originalFileLock.isValid()) {
                         originalFileLock.release(); // エラーでもロック解除
                     }
-                } catch (IOException ex) {
-                    MANAGER.LOGGER.info("ロック解除失敗");
+                } catch (Exception ex) {
+                    MANAGER.printErrorLog(ex, "社員情報保存CSVファイルのロック解除に失敗しました");
                 }
             } catch (Exception e) {
                 // 追記中エラー時のロールバック処理を追加
-                try {
-                    if (originalFileLock != null && originalFileLock.isValid()) {
-                        originalFileLock.release(); // エラーでもロック解除
-                    }
-                } catch (IOException ex) {
-                    MANAGER.LOGGER.info("ロック解除失敗");
-                }
                 MANAGER.printErrorLog(e, "削除後の社員情報リストの保存に失敗しました");
                 if (originalFile.exists() && backupFile.exists()) {
                     try {
@@ -262,7 +254,7 @@ public class CsvConverter {
                         .iterator(); employeeIterator.hasNext();) {
                     EmployeeInformation employee = employeeIterator.next();
                     // 選択された社員情報と合致したらファイルに出力
-                    if (selected.contains(employee.employeeID) == true) {
+                    if (selected.contains(employee.getEmployeeID()) == true) {
                         pw.println(convertToCSV(employee));
                     }
                 }
@@ -289,24 +281,25 @@ public class CsvConverter {
      * @author nishiyama
      */
     private String convertToCSV(EmployeeInformation e) {
-        return String.join(",",
-                e.employeeID,
-                e.lastName,
-                e.firstname,
-                e.rubyLastName,
-                e.rubyFirstname,
-                EmployeeInformation.formatDate(e.birthday),
-                EmployeeInformation.formatDate(e.joiningDate),
-                String.valueOf(e.engineerDate),
-                e.availableLanguages,
-                e.careerDate,
-                e.trainingDate,
-                String.valueOf(e.skillPoint),
-                String.valueOf(e.attitudePoint),
-                String.valueOf(e.communicationPoint),
-                String.valueOf(e.leadershipPoint),
-                e.remarks,
-                EmployeeInformation.formatDate(e.updatedDay));
+        String csvTypeString=null;
+        String.join(",",e.getEmployeeID());
+        String.join(",", e.getLastName());
+        String.join(",",e.getFirstname());
+        String.join(",",e.getRubyLastName());
+        String.join(",",e.getRubyFirstname());
+        String.join(",",EmployeeInformation.formatDate(e.getBirthday()));
+        String.join(",",EmployeeInformation.formatDate(e.getJoiningDate()));
+        String.join(",",String.valueOf(e.getEngineerDate()));
+        String.join(",",e.getAvailableLanguages());
+        String.join(",",e.getCareerDate());
+        String.join(",",e.getTrainingDate());
+        String.join(",",String.valueOf(e.getSkillPoint()));
+        String.join(",",String.valueOf(e.getAttitudePoint()));
+        String.join(",",String.valueOf(e.getCommunicationPoint()));
+        String.join(",",String.valueOf(e.getLeadershipPoint()));
+        String.join(",",e.getRemarks());
+        String.join(",",EmployeeInformation.formatDate(e.getUpdatedDay()));
+        return csvTypeString;
     }
 
     /**
@@ -328,42 +321,43 @@ public class CsvConverter {
     private void showDialog(String message) {
         JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
     }
+
     // -------------------------------------------------------
-    public void createTemplate(File selectedDir){
+    public void createTemplate(File selectedDir) {
         // 固定ファイル名で保存先ファイルを作成
-                File file = new File(selectedDir, "employee_template.csv");
+        File file = new File(selectedDir, "employee_template.csv");
 
-                // 上書き確認（存在する場合のみ）
-                if (file.exists()) {
-                    int overwriteConfirm = JOptionPane.showConfirmDialog(
-                            null,
-                            "ファイル「employee_template.csv」は既に存在します。上書きしてもよろしいですか？",
-                            "上書き確認",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.WARNING_MESSAGE);
-                    if (overwriteConfirm != JOptionPane.YES_OPTION) {
-                        return;
-                    }
+        // 上書き確認（存在する場合のみ）
+        if (file.exists()) {
+            int overwriteConfirm = JOptionPane.showConfirmDialog(
+                    null,
+                    "ファイル「employee_template.csv」は既に存在します。上書きしてもよろしいですか？",
+                    "上書き確認",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+            if (overwriteConfirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
+        // ファイル書き出し処理
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
+                    + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
+            writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
+                    + "4.5,5.0,4.0,3.5,特になし\n");
+
+            JOptionPane.showMessageDialog(null, "テンプレートファイル「employee_template.csv」を出力しました。");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
+
+            if (file.exists()) {
+                if (!file.delete()) {
+                    System.err.println("作成失敗したテンプレートファイルの削除に失敗しました: " + file.getAbsolutePath());
                 }
-
-                // ファイル書き出し処理
-                try (FileWriter writer = new FileWriter(file)) {
-                    writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
-                            + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
-                    writer.write("E001,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
-                            + "4.5,5.0,4.0,3.5,特になし\n");
-
-                    JOptionPane.showMessageDialog(null, "テンプレートファイル「employee_template.csv」を出力しました。");
-
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
-
-                    if (file.exists()) {
-                        if (!file.delete()) {
-                            System.err.println("作成失敗したテンプレートファイルの削除に失敗しました: " + file.getAbsolutePath());
-                        }
-                    }
-                }
+            }
+        }
     }
 }
