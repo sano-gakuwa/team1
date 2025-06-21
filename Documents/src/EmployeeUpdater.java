@@ -268,7 +268,6 @@ public class EmployeeUpdater extends Thread {
                 File originalFile = EmployeeManager.EMPLOYEE_CSV;
                 File backupFile = new File("CSV/employee_data_backup.csv");
                 FileLock lock = null;
-                FileOutputStream fos = null;
                 try {
                     try {
                         // バックアップファイル作成
@@ -278,18 +277,19 @@ public class EmployeeUpdater extends Thread {
                         showErrorDialog("バックアップファイルの作成に失敗しました");
                         return;
                     }
-                    fos = new FileOutputStream(originalFile);
-                    FileChannel channel = fos.getChannel();
+                    FileOutputStream fileOutputStream = new FileOutputStream(originalFile);
+                    FileChannel channel = fileOutputStream.getChannel();
                     lock = channel.lock(); // CSVファイルの排他ロック（同時書き込み防止）
-                    PrintWriter pw = new PrintWriter(new BufferedWriter(
-                            new OutputStreamWriter(fos, "Shift-JIS")));
+                    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, "Shift-JIS");
+                    BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+                    PrintWriter printWriter = new PrintWriter(bufferedWriter);
                     // 社員情報保存CSVファイルの1行目に項目名を記載
-                    pw.println(String.join(",", EmployeeManager.EMPLOYEE_CATEGORY));
+                    printWriter.println(String.join(",", EmployeeManager.EMPLOYEE_CATEGORY));
                     // 社員情報リストの内容を社員情報保存CSVに上書き保存
                     for (EmployeeInformation employee : EmployeeManager.employeeList) {
-                        pw.println(convertToCSV(employee));
+                        printWriter.println(convertToCSV(employee));
                     }
-                    pw.close();
+                    printWriter.close();
                     try {
                         if (lock != null && lock.isValid()) {
                             lock.release(); // エラーでもロック解除
