@@ -32,9 +32,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
-import javax.swing.text.AttributeSet;
 
 
 
@@ -438,8 +435,9 @@ public class ViewTopScreen extends SetUpTopScreen {
         frame.setVisible(true);
     }
 
-    public void View(int currentPage) {
-        this.currentPage = currentPage;
+    public void View(ArrayList<EmployeeInformation>tableEmployee,int currentPage) {
+        this.currentPage=currentPage;
+        this.tableEmployee=tableEmployee;
         refreshTable(); // 画面初期表示とデータ同期
         frame.setVisible(true);
     }
@@ -528,23 +526,6 @@ public class ViewTopScreen extends SetUpTopScreen {
         } else if (selectButton == 2) {
             MANAGER.LOGGER.info("読み込むCSVを変更");
             selectFile();
-        }
-    }
-    // JTextField用：最大文字数を制限するDocumentクラス※6/17追記
-    class LimitedDocument extends PlainDocument {
-        private final int limit;
-
-        public LimitedDocument(int limit) {
-            this.limit = limit;
-        }
-
-        @Override
-        public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
-            if (str == null) return;
-
-            if ((getLength() + str.length()) <= limit) {
-                super.insertString(offset, str, attr);
-            }
         }
     }
 }
