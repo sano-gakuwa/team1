@@ -174,7 +174,6 @@ public class EmployeeManager extends SystemLog {
                     employee.setRemarks(loadEmployeeDate.get(15));
                     employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
                     employeeList.add(employee);
-                    LOGGER.info(String.format("社員情報読み込み成功: %s", employee.getEmployeeID()));
                 }
             } catch (Exception e) {
                 printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
