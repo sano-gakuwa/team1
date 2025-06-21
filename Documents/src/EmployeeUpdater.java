@@ -10,7 +10,6 @@ import javax.swing.JOptionPane;
 
 public class EmployeeUpdater extends Thread {
 
-    private final ViewAdditionScreen CALLERSCREEN = new ViewAdditionScreen();
     private final EmployeeManager MANAGER = new EmployeeManager();
     // 下村追加分-------------------------------------------------------
     private final Lock LOCK = new ReentrantLock();
@@ -45,6 +44,7 @@ public class EmployeeUpdater extends Thread {
      * @author nishiyama
      */
     public void addition(EmployeeInformation newEmployee) {
+        final ViewAdditionScreen CALLERSCREEN = new ViewAdditionScreen();
         // 必須項目が空か確認
         if (!validateEmployee(newEmployee)) {
             showErrorDialog("必須項目が入力されていません");
@@ -52,10 +52,10 @@ public class EmployeeUpdater extends Thread {
         }
         // 重複チェック：既に同じ社員IDが存在していないか
         for (EmployeeInformation existing : EmployeeManager.employeeList) {
-            if (existing.employeeID.equals(newEmployee.employeeID)) {
+            if (existing.getEmployeeID().equals(newEmployee.getEmployeeID())) {
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     CALLERSCREEN.showValidationError("社員IDが既に存在します。別のIDを入力してください。");
-                    MANAGER.LOGGER.info("新規追加処理: 重複する社員IDが存在します（社員ID: " + newEmployee.employeeID + "）"); // 例外処理の記述がないためinfoLog扱い
+                    MANAGER.LOGGER.info("新規追加処理: 重複する社員IDが存在します（社員ID: " + newEmployee.getEmployeeID() + "）"); // 例外処理の記述がないためinfoLog扱い
                 });
                 return;
             }
@@ -68,7 +68,7 @@ public class EmployeeUpdater extends Thread {
             MANAGER.LOGGER.info("CSVバックアップ作成成功");
         } catch (IOException e) {
             MANAGER.printErrorLog(e, "CSVバックアップ作成失敗");
-            showError("CSVバックアップ作成に失敗しました");
+            showError("CSVバックアップ作成に失敗しました", CALLERSCREEN);
             return;
         }
         // CSVファイルのロック処理
@@ -82,7 +82,7 @@ public class EmployeeUpdater extends Thread {
                     new OutputStreamWriter(fos, "Shift-JIS")));
             // 追加情報を記述
             pw.println(convertToCSV(newEmployee));
-            MANAGER.LOGGER.info("CSVファイルに社員情報を追記成功（社員ID: " + newEmployee.employeeID + "）");
+            MANAGER.LOGGER.info("CSVファイルに社員情報を追記成功（社員ID: " + newEmployee.getEmployeeID() + "）");
             pw.close();
             MANAGER.LOGGER.info("ファイルロック解除成功");
         } catch (IOException e) {
@@ -131,9 +131,9 @@ public class EmployeeUpdater extends Thread {
 
         try {
             EmployeeManager.employeeList.add(newEmployee);
-            MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newEmployee.employeeID + "）");
+            MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
         } catch (Exception e) {
-            MANAGER.printErrorLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.employeeID + "）");
+            MANAGER.printErrorLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
         }
     }
 
@@ -146,47 +146,47 @@ public class EmployeeUpdater extends Thread {
      */
     private boolean validateEmployee(EmployeeInformation e) {
         boolean validate = true;
-        if (e.employeeID == null || e.employeeID.isEmpty()) {
+        if (e.getEmployeeID() == null || e.getEmployeeID().isEmpty()) {
             MANAGER.LOGGER.warning("社員ID欄が空欄です");
             validate = false;
         }
-        if (e.lastName == null || e.lastName.isEmpty()) {
+        if (e.getLastName() == null || e.getLastName().isEmpty()) {
             MANAGER.LOGGER.warning("名字欄が空欄です");
             validate = false;
         }
-        if (e.firstname == null || e.firstname.isEmpty()) {
+        if (e.getFirstname() == null || e.getFirstname().isEmpty()) {
             MANAGER.LOGGER.warning("名前欄が空欄です");
             validate = false;
         }
-        if (e.rubyLastName == null || e.rubyLastName.isEmpty()) {
+        if (e.getRubyLastName() == null || e.getRubyLastName().isEmpty()) {
             MANAGER.LOGGER.warning("名字のフリガナ欄が空欄です");
             validate = false;
         }
-        if (e.rubyFirstname == null || e.rubyFirstname.isEmpty()) {
+        if (e.getRubyFirstname() == null || e.getRubyFirstname().isEmpty()) {
             MANAGER.LOGGER.warning("名前のフリガナ欄が空欄です");
             validate = false;
         }
-        if (e.birthday == null) {
+        if (e.getBirthday() == null) {
             MANAGER.LOGGER.warning("誕生日欄が空欄です");
             validate = false;
         }
-        if (e.joiningDate == null) {
+        if (e.getJoiningDate() == null) {
             MANAGER.LOGGER.warning("入社年月欄が空欄です");
             validate = false;
         }
-        if (e.skillPoint == null) {
+        if (e.getSkillPoint() == null) {
             MANAGER.LOGGER.warning("技術欄が空欄です");
             validate = false;
         }
-        if (e.communicationPoint == null) {
+        if (e.getCommunicationPoint() == null) {
             MANAGER.LOGGER.warning("コミュニケーション能力欄が空欄です");
             validate = false;
         }
-        if (e.attitudePoint == null) {
+        if (e.getAttitudePoint() == null) {
             MANAGER.LOGGER.warning("受講態度欄が空欄です");
             validate = false;
         }
-        if (e.leadershipPoint == null) {
+        if (e.getLeadershipPoint() == null) {
             MANAGER.LOGGER.warning("リーダーシップ欄が空欄です");
             validate = false;
         }
@@ -201,24 +201,25 @@ public class EmployeeUpdater extends Thread {
      * @author nishiyama
      */
     private String convertToCSV(EmployeeInformation e) {
-        return String.join(",",
-                e.employeeID,
-                e.lastName,
-                e.firstname,
-                e.rubyLastName,
-                e.rubyFirstname,
-                EmployeeInformation.formatDate(e.birthday),
-                EmployeeInformation.formatDate(e.joiningDate),
-                String.valueOf(e.engineerDate),
-                e.availableLanguages,
-                e.careerDate,
-                e.trainingDate,
-                String.valueOf(e.skillPoint),
-                String.valueOf(e.attitudePoint),
-                String.valueOf(e.communicationPoint),
-                String.valueOf(e.leadershipPoint),
-                e.remarks,
-                EmployeeInformation.formatDate(e.updatedDay));
+        String csvTypeString = null;
+        String.join(",", e.getEmployeeID());
+        String.join(",", e.getLastName());
+        String.join(",", e.getFirstname());
+        String.join(",", e.getRubyLastName());
+        String.join(",", e.getRubyFirstname());
+        String.join(",", EmployeeInformation.formatDate(e.getBirthday()));
+        String.join(",", EmployeeInformation.formatDate(e.getJoiningDate()));
+        String.join(",", String.valueOf(e.getEngineerDate()));
+        String.join(",", e.getAvailableLanguages());
+        String.join(",", e.getCareerDate());
+        String.join(",", e.getTrainingDate());
+        String.join(",", String.valueOf(e.getSkillPoint()));
+        String.join(",", String.valueOf(e.getAttitudePoint()));
+        String.join(",", String.valueOf(e.getCommunicationPoint()));
+        String.join(",", String.valueOf(e.getLeadershipPoint()));
+        String.join(",", e.getRemarks());
+        String.join(",", EmployeeInformation.formatDate(e.getUpdatedDay()));
+        return csvTypeString;
     }
 
     /**
@@ -227,7 +228,7 @@ public class EmployeeUpdater extends Thread {
      * @param message 表示するエラーメッセージ
      * @author nishiyama
      */
-    private void showError(String message) {
+    private void showError(String message, ViewAdditionScreen CALLERSCREEN) {
         javax.swing.SwingUtilities.invokeLater(() -> {
             CALLERSCREEN.showErrorMessageOnPanel(message);
         });
@@ -249,7 +250,7 @@ public class EmployeeUpdater extends Thread {
                                 .iterator(); employeeIterator.hasNext();) {
                             EmployeeInformation employee = employeeIterator.next();
                             // 選択された社員情報と合致したら削除
-                            if (selected.contains(employee.employeeID) == true) {
+                            if (selected.contains(employee.getEmployeeID()) == true) {
                                 employeeIterator.remove();
                             }
                         }
@@ -348,7 +349,7 @@ public class EmployeeUpdater extends Thread {
 
     // -------------------
     // 佐野作成部分
-       /**
+    /**
      * 指定された社員IDの情報を更新するメソッド
      * 既存の社員情報リストとCSVファイルの内容を、新しい情報で上書きします。
      *
@@ -365,8 +366,8 @@ public class EmployeeUpdater extends Thread {
         boolean found = false;
         for (int i = 0; i < EmployeeManager.employeeList.size(); i++) {
             EmployeeInformation current = EmployeeManager.employeeList.get(i);
-            if (current.employeeID.equals(updatedEmployee.employeeID)) {
-                EmployeeManager.employeeList.set(i, updatedEmployee);  // 上書き
+            if (current.getEmployeeID().equals(updatedEmployee.getEmployeeID())) {
+                EmployeeManager.employeeList.set(i, updatedEmployee); // 上書き
                 found = true;
                 break;
             }
@@ -379,19 +380,19 @@ public class EmployeeUpdater extends Thread {
         }
 
         // --- CSVファイル更新処理（安全性のためバックアップ＋排他ロックを使用） ---
-        File originalFile = EmployeeManager.EMPLOYEE_CSV;                          // 元のCSVファイル
-        File backupFile = new File("CSV/employee_data_backup.csv");                // バックアップファイル
-        FileLock lock = null;                                                      // ファイルロック用
-        FileOutputStream fos = null;                                               // 出力ストリーム
+        File originalFile = EmployeeManager.EMPLOYEE_CSV; // 元のCSVファイル
+        File backupFile = new File("CSV/employee_data_backup.csv"); // バックアップファイル
+        FileLock lock = null; // ファイルロック用
+        FileOutputStream fos = null; // 出力ストリーム
 
         try {
             // --- 元のCSVファイルをバックアップ ---
             Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
             // --- CSVファイル書き込みの準備（ロック取得） ---
-            fos = new FileOutputStream(originalFile);  // 上書きモードで開く
+            fos = new FileOutputStream(originalFile); // 上書きモードで開く
             FileChannel channel = fos.getChannel();
-            lock = channel.lock();  // 排他ロック
+            lock = channel.lock(); // 排他ロック
 
             // --- CSVファイルにヘッダと社員情報を書き出し ---
             PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(fos, "Shift-JIS")));
@@ -400,7 +401,7 @@ public class EmployeeUpdater extends Thread {
             for (String category : EmployeeManager.EMPLOYEE_CATEGORY) {
                 pw.print(category + ",");
             }
-            pw.println();  // 改行
+            pw.println(); // 改行
 
             // 社員リスト全件をCSV形式で出力
             for (EmployeeInformation employee : EmployeeManager.employeeList) {
@@ -408,14 +409,14 @@ public class EmployeeUpdater extends Thread {
             }
 
             pw.close();
-            MANAGER.LOGGER.info("社員情報更新成功（社員ID: " + updatedEmployee.employeeID + "）");
+            MANAGER.LOGGER.info("社員情報更新成功（社員ID: " + updatedEmployee.getEmployeeID() + "）");
 
         } catch (IOException e) {
             // --- 書き込みエラー時：ロールバック処理（元に戻す） ---
             MANAGER.printErrorLog(e, "社員情報更新失敗");
             try {
-                Files.deleteIfExists(originalFile.toPath());  // 壊れたファイル削除
-                Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING);  // バックアップ復元
+                Files.deleteIfExists(originalFile.toPath()); // 壊れたファイル削除
+                Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // バックアップ復元
             } catch (IOException ex) {
                 MANAGER.printErrorLog(ex, "CSVロールバック失敗");
             }
@@ -424,9 +425,11 @@ public class EmployeeUpdater extends Thread {
         } finally {
             // --- ファイルロックやリソースの後始末 ---
             try {
-                if (lock != null && lock.isValid()) lock.release();  // ロック解除
-                if (fos != null) fos.close();                         // ストリームクローズ
-                Files.deleteIfExists(backupFile.toPath());           // バックアップ削除
+                if (lock != null && lock.isValid())
+                    lock.release(); // ロック解除
+                if (fos != null)
+                    fos.close(); // ストリームクローズ
+                Files.deleteIfExists(backupFile.toPath()); // バックアップ削除
             } catch (IOException e) {
                 MANAGER.printErrorLog(e, "リソースの解放に失敗しました");
             }
