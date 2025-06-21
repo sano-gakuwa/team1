@@ -102,17 +102,17 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
     private void setupDateAndLanguageFields() {
         // 生年月日
         birthdDayPanel.add(new JLabel("生年月日"), BorderLayout.NORTH);
-        birthPanel.add(dateSelector(birthYearCombo, birthMonthCombo, birthDayCombo, employeeInformation.birthday));
+        birthPanel.add(dateSelector(birthYearCombo, birthMonthCombo, birthDayCombo, employeeInformation.getBirthday()));
         birthPanel.setBackground(Color.WHITE);
         birthdDayPanel.add(birthPanel, BorderLayout.SOUTH);
         // 入社年月日
         joiningDatePanel.add(new JLabel("入社年月"), BorderLayout.NORTH);
-        joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo, employeeInformation.joiningDate));
+        joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo, employeeInformation.getJoiningDate()));
         joinPanel.setBackground(Color.WHITE);
         joiningDatePanel.add(joinPanel, BorderLayout.SOUTH);
         // エンジニア歴
         engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
-        engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo, employeeInformation.engineerDate));
+        engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo, employeeInformation.getEngineerDate()));
         engPanel.setBackground(Color.WHITE);
         engineerDatePanel.add(engPanel, BorderLayout.SOUTH);
         // 扱える言語
@@ -377,20 +377,20 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
      * エンジニア情報を各入力欄に反映する処理
      */
     private void setValues() {
-        employeeIdField.setText(employeeInformation.employeeID);
-        rubyLastNameField.setText(employeeInformation.rubyLastName);
-        rubyFirstNameField.setText(employeeInformation.rubyFirstname);
-        lastNameField.setText(employeeInformation.lastName);
-        firstNameField.setText(employeeInformation.firstname);
-        availableLanguageField.setText(employeeInformation.availableLanguages);
-        careerArea.setText(employeeInformation.careerDate);
+        employeeIdField.setText(employeeInformation.getEmployeeID());
+        rubyLastNameField.setText(employeeInformation.getRubyLastName());
+        rubyFirstNameField.setText(employeeInformation.getRubyFirstname());
+        lastNameField.setText(employeeInformation.getLastName());
+        firstNameField.setText(employeeInformation.getFirstname());
+        availableLanguageField.setText(employeeInformation.getAvailableLanguages());
+        careerArea.setText(employeeInformation.getCareerDate());
         // 各スキルポイントを反映
-        techCombo.setSelectedItem(String.format("%.1f", employeeInformation.skillPoint));
-        attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.attitudePoint));
-        commCombo.setSelectedItem(String.format("%.1f", employeeInformation.communicationPoint));
-        leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.leadershipPoint));
-        trainingArea.setText(employeeInformation.trainingDate);
-        remarksArea.setText(employeeInformation.remarks);
+        techCombo.setSelectedItem(String.format("%.1f", employeeInformation.getSkillPoint()));
+        attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.getAttitudePoint()));
+        commCombo.setSelectedItem(String.format("%.1f", employeeInformation.getCommunicationPoint()));
+        leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.getLeadershipPoint()));
+        trainingArea.setText(employeeInformation.getTrainingDate());
+        remarksArea.setText(employeeInformation.getRemarks());
     }
 
     /**
