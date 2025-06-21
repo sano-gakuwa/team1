@@ -314,7 +314,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
     private void viewTopScreen() {
         refreshUI();
         ViewTopScreen top = new ViewTopScreen();
-        top.View(currentPage);
+        top.View(tableEmployee, currentPage);
         manager.LOGGER.info("一覧画面へ遷移");
     }
 
