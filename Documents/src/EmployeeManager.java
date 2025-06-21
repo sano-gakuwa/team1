@@ -19,21 +19,21 @@ import java.util.Scanner;
 /**
  * 社員情報を登録・管理するためのマネージャークラス
  * <ul>
- *  <li>呼び出せる変数
- *      <ul>
- *      <li>employeeList 読み込んだ社員情報リスト
- *      <li>LOGGER ログ
- *          <ul>
- *          <li>LOGGER.info(String {文言}) ログに情報を残すために使用
- *          <li>LOGGER.warning(String {文言}) ログにヒューマンエラーを残すために使用
- *          </ul>
- *      <li>EMPLOYEE_CSV　社員情報保存用CSVファイル
- *      <li>EMPLOYEE_CATEGORY　社員情報のカテゴリー
- *      </ul>
- *  <li>呼び出せるメソッド
- *      <ul>
- *      <li>printErrorLog(Exception e, String errorString) ログにシステムエラーを残すために使用
- *      </ul>
+ * <li>呼び出せる変数
+ * <ul>
+ * <li>employeeList 読み込んだ社員情報リスト
+ * <li>LOGGER ログ
+ * <ul>
+ * <li>LOGGER.info(String {文言}) ログに情報を残すために使用
+ * <li>LOGGER.warning(String {文言}) ログにヒューマンエラーを残すために使用
+ * </ul>
+ * <li>EMPLOYEE_CSV 社員情報保存用CSVファイル
+ * <li>EMPLOYEE_CATEGORY 社員情報のカテゴリー
+ * </ul>
+ * <li>呼び出せるメソッド
+ * <ul>
+ * <li>printErrorLog(Exception e, String errorString) ログにシステムエラーを残すために使用
+ * </ul>
  * </ul>
  * 
  * @atuthor 下村
@@ -49,11 +49,14 @@ public class EmployeeManager extends SystemLog {
             "備考", "更新日"
     };
     public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
-    public EmployeeManager(){
-        //インスタンス生成時のメソッド等無し
+
+    public EmployeeManager() {
+        // インスタンス生成時のメソッド等無し
     }
+
     /**
      * EmployeeManagerの起動
+     * 
      * @author 下村
      */
     public void setUp() {
@@ -63,8 +66,10 @@ public class EmployeeManager extends SystemLog {
         ViewTopScreen top = new ViewTopScreen();
         top.View();
     }
+
     /**
      * 社員情報保存用CSVから社員情報を読み込み
+     * 
      * @author 下村
      */
     private void setUpCSV() {
@@ -82,7 +87,8 @@ public class EmployeeManager extends SystemLog {
 
     /**
      * 社員情報を登録・管理するためのCSVファイルの存在確認用
-     * @return　社員情報CSVの存在するかの真偽
+     * 
+     * @return 社員情報CSVの存在するかの真偽
      * @author 下村
      */
     private boolean verificationEmployeeData() {
@@ -104,8 +110,9 @@ public class EmployeeManager extends SystemLog {
 
     /**
      * CSVファイルが存在しない場合に新規作成する用
+     * 
      * @author 下村
-    */
+     */
     private void makeEmployeeData() {
         Path path = Paths.get(CSV_FILEPATH);
         try {
@@ -132,8 +139,10 @@ public class EmployeeManager extends SystemLog {
             }
         }
     }
+
     /**
      * 社員情報の読み込み
+     * 
      * @author 下村
      */
     private void employeeLoading() {
@@ -146,23 +155,26 @@ public class EmployeeManager extends SystemLog {
                 while (scanner.hasNext()) { // 次に読み込むべき行があるか判定
                     ArrayList<String> loadEmployeeDate = new ArrayList<String>(
                             Arrays.asList(scanner.next().split(",")));
-                    EmployeeInformation employee = new EmployeeInformation(
-                            loadEmployeeDate.get(0),
-                            loadEmployeeDate.get(1), loadEmployeeDate.get(2),
-                            loadEmployeeDate.get(3), loadEmployeeDate.get(4),
-                            dateFormat.parse(loadEmployeeDate.get(5)),
-                            dateFormat.parse(loadEmployeeDate.get(6)),
-                            Integer.parseInt(loadEmployeeDate.get(7)),
-                            loadEmployeeDate.get(8),
-                            loadEmployeeDate.get(9),
-                            loadEmployeeDate.get(10),
-                            Double.parseDouble(loadEmployeeDate.get(11)),
-                            Double.parseDouble(loadEmployeeDate.get(12)),
-                            Double.parseDouble(loadEmployeeDate.get(13)),
-                            Double.parseDouble(loadEmployeeDate.get(14)),
-                            loadEmployeeDate.get(15),
-                            dateFormat.parse(loadEmployeeDate.get(16)));
+                    EmployeeInformation employee = new EmployeeInformation();
+                    employee.setEmployeeID(loadEmployeeDate.get(0));
+                    employee.setlastName(loadEmployeeDate.get(1));
+                    employee.setFirstname(loadEmployeeDate.get(2));
+                    employee.setRubyLastName(loadEmployeeDate.get(3));
+                    employee.setRubyFirstname(loadEmployeeDate.get(4));
+                    employee.setBirthday(dateFormat.parse(loadEmployeeDate.get(5)));
+                    employee.setJoiningDate(dateFormat.parse(loadEmployeeDate.get(6)));
+                    employee.setEngineerDate(Integer.parseInt(loadEmployeeDate.get(7)));
+                    employee.setAvailableLanguages(loadEmployeeDate.get(8));
+                    employee.setCareerDate(loadEmployeeDate.get(9));
+                    employee.setTrainingDate(loadEmployeeDate.get(10));
+                    employee.setSkillPoint(Double.parseDouble(loadEmployeeDate.get(11)));
+                    employee.setAttitudePoint(Double.parseDouble(loadEmployeeDate.get(12)));
+                    employee.setCommunicationPoint(Double.parseDouble(loadEmployeeDate.get(13)));
+                    employee.setLeadershipPoint(Double.parseDouble(loadEmployeeDate.get(14)));
+                    employee.setRemarks(loadEmployeeDate.get(15));
+                    employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
                     employeeList.add(employee);
+                    LOGGER.info(String.format("社員情報読み込み成功: %s", employee.getEmployeeID()));
                 }
             } catch (Exception e) {
                 printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
@@ -175,14 +187,15 @@ public class EmployeeManager extends SystemLog {
 
     /**
      * ログにスタックトレースを出力する
+     * 
      * @param e           スタックトレースを持っている例外クラス
      * @param errorString ログに出力するエラー文言
      * @author 下村
      */
     public void printErrorLog(Exception e, String errorString) {
         StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter  = new PrintWriter(stringWriter);
-        e.printStackTrace(printWriter );
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
         LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
 }
