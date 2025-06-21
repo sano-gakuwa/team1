@@ -10,22 +10,22 @@ import java.util.Date;
 
 public class ViewSelectedScreen extends SetUpTopScreen {
     private JButton bulkSelectButton;// 一括選択ボタン
-    private JButton bulkCancellationtButton;//一括解除ボタン
-    private JButton createCsvButton;//CSV出力ボタン
-    private JButton deleteButton;//削除ボタン
+    private JButton bulkCancellationtButton;// 一括解除ボタン
+    private JButton createCsvButton;// CSV出力ボタン
+    private JButton deleteButton;// 削除ボタン
 
-    private JTable engineerTable=new JTable();//社員情報表示欄
+    private JTable engineerTable = new JTable();// 社員情報表示欄
     private JTableHeader header;
     private String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
     private Set<Integer> unsortableColumns;
     private Map<Integer, Integer> sortStates;
-    private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);//ページ数表示箇所
-    public int currentPage = 1; //現在のページ数
-    public int totalPages = 1;//最後のページ数
+    private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);// ページ数表示箇所
+    public int currentPage = 1; // 現在のページ数
+    public int totalPages = 1;// 最後のページ数
     private ArrayList<String> selected = new ArrayList<>();
     private DefaultTableModel model;
-    private EmployeeManager manager=new EmployeeManager();
-    private ArrayList<EmployeeInformation>tableEmployee=null;
+    private EmployeeManager manager = new EmployeeManager();
+    private ArrayList<EmployeeInformation> tableEmployee = null;
 
     public ViewSelectedScreen() {
     }
@@ -56,16 +56,16 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         // ボタン配置
         functionButtonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
         functionButtonsPanel.setOpaque(false); // 背景透過
-        bulkCancellationtButton=new JButton("ページ内一括解除");
+        bulkCancellationtButton = new JButton("ページ内一括解除");
         bulkSelectButton = new JButton("ページ内一括選択");
-        createCsvButton=new JButton("CSV出力");
-        deleteButton=new JButton("削除");
+        createCsvButton = new JButton("CSV出力");
+        deleteButton = new JButton("削除");
         functionButtonsPanel.add(bulkCancellationtButton);
         functionButtonsPanel.add(bulkSelectButton);
         functionButtonsPanel.add(createCsvButton);
         functionButtonsPanel.add(deleteButton);
-        bulkCancellationtButton.addActionListener(e->{
-            //ページ内一括解除
+        bulkCancellationtButton.addActionListener(e -> {
+            // ページ内一括解除
             manager.LOGGER.info("ページ内一括解除ボタンが押されました");
             for (int row = 0; row < 10; row++) {
                 String select = (model.getValueAt(row, 0)).toString();
@@ -80,28 +80,28 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             }
         });
         bulkSelectButton.addActionListener(e -> {
-            //ページ内一括選択
+            // ページ内一括選択
             manager.LOGGER.info("ページ内一括選択ボタンが押されました");
-            for(int row=0;row<10;row++){
-                String select=(model.getValueAt(row,0)).toString();
-                if(selected.contains(select)==false){
+            for (int row = 0; row < 10; row++) {
+                String select = (model.getValueAt(row, 0)).toString();
+                if (selected.contains(select) == false) {
                     selected.add(select);
                 }
                 engineerTable.repaint();
             }
         });
-        createCsvButton.addActionListener(e->{
-            //CSV出力
+        createCsvButton.addActionListener(e -> {
+            // CSV出力
             manager.LOGGER.info("CSV出力ボタンが押されました");
             selectFolder();
         });
-        deleteButton.addActionListener(e->{
-            //削除
+        deleteButton.addActionListener(e -> {
+            // 削除
             manager.LOGGER.info("削除ボタンが押されました");
-            EmployeeUpdater updater=new EmployeeUpdater();
+            EmployeeUpdater updater = new EmployeeUpdater();
             updater.delete(selected);
             refreshUI();
-            ViewTopScreen top=new ViewTopScreen();
+            ViewTopScreen top = new ViewTopScreen();
             top.View();
         });
         // テーブル構築
@@ -110,9 +110,9 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         unsortableColumns = Set.of(5);
 
         // 従業員０名時の表示
-        if (tableEmployee.size()==0) {
+        if (tableEmployee.size() == 0) {
             showNoDataLabel(employeeListPanel);
-        } else if(tableEmployee.size()>=1){
+        } else if (tableEmployee.size() >= 1) {
             // ページ数自動計算(10n+1でページ新規生成)、最大100ページ
             int totalEmployees = tableEmployee.size();
             totalPages = Math.min((totalEmployees + 9) / 10, 100);
@@ -129,9 +129,9 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                         JLabel label = (JLabel) comp;
                         label.setHorizontalAlignment(SwingConstants.CENTER);
                         label.setOpaque(true);
-                        if(selected.contains(engineerTable.getValueAt(row, 0))){
+                        if (selected.contains(engineerTable.getValueAt(row, 0))) {
                             label.setBackground(Color.LIGHT_GRAY);
-                        }else{
+                        } else {
                             label.setBackground(Color.WHITE);
                         }
                         label.setForeground(Color.BLACK);
@@ -140,7 +140,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                     return comp;
                 }
             };
-        }else{
+        } else {
             manager.LOGGER.warning("表作成失敗");
         }
 
@@ -211,7 +211,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
     }
 
     public void refreshTable() {
-        //ページ数表示
+        // ページ数表示
         int totalEmployees = tableEmployee.size();
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
         Object[][] pageData = getPageData(currentPage, 10);
@@ -254,8 +254,9 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         engineerTable.setRowHeight(34);
         pageLabel.setText(currentPage + " / " + totalPages);
     }
+
     // マウスイベント設定
-    private void setMouseEvent(){
+    private void setMouseEvent() {
         header.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -276,24 +277,24 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int row = engineerTable.rowAtPoint(e.getPoint());
-                if (row >-1) {
+                if (row > -1) {
                     // 選択された社員のIDを取得
-                    String select=(model.getValueAt(row,0)).toString();
-                    if(select==""){
+                    String select = (model.getValueAt(row, 0)).toString();
+                    if (select == "") {
                         // 空白行を選択
                         manager.LOGGER.info("空白行を選択");
-                    }else if(selected.contains(select)==false){
+                    } else if (selected.contains(select) == false) {
                         // 未選択の社員情報の行をクリック
                         selected.add(select);
-                        manager.LOGGER.info("社員ID:"+select+"を選択");
+                        manager.LOGGER.info("社員ID:" + select + "を選択");
                         engineerTable.repaint();
-                    }else if(selected.contains(select)==true){
+                    } else if (selected.contains(select) == true) {
                         // 選択済みの社員情報の行をクリック
                         selected.remove(selected.indexOf(select));
-                        manager.LOGGER.info("社員ID:"+select+"を選択解除");
+                        manager.LOGGER.info("社員ID:" + select + "を選択解除");
                         engineerTable.repaint();
                     }
-                    if (selected.size()<=0) {
+                    if (selected.size() <= 0) {
                         // 選択されている社員情報が0名分
                         viewTopScreen();
                     }
@@ -301,6 +302,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             }
         });
     }
+
     // 0件時のラベル表示（共通化）
     private void showNoDataLabel(JPanel panel) {
         panel.removeAll(); // 既存コンポーネントを削除
@@ -311,6 +313,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         panel.revalidate();
         panel.repaint();
     }
+
     private void viewTopScreen() {
         refreshUI();
         ViewTopScreen top = new ViewTopScreen();
@@ -318,10 +321,10 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         manager.LOGGER.info("一覧画面へ遷移");
     }
 
-    public void View(ArrayList<EmployeeInformation>tableEmployee,ArrayList<String> selected,int currentPage) {
-        this.currentPage=currentPage;
-        this.selected=selected;
-        this.tableEmployee=tableEmployee;
+    public void View(ArrayList<EmployeeInformation> tableEmployee, ArrayList<String> selected, int currentPage) {
+        this.currentPage = currentPage;
+        this.selected = selected;
+        this.tableEmployee = tableEmployee;
         frame.setTitle("選択画面");
         setupEngineerList();
         refreshTable(); // 画面初期表示とデータ同期
@@ -348,7 +351,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             displayCount = tableEmployee.size() - ((currentPage - 1) * maxDisplayCount);
         }
         if (displayCount == 10) {
-            //10名分表示
+            // 10名分表示
             for (int i = 0; i < displayCount; i++) {
                 EmployeeInformation empioyee = tableEmployee
                         .get(i + ((currentPage - 1) * maxDisplayCount));
@@ -359,7 +362,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 displayList[i][4] = empioyee.getAvailableLanguages();
             }
         } else {
-            //社員〇人分＋空きスペース
+            // 社員〇人分＋空きスペース
             for (int i = 0; i < displayCount; i++) {
                 EmployeeInformation empioyee = tableEmployee
                         .get(i + ((currentPage - 1) * maxDisplayCount));
@@ -369,7 +372,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 displayList[i][3] = empioyee.getEngineerDate();
                 displayList[i][4] = empioyee.getAvailableLanguages();
             }
-            for(int i=displayCount;i<maxDisplayCount;i++){
+            for (int i = displayCount; i < maxDisplayCount; i++) {
                 displayList[i][0] = "";
                 displayList[i][1] = "";
                 displayList[i][2] = "";
@@ -413,12 +416,13 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             showCreateCsvDialog(directoryPath);
         }
     }
-    private void showCreateCsvDialog(String directory){
-        String[] label={"出力","キャンセル","参照"};
+
+    private void showCreateCsvDialog(String directory) {
+        String[] label = { "出力", "キャンセル", "参照" };
         int selectButton = JOptionPane.showOptionDialog(
                 null,
                 "出力先を選択してください\n"
-                +"選択中"+directory,
+                        + "選択中" + directory,
                 "確認ダイアログ",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
@@ -427,8 +431,8 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 null);
         if (selectButton == 0) {
             manager.LOGGER.info("CSV出力を開始");
-            CsvConverter csvConverter=new CsvConverter();
-            csvConverter.createCsv(directory,selected);
+            CsvConverter csvConverter = new CsvConverter();
+            csvConverter.createCsv(directory, selected);
             viewTopScreen();
         } else if (selectButton == 1) {
             manager.LOGGER.info("CSV出力をキャンセル");
