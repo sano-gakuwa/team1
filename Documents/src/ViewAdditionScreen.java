@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
@@ -471,28 +472,28 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      */
     public EmployeeInformation collectInputData() {
         try {
-            String employeeID = getFieldValue(employeeIdField, "01234xx");
-            String lastName = getFieldValue(lastNameField, "山田");
-            String firstName = getFieldValue(firstNameField, "太郎");
-            String rubyLastName = getFieldValue(rubyLastNameField, "ヤマダ");
-            String rubyFirstName = getFieldValue(rubyFirstNameField, "タロウ");
-            Date birthday = getDateFromSelector(birthPanel);
-            Date joiningDate = getDateFromSelector(joinPanel);
-            int engineerDate = getYearMonthFromSelector(engPanel); // 月数換算
-            String availableLanguages = getFieldValue(availableLanguageField, "html・CSS");
-            String careerDate = getFieldValue(careerArea, "XXXXXXX");
-            double skillPoint = parseScore(techCombo);
-            double communicationPoint = parseScore(commCombo);
-            double attitudePoint = parseScore(attitudeCombo);
-            double leadershipPoint = parseScore(leaderCombo);
-            String trainingDate = getFieldValue(remarksArea, "2000年4月1日株式会社XXXX入社");
-            String remarks = getFieldValue(remarksArea, "特になし");
-            Date updatedDay = new Date();
-            return new EmployeeInformation(
-                    employeeID, lastName, firstName, rubyLastName, rubyFirstName,
-                    birthday, joiningDate, engineerDate, availableLanguages,
-                    careerDate, trainingDate, skillPoint, attitudePoint,
-                    communicationPoint, leadershipPoint, remarks, updatedDay);
+            EmployeeInformation employee = new EmployeeInformation();
+            // 各フィールドから値を取得
+            // 社員ID、氏名、フリガナ、誕生日、入社年月、エンジニア歴、扱える言語、経歴、研修受講歴、スキルスコア
+            // 、受講態度、コミュニケーション能力、リーダーシップ、備考
+            employee.setEmployeeID(getFieldValue(employeeIdField, "01234xx"));
+            employee.setlastName(getFieldValue(lastNameField, "山田"));
+            employee.setFirstname(getFieldValue(firstNameField, "太郎"));
+            employee.setRubyLastName(getFieldValue(rubyLastNameField, "ヤマダ"));
+            employee.setRubyFirstname(getFieldValue(rubyFirstNameField, "タロウ"));
+            employee.setBirthday(getDateFromSelector(birthPanel));
+            employee.setJoiningDate(getDateFromSelector(joinPanel));
+            employee.setEngineerDate(getYearMonthFromSelector(engPanel)); // 月数換算
+            employee.setAvailableLanguages(getFieldValue(availableLanguageField, "html・CSS"));
+            employee.setCareerDate(getFieldValue(careerArea, "XXXXXXX"));
+            employee.setTrainingDate(getFieldValue(trainingArea, "2000年4月1日株式会社XXXX入社"));
+            employee.setSkillPoint(parseScore(techCombo));
+            employee.setAttitudePoint(parseScore(attitudeCombo));
+            employee.setCommunicationPoint(parseScore(commCombo));
+            employee.setLeadershipPoint(parseScore(leaderCombo));
+            employee.setRemarks(getFieldValue(remarksArea, "特になし"));
+            employee.setUpdatedDay(new Date());
+            return employee;
         } catch (Exception e) {
             showValidationError("データ取得中にエラーが発生しました");
             return null;
