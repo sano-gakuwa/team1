@@ -95,9 +95,9 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             manager.LOGGER.info("CSV出力ボタンが押されました");
             CreateCsv createCsv = new CreateCsv();
             // CSV出力中のロックがかかっているか確認
-            if(createCsv.validateCreateCsvLock() == false) {
+            if (createCsv.validateCreateCsvLock()) {
                 // CSV出力中のロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "CSV出力中です。しばらくお待ちください。", "警告",JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "CSV出力中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             selectFolder();
@@ -105,8 +105,15 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         deleteButton.addActionListener(e -> {
             // 削除
             manager.LOGGER.info("削除ボタンが押されました");
-            EmployeeUpdater updater = new EmployeeUpdater();
-            updater.delete(selected);
+            EmployeeInfoDeletion deletion = new EmployeeInfoDeletion();
+            if (deletion.validateDeleteLock()) {
+                // 削除のロックがかかっている場合
+                JOptionPane.showMessageDialog(frame, "削除中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            deletion.delete(selected);
+            Thread deletionThread = new Thread(deletion);
+            deletionThread.start();
             refreshUI();
             ViewTopScreen top = new ViewTopScreen();
             top.View();
@@ -437,7 +444,8 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             manager.LOGGER.info("CSV出力を開始");
             CreateCsv createCsv = new CreateCsv();
             createCsv.createCsv(directory, selected);
-            createCsv.start();
+            Thread createCsvThread = new Thread(createCsv);
+            createCsvThread.start();
             viewTopScreen();
         } else if (selectButton == 1) {
             manager.LOGGER.info("CSV出力をキャンセル");
