@@ -237,16 +237,16 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton = new JButton("保存");
         saveButton.setBounds(350, 0, 80, 30);
         bottomPanel.add(saveButton);
-
         // 保存ボタン押下時の処理
         saveButton.addActionListener(e -> {
             MANAGER.LOGGER.info("一覧画面に遷移");
             EmployeeInformation editInfo = collectInputData(); // 入力データを取得
-
             if (editInfo != null) {
-                new EmployeeUpdater().update(editInfo); // 社員情報を更新
+                EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+                update.update(editInfo);
+                Thread updateThread = new Thread(update);
+                updateThread.start();
             }
-
             refreshUI();
             ViewTopScreen top = new ViewTopScreen();
             top.View(); // 一覧画面に戻る
