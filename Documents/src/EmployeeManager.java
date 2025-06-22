@@ -197,4 +197,39 @@ public class EmployeeManager extends SystemLog {
         e.printStackTrace(printWriter);
         LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
+    /**
+     * 社員情報をCSV形式の文字列に変換
+     *
+     * @param employee 変換する社員情報
+     * @return CSV形式の文字列
+     *
+     * @author simomura
+     */
+    public String convertToCSV(EmployeeInformation employee) {
+        // 社員情報をCSV形式の文字列に変換するメソッド
+        //カンマ区切りの文字列
+        String csvTypeString = null;
+        // 社員情報の各フィールドをカンマ区切りで連結
+        StringBuilder csvBuilder = new StringBuilder();
+        csvBuilder.append(employee.getEmployeeID()).append(",");
+        csvBuilder.append(employee.getLastName()).append(",");
+        csvBuilder.append(employee.getFirstname()).append(",");
+        csvBuilder.append(employee.getRubyLastName()).append(",");
+        csvBuilder.append(employee.getRubyFirstname()).append(",");
+        csvBuilder.append(EmployeeInformation.formatDate(employee.getBirthday())).append(",");
+        csvBuilder.append(EmployeeInformation.formatDate(employee.getJoiningDate())).append(",");
+        csvBuilder.append(employee.getEngineerDate()).append(",");
+        csvBuilder.append(employee.getAvailableLanguages()).append(",");
+        csvBuilder.append(employee.getCareerDate()).append(",");
+        csvBuilder.append(employee.getTrainingDate()).append(",");
+        csvBuilder.append(employee.getSkillPoint()).append(",");
+        csvBuilder.append(employee.getAttitudePoint()).append(",");
+        csvBuilder.append(employee.getCommunicationPoint()).append(",");
+        csvBuilder.append(employee.getLeadershipPoint()).append(",");
+        csvBuilder.append(employee.getRemarks()).append(",");
+        csvBuilder.append(EmployeeInformation.formatDate(employee.getUpdatedDay())).append(",");
+        //カンマ区切りで連結した文字列を返す
+        csvTypeString = csvBuilder.toString();
+        return csvTypeString;
+    }
 }
