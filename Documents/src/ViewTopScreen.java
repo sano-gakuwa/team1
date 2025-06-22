@@ -111,18 +111,29 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         // 「読込」ボタン押下後イベント※{}内追記お願いします
         loadButton.addActionListener(e -> {
+            ReadCsv readCsv = new ReadCsv();
+            // CSV出力中のロックがかかっているか確認
+            if (readCsv.validateReadCsvLock()) {
+                // CSV読み込みのロックがかかっている場合
+                JOptionPane.showMessageDialog(frame, "CSV読み込み中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             selectFile();
         });
         functionButtonsPanel.add(loadButton);
 
         // 「テンプレート出力」ボタン押下後イベント
         templateButton.addActionListener(e -> {
+            CreateTemplate createTemplate = new CreateTemplate();
+            if (createTemplate.validateCreateTemplateLock()) {
+                // CSVテンプレート出力のロックがかかっている場合
+                JOptionPane.showMessageDialog(frame, "CSVテンプレート出力中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("テンプレートファイルの保存先フォルダを選択してください");
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // フォルダー選択モード
-
             int userSelection = fileChooser.showOpenDialog(null);
-
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 File selectedDir = fileChooser.getSelectedFile();
                 // 保存確認ダイアログ
@@ -135,8 +146,10 @@ public class ViewTopScreen extends SetUpTopScreen {
                 if (saveConfirm != JOptionPane.YES_OPTION) {
                     return;
                 }
-                CsvConverter converter = new CsvConverter();
-                converter.createTemplate(selectedDir);
+                // テンプレート作成処理
+                createTemplate.createTemplate(selectedDir);
+                Thread templateThread = new Thread(createTemplate);
+                templateThread.start();
             }
         });
         // ボタンをパネルに追加
@@ -516,8 +529,10 @@ public class ViewTopScreen extends SetUpTopScreen {
                 null);
         if (selectButton == 0) {
             MANAGER.LOGGER.info("CSV読み込みを開始");
-            CsvConverter csvConverter = new CsvConverter();
-            csvConverter.readCsv(selectedFile);
+            ReadCsv readCsv = new ReadCsv();
+            readCsv.readCsv(selectedFile);
+            Thread readCsvThread = new Thread(readCsv);
+            readCsvThread.start();
         } else if (selectButton == 1) {
             MANAGER.LOGGER.info("CSV読み込みをキャンセル");
         } else if (selectButton == 2) {
