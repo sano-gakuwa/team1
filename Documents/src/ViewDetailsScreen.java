@@ -194,6 +194,12 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         saveButton = new JButton("編集");
         saveButton.setBounds(350, 0, 80, 30);
         saveButton.addActionListener(e -> {
+            EmployeeInfoUpdate employeeInfoUpdate = new EmployeeInfoUpdate();
+            if (employeeInfoUpdate.validateUpdateLock()) {
+                // 更新中のロックがかかっている場合
+                JOptionPane.showMessageDialog(frame, "社員情報の更新中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             MANAGER.LOGGER.info("編集画面に遷移");
             refreshUI();
             ViewEditScreen edit = new ViewEditScreen();
