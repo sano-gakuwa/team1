@@ -1,4 +1,3 @@
-
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
@@ -30,7 +29,6 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     private JTextArea careerArea, trainingArea, remarksArea;
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
     private JButton saveButton, backButton;
-    private final EmployeeManager MANAGER = new EmployeeManager();
 
     public ViewAdditionScreen() {
         setupViewAdditionScreen();
@@ -231,10 +229,24 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         saveButton = new JButton("保存");
         saveButton.setBounds(350, 0, 80, 30);
         saveButton.addActionListener(e -> {
+            EmployeeInfoAddition addition = new EmployeeInfoAddition();
+            if (addition.validateAdditionLock()) {
+                // CSV出力中のロックがかかっている場合
+                JOptionPane.showMessageDialog(frame, "CSV出力中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             EmployeeInformation info = collectInputData();
-            EmployeeUpdater Updater = new EmployeeUpdater();
-            Updater.addition(info);
-            MANAGER.LOGGER.info("新規社員情報の追加開始");
+            if (addition.validateNullEmployee()) {
+                showErrorDialog("必須項目が入力されていません");
+                return;
+            }
+            if (addition.validateOverlappingEmployee()) {
+                showErrorDialog("重複する社員IDが存在します");
+                return;
+            }
+            addition.addition(info);
+            Thread additionThread = new Thread(addition);
+            additionThread.start();
             refreshUI();
             ViewTopScreen top = new ViewTopScreen();
             top.View();
@@ -594,6 +606,16 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @author nishiyama
      */
     public void showValidationError(String message) {
+        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * エラー表示用に用意したダイアログに文言表示させる
+     *
+     * @param message 表示するエラーメッセージ
+     * @author nishiyama
+     */
+    private void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 }
