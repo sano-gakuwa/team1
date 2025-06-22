@@ -7,128 +7,128 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.*;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class EmployeeUpdater extends Thread {
 
     private final EmployeeManager MANAGER = new EmployeeManager();
     private final Lock LOCK = new ReentrantLock();
 
-    /**
-     * コンストラクタ 社員情報リスト、追加する社員情報、呼び出し元の画面を設定
-     *
-     * @param employeeList 社員情報を保持するリスト
-     * @param newEmployee 新規に追加する社員情報
-     * @param CALLERSCREEN この処理を呼び出した画面
-     */
     public EmployeeUpdater() {
     }
 
-    /**
-     * 新規社員情報のリスト追加処理を担当:
-     * <ul>
-     * <li>社員情報の形式チェック</li>
-     * <li>社員IDの重複チェック</li>
-     * <li>既存CSVファイルのバックアップ作成</li>
-     * <li>CSVファイルへの社員情報の追記</li>
-     * <li>エラー時のロールバック処理</li>
-     * <li>画面表示の更新</li>
-     * </ul>
-     * 入力内容の形式チェックを行い、問題があればエラーメッセージを表示。
-     *
-     * <p>
-     * 形式チェック後、社員情報をCSVファイルに追加し、追加後のリストを画面に反映。
-     * もしエラーが発生した場合、ロールバック処理を行い、エラーダイアログを表示。(setupDetailsClassでエラー用のパネル用意できてなかった)
-     * </p>
-     *
-     * @author nishiyama
-     */
     public void addition(EmployeeInformation newEmployee) {
-        final ViewAdditionScreen CALLERSCREEN = new ViewAdditionScreen();
-        // 必須項目が空か確認
-        if (!validateEmployee(newEmployee)) {
-            showErrorDialog("必須項目が入力されていません");
+        ViewAdditionScreen callScreen = new ViewAdditionScreen();
+
+        if (!LOCK.tryLock()) {
             return;
         }
-        // 重複チェック：既に同じ社員IDが存在していないか
-        for (EmployeeInformation existing : EmployeeManager.employeeList) {
-            if (existing.getEmployeeID().equals(newEmployee.getEmployeeID())) {
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    CALLERSCREEN.showValidationError("社員IDが既に存在します。別のIDを入力してください。");
-                    MANAGER.LOGGER.info("新規追加処理: 重複する社員IDが存在します（社員ID: " + newEmployee.getEmployeeID() + "）"); // 例外処理の記述がないためinfoLog扱い
-                });
+        MANAGER.LOGGER.info("additionメソッドのロック取得成功");
+
+        try {
+            // 必須項目の空欄チェック
+            if (!validateEmployee(newEmployee)) {
+                showErrorDialog("必須項目が入力されていません");
                 return;
             }
-        }
-        // バックアップファイル作成
-        File originalFile = EmployeeManager.EMPLOYEE_CSV;
-        File backupFile = new File("employee_data_backup.csv");
+
+            // 社員IDの重複チェック
+            for (EmployeeInformation existing : EmployeeManager.employeeList) {
+                if (existing.getEmployeeID().equals(newEmployee.getEmployeeID())) {
+                    SwingUtilities.invokeLater(() -> {
+                        callScreen.showValidationError("社員IDが既に存在します。別のIDを入力してください。");
+                        MANAGER.LOGGER.warning("重複する社員IDが存在（ID: " + newEmployee.getEmployeeID() + "）");
+                    });
+                    return;
+                }
+            }
+
+            File originalFile = EmployeeManager.EMPLOYEE_CSV;
+            File backupFile = new File("employee_data_backup.csv");
+
+            // バックアップファイル作成
             if (!backupCsv(originalFile, backupFile)) {
                 return;
             }
 
-        // CSVファイルのロック処理
+            // CSVに情報を追記
+            if (!appendToCsv(originalFile, newEmployee)) {
+                rollbackCsv(originalFile, backupFile, new Exception("CSV追記失敗"));
+                SwingUtilities.invokeLater(() -> {
+                    callScreen.showErrorMessageOnPanel("CSVファイルへの追加に失敗しました。");
+                    callScreen.refreshUI();
+                });
+                return;
+            }
+
+            // backup削除
+            if (!backupFile.delete()) {
+                MANAGER.LOGGER.warning("バックアップファイル削除に失敗"); // ここはerrorログの方が良い
+            }
+
+            // リストに追加
+            EmployeeManager.employeeList.add(newEmployee);
+            MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
+
+            // 成功通知＆画面更新
+            SwingUtilities.invokeLater(() -> {
+                callScreen.showSuccessDialog("社員情報の追加に成功しました。");
+                callScreen.refreshUI();
+            });
+
+        } catch (Exception e) {
+            MANAGER.printErrorLog(e, "社員追加処理で例外発生");
+            showErrorDialog("社員の追加処理に失敗しました");
+
+        } finally {
+            LOCK.unlock();
+            MANAGER.LOGGER.info("additionメソッドのロック解除成功");
+        }
+    }
+
+    /**
+     * 指定されたCSVファイルに新しい社員情報を追記する。
+     * 追記時にはファイルロックを取得して排他制御を行い、Shift-JISエンコーディングで出力します。
+     * 処理中に例外が発生した場合はエラーログを出力し、falseを返す。
+     *
+     * @param file 追記対象のCSVファイル
+     * @param newEmployee 追記する社員情報
+     * @return trueまたはfalseで返す
+     *
+     * @author nishiyama
+     */
+    private boolean appendToCsv(File originalFile, EmployeeInformation newEmployee) {
         FileLock lock = null;
         FileOutputStream fos = null;
+
         try {
             fos = new FileOutputStream(originalFile, true);
             FileChannel channel = fos.getChannel();
-            lock = channel.lock(); // CSVファイルの排他ロック（同時書き込み防止）
-            PrintWriter pw = new PrintWriter(new BufferedWriter(
-                    new OutputStreamWriter(fos, "Shift-JIS")));
-            // 追加情報を記述
+            lock = channel.lock();
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(fos, "Shift-JIS")));
+
             pw.println(convertToCSV(newEmployee));
-            MANAGER.LOGGER.info("CSVファイルに社員情報を追記成功（社員ID: " + newEmployee.getEmployeeID() + "）");
             pw.close();
-            MANAGER.LOGGER.info("ファイルロック解除成功");
+
+            MANAGER.LOGGER.info("CSVファイルに社員情報を追記成功（ID: " + newEmployee.getEmployeeID() + "）");
+            return true;
+
         } catch (IOException e) {
-            MANAGER.printErrorLog(e, "CSVファイル新規追加失敗しました");
-            // 追記中エラー時のロールバック処理を追加
-            try {
-                if (lock != null && lock.isValid()) {
-                    lock.release(); // エラーでもロック解除
-                    MANAGER.LOGGER.info("ファイルロック解除成功");
-                }
-            } catch (IOException ex) {
-                MANAGER.printErrorLog(e, "ファイルロック解除失敗");
-            }
-            try {
-                Files.deleteIfExists(originalFile.toPath()); // 失敗時にCSVファイルを削除
-                Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // バックアップを復元
-            } catch (IOException ex) {
-                MANAGER.printErrorLog(ex, "CSVファイルのロールバック処理に失敗");
-            }
-            javax.swing.SwingUtilities.invokeLater(() -> {
-                CALLERSCREEN.showErrorMessageOnPanel("CSVファイルへの追加に失敗しました。"); // UIclassでエラーメッセージを表示
-            });
-            return; // スレッド終了（deactivateサブ）
-            // ファイル操作終了時、必ず対象ファイルに対するアクセス制御（ロック）や、開いたファイルのリソースを解放する
+            MANAGER.printErrorLog(e, "CSVファイルへの追記中にエラーが発生（ID: " + newEmployee.getEmployeeID() + "）");
+            return false;
+
         } finally {
             try {
-                if (backupFile.exists()) {
-                    if (backupFile.delete()) {
-                        MANAGER.LOGGER.info("バックアップファイル削除成功");
-                    } else {
-                        MANAGER.LOGGER.warning("バックアップファイル削除失敗");
-                    }
-                }
                 if (lock != null && lock.isValid()) {
                     lock.release();
-                    MANAGER.LOGGER.info("ファイルロック解除成功");
+                    MANAGER.LOGGER.info("CSVファイルロック解除成功");
                 }
                 if (fos != null) {
                     fos.close();
-                    MANAGER.LOGGER.info("ファイル出力ストリームクローズ成功");
                 }
-            } catch (IOException e) {
-                MANAGER.printErrorLog(e, "finally句での後処理に失敗");
+            } catch (IOException ex) {
+                MANAGER.printErrorLog(ex, "ファイルストリームやロックの後処理で例外発生");
             }
-        }
-
-        try {
-            EmployeeManager.employeeList.add(newEmployee);
-            MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
-        } catch (Exception e) {
-            MANAGER.printErrorLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
         }
     }
 
@@ -198,6 +198,7 @@ public class EmployeeUpdater extends Thread {
      */
     private String convertToCSV(EmployeeInformation e) {
         String csvTypeString = null;
+
         String.join(",", e.getEmployeeID());
         String.join(",", e.getLastName());
         String.join(",", e.getFirstname());
@@ -215,6 +216,7 @@ public class EmployeeUpdater extends Thread {
         String.join(",", String.valueOf(e.getLeadershipPoint()));
         String.join(",", e.getRemarks());
         String.join(",", EmployeeInformation.formatDate(e.getUpdatedDay()));
+
         return csvTypeString;
     }
 
@@ -271,12 +273,11 @@ public class EmployeeUpdater extends Thread {
     /**
      * 選択された社員IDに該当する社員情報を社員リストから削除する。
      * <p>
-     * 削除処理は同期化されており、例外発生時には社員リストをバックアップ内容に復元する。
-     * 処理失敗時にはエラーログ出力とダイアログ表示を行う。
+     * 削除処理は同期化されており、例外発生時には社員リストをバックアップ内容に復元する。 処理失敗時にはエラーログ出力とダイアログ表示を行う。
      * </p>
      *
      * @param selected 削除対象の社員IDリスト
-     * @param backup   削除前の社員情報リストのバックアップ
+     * @param backup 削除前の社員情報リストのバックアップ
      * @return 削除処理が成功した場合はtrue、失敗した場合はfalse
      * @author nishiyama
      */
@@ -300,12 +301,11 @@ public class EmployeeUpdater extends Thread {
     /**
      * 指定されたCSVファイルのバックアップを作成する。
      * <p>
-     * バックアップファイルが既に存在する場合は上書きする。
-     * バックアップ作成に失敗した場合はエラーログ出力とダイアログ表示を行う。
+     * バックアップファイルが既に存在する場合は上書きする。 バックアップ作成に失敗した場合はエラーログ出力とダイアログ表示を行う。
      * </p>
      *
      * @param original バックアップ元のCSVファイル
-     * @param backup   作成するバックアップファイル
+     * @param backup 作成するバックアップファイル
      * @return バックアップ作成に成功した場合はtrue、失敗した場合はfalse
      * @author nishiyama
      */
@@ -324,8 +324,7 @@ public class EmployeeUpdater extends Thread {
     /**
      * 社員情報リストの内容を指定されたCSVファイルに書き込む。
      * <p>
-     * ファイルへの書き込み中はファイルロックを取得し、Shift-JISエンコードで出力する。
-     * 書き込み失敗時には例外をスローする。
+     * ファイルへの書き込み中はファイルロックを取得し、Shift-JISエンコードで出力する。 書き込み失敗時には例外をスローする。
      * </p>
      *
      * @param file 書き込み先のCSVファイル
@@ -368,8 +367,8 @@ public class EmployeeUpdater extends Thread {
      * </p>
      *
      * @param original 復元対象のCSVファイル
-     * @param backup   復元元のバックアップファイル
-     * @param e        発生した例外情報
+     * @param backup 復元元のバックアップファイル
+     * @param e 発生した例外情報
      * @author nishiyama
      */
     private void rollbackCsv(File original, File backup, Exception e) {
@@ -475,18 +474,6 @@ public class EmployeeUpdater extends Thread {
                 MANAGER.printErrorLog(e, "リソースの解放に失敗しました");
             }
         }
-    }
-
-    /**
-     * エラー表示用に用意したパネルに文言表示させる
-     *
-     * @param message 表示するエラーメッセージ
-     * @author nishiyama
-     */
-    private void showError(String message, ViewAdditionScreen CALLERSCREEN) {
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            CALLERSCREEN.showErrorMessageOnPanel(message);
-        });
     }
 
     /**

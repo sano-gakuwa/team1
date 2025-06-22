@@ -615,7 +615,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @param message 表示するエラーメッセージ
      * @author nishiyama
      */
-    private void showErrorDialog(String message) {
+    public void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 }
