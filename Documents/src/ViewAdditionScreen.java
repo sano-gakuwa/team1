@@ -107,10 +107,10 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         joinPanel.setBackground(Color.WHITE);
         joiningDatePanel.add(joinPanel, BorderLayout.SOUTH);
         joinYearCombo.addItemListener(e -> {
-            updateDayCombo(birthYearCombo, birthMonthCombo, birthDayCombo);
+            updateDayCombo(joinYearCombo, joinMonthCombo, joinDayCombo);
         });
         joinMonthCombo.addItemListener(e -> {
-            updateDayCombo(birthYearCombo, birthMonthCombo, birthDayCombo);
+            updateDayCombo(joinYearCombo, joinMonthCombo, joinDayCombo);
         });
         // エンジニア歴
         engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
