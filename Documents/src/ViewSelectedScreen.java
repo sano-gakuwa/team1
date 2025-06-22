@@ -93,6 +93,13 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         createCsvButton.addActionListener(e -> {
             // CSV出力
             manager.LOGGER.info("CSV出力ボタンが押されました");
+            CreateCsv createCsv = new CreateCsv();
+            // CSV出力中のロックがかかっているか確認
+            if(createCsv.validateCreateCsvLock() == false) {
+                // CSV出力中のロックがかかっている場合
+                JOptionPane.showMessageDialog(frame, "CSV出力中です。しばらくお待ちください。", "警告",JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             selectFolder();
         });
         deleteButton.addActionListener(e -> {
@@ -353,23 +360,21 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         if (displayCount == 10) {
             // 10名分表示
             for (int i = 0; i < displayCount; i++) {
-                EmployeeInformation empioyee = tableEmployee
-                        .get(i + ((currentPage - 1) * maxDisplayCount));
+                EmployeeInformation empioyee = tableEmployee.get(i + ((currentPage - 1) * maxDisplayCount));
                 displayList[i][0] = empioyee.getEmployeeID();
                 displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
-                displayList[i][2] = calcAge(empioyee.getBirthday(), now);
-                displayList[i][3] = empioyee.getEngineerDate();
+                displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
+                displayList[i][3] = empioyee.getEngineerDate() + "カ月";
                 displayList[i][4] = empioyee.getAvailableLanguages();
             }
         } else {
             // 社員〇人分＋空きスペース
             for (int i = 0; i < displayCount; i++) {
-                EmployeeInformation empioyee = tableEmployee
-                        .get(i + ((currentPage - 1) * maxDisplayCount));
+                EmployeeInformation empioyee = tableEmployee.get(i + ((currentPage - 1) * maxDisplayCount));
                 displayList[i][0] = empioyee.getEmployeeID();
                 displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
-                displayList[i][2] = calcAge(empioyee.getBirthday(), now);
-                displayList[i][3] = empioyee.getEngineerDate();
+                displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
+                displayList[i][3] = empioyee.getEngineerDate() + "カ月";
                 displayList[i][4] = empioyee.getAvailableLanguages();
             }
             for (int i = displayCount; i < maxDisplayCount; i++) {
@@ -412,7 +417,6 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         int selected = filechooser.showOpenDialog(filechooser);
         if (selected == JFileChooser.APPROVE_OPTION) {
             String directoryPath = filechooser.getSelectedFile().toString();
-            System.out.println(directoryPath);
             showCreateCsvDialog(directoryPath);
         }
     }
@@ -431,8 +435,9 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 null);
         if (selectButton == 0) {
             manager.LOGGER.info("CSV出力を開始");
-            CsvConverter csvConverter = new CsvConverter();
-            csvConverter.createCsv(directory, selected);
+            CreateCsv createCsv = new CreateCsv();
+            createCsv.createCsv(directory, selected);
+            createCsv.start();
             viewTopScreen();
         } else if (selectButton == 1) {
             manager.LOGGER.info("CSV出力をキャンセル");
