@@ -17,6 +17,15 @@ public class EmployeeUpdater extends Thread {
     public EmployeeUpdater() {
     }
 
+    /**
+     * 社員情報を追加するメソッド。
+     * 入力内容のバリデーションを行い、重複する社員IDがない場合に限り、CSVファイルと社員リストへ情報を追加。
+     * 処理中にエラーが発生した場合は、CSVのロールバック処理を行い、画面へ適切なエラーメッセージを表示。
+     * 同時実行防止のため、ファイルとリスト操作はロック制御を行う。
+     *
+     * @param newEmployee 追加対象となる社員情報オブジェクト（EmployeeInformation）
+     * @author nishiyama
+     */
     public void addition(EmployeeInformation newEmployee) {
         ViewAdditionScreen callScreen = new ViewAdditionScreen();
 
