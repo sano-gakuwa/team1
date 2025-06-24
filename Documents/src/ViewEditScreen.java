@@ -2,6 +2,7 @@ import java.awt.*; // 画面部品やレイアウト関連のクラスを読み�
 import java.awt.event.*; // ボタンやコンボボックスのイベント処理に使用
 import java.time.LocalDate; // 現在の日付などの取得に使用
 import java.util.*; // Date や Calendar などのユーティリティ
+import java.util.regex.Pattern;
 
 import javax.swing.*; // Swingライブラリ（UI構築）
 import javax.swing.text.JTextComponent; // JTextField / JTextArea を共通操作するために使用
@@ -89,6 +90,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupEmployeeId() {
         employeeIdField = placeholderTextField("01234xx");
         employeeIdField.setBounds(15, 5, 130, 30);
+        employeeIdField.setEditable(false);
         idPanel.add(employeeIdField); // ID入力欄を idPanel に追加
     }
 
@@ -213,7 +215,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         bottomPanel.setLayout(null);
 
         // 戻るボタン
-        backButton = new JButton("< 詳細画面へ戻る");
+        backButton = new JButton("< 編集キャンセル");
         backButton.setBounds(0, 0, 140, 30);
         bottomPanel.add(backButton);
 
@@ -221,7 +223,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         backButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(
                     null,
-                    "現在の入力内容を破棄してもよろしいですか？",
+                    "保存せず前画面に戻ると\n編集中の内容は破棄されますが\n本当によろしいですか？",
                     "確認",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE);
@@ -237,21 +239,145 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton = new JButton("保存");
         saveButton.setBounds(350, 0, 80, 30);
         bottomPanel.add(saveButton);
-        // 保存ボタン押下時の処理
+
         saveButton.addActionListener(e -> {
-            MANAGER.LOGGER.info("一覧画面に遷移");
-            EmployeeInformation editInfo = collectInputData(); // 入力データを取得
-            if (editInfo != null) {
-                EmployeeInfoUpdate update = new EmployeeInfoUpdate();
-                update.update(editInfo);
-                Thread updateThread = new Thread(update);
-                updateThread.start();
+            int result = JOptionPane.showConfirmDialog(
+                    null,
+                    "この情報で上書きしますか？",
+                    "確認",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+
+            if (result == JOptionPane.YES_OPTION) {
+
+                // ★【漢字】----------------------
+                String lastName = lastNameField.getText().trim();
+                String firstName = firstNameField.getText().trim();
+
+                if (lastName.isEmpty() || firstName.isEmpty()) {
+                    showValidationError("姓と名は必須です");
+                    return;
+                }
+
+                if (lastName.codePointCount(0, lastName.length()) > 15 ||
+                        firstName.codePointCount(0, firstName.length()) > 15) {
+                    showValidationError("氏名（漢字）は15文字以内で入力してください");
+                    return; // 処理中断
+                }
+
+                if (lastName.matches(".*[\\uFF61-\\uFF9F].*") 
+                || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
+                || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*") 
+                || firstName.matches(".*[\\uFF61-\\uFF9F].*") 
+                || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
+                || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+
+                Pattern surrogatePattern = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
+                if (surrogatePattern.matcher(lastName).find() || surrogatePattern.matcher(firstName).find()) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+
+                // ------------------------------------------------------------
+
+                // ★【フリガナ】----------------------
+                String rubyLastName = rubyLastNameField.getText().trim();
+                String rubyFirstName = rubyFirstNameField.getText().trim();
+
+                if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
+                    showValidationError("フリガナは必須です");
+                    return;
+                }
+
+                if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
+                        rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
+                    showValidationError("氏名（フリガナ）は15文字以内で入力してください");
+                    return; // 処理中断
+                }
+
+                if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*") 
+                || rubyLastName.matches(".*[\\u3040-\\u309F].*")
+                || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*") 
+                || rubyLastName.matches(".*[A-Za-z].*") 
+                || rubyLastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*") 
+                || rubyFirstName.matches(".*[\\uFF61-\\uFF9F].*") 
+                || rubyFirstName.matches(".*[\\u3040-\\u309F].*")
+                || rubyFirstName.matches(".*[\\u4E00-\\u9FFF].*") 
+                ||rubyFirstName.matches(".*[A-Za-z].*") 
+                || rubyFirstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+
+                // ------------------------------------------------------------
+
+            // ★【使える言語】----------------------
+                String setAvailable = availableLanguageField.getText().trim();
+
+                if (setAvailable.isEmpty()) {
+                    showValidationError("使える言語は必須です");
+                    return;
+                }
+
+                if (rubyLastName.codePointCount(0, rubyLastName.length()) > 100 ||
+                        rubyFirstName.codePointCount(0, rubyFirstName.length()) > 100) {
+                    showValidationError("100文字以内で入力してください");
+                    return; // 処理中断
+                }
+                // ------------------------------------------------------------
+                
+            // ★【経歴】----------------------
+            String career = careerArea.getText().trim();
+            if (career.isEmpty()) {
+            showValidationError("経歴は必須です");
+            return;
             }
-            refreshUI();
-            ViewTopScreen top = new ViewTopScreen();
-            top.View(); // 一覧画面に戻る
-        });
-    }
+
+            if (career.codePointCount(0, career.length()) > 400) {
+                showValidationError("経歴は400文字以内で入力してください");
+                return;
+            }
+            // ------------------------------------------------------------
+
+            // ★【研修受講歴】----------------------
+            String training = trainingArea.getText().trim();
+            if (training.isEmpty()) {
+                showValidationError("研修受講歴は必須です");
+                return;
+            }
+            if (training.codePointCount(0, training.length()) > 400) {
+                showValidationError("研修受講歴は400文字以内で入力してください");
+                return;
+            }
+            // ------------------------------------------------------------
+
+            // ★【備考】----------------------
+            String remarks = remarksArea.getText().trim();
+
+            if (remarks.codePointCount(0, remarks.length()) > 400) {
+                showValidationError("備考は400文字以内で入力してください");
+                return;
+            }
+            // ------------------------------------------------------------
+            }
+
+                MANAGER.LOGGER.info("一覧画面に遷移");
+                EmployeeInformation editInfo = collectInputData(); // 入力データを取得
+                if (editInfo != null) {
+                    EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+                    update.update(editInfo);
+                    Thread updateThread = new Thread(update);
+                    updateThread.start();
+                }
+                refreshUI();
+                ViewTopScreen top = new ViewTopScreen();
+                top.View(); // 一覧画面に戻る
+            });
+            // 「いいえ」の場合は何もしない
+        };
 
     // ラベル（JLabel）を生成する汎用メソッド
     private JLabel createLabel(String title, int x, int y) {
@@ -421,7 +547,8 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      */
     private String getFieldValue(JTextComponent field, String placeholder) {
         String text = field.getText();
-        return text.equals(placeholder) ? "" : text;
+        // 単に空白かどうかだけで判定
+        return (text == null || text.trim().isEmpty()) ? "" : text;
     }
 
     /**
