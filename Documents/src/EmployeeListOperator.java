@@ -1,13 +1,25 @@
 import java.util.*;
 import java.text.Normalizer;
-
+/**
+ * 社員情報の検索およびソート機能のクラス。
+ * 元データのリストを保持し、検索条件に基づくフィルタリングや
+ * ソート操作を提供
+ * @atuthor 木下
+ */
 public class EmployeeListOperator {
+    private final EmployeeManager MANAGER = new EmployeeManager();//infoログ用
     private final List<EmployeeInformation> masterList; // 元データ（不変）
     private volatile List<EmployeeInformation> filteredList; // 検索結果（ディープコピー）
     private final Object lock = new Object();
     private volatile boolean isSearching = false;
 
-    // 検索中のキャンセルはここでは未実装（必要ならFutureやinterrupt対応を追加）
+    /**
+     * コンストラクタ。初期リストから最大1000件の社員情報を保持
+     * filteredListに全件コピーを作成
+     * 検索中のキャンセルはまだ未実装、作成中（Futureやinterrupt追加検討）
+     * 
+     * @param initialList 初期社員情報リスト
+     */
     public EmployeeListOperator(List<EmployeeInformation> initialList) {
         // 最大1000件で保持
         this.masterList = new ArrayList<>(Math.min(initialList.size(), 1000));
@@ -18,9 +30,18 @@ public class EmployeeListOperator {
         this.filteredList = deepCopyEmployeeList(this.masterList);
     }
 
-    // 検索実行（AND検索、複数項目対応）
-    // 各引数はnullまたは空文字の場合は無視する
-    // 入力は最大100文字
+    /**
+     * 非同期で検索を実行
+     * AND条件で複数の検索項目に対応、空文字やnullは無視
+     * 最大100文字までの入力を受け付ける
+     *
+     * @param employeeIDQuery          社員IDの検索キーワード
+     * @param nameQuery                氏名の検索キーワード
+     * @param ageQuery                 年齢の検索キーワード
+     * @param engineerDateQuery        エンジニア歴の検索キーワード
+     * @param availableLanguagesQuery 扱える言語の検索キーワード
+     * @param callback                 検索完了時のコールバック
+     */
     public void searchAsync(
             String employeeIDQuery,
             String nameQuery,
@@ -29,6 +50,7 @@ public class EmployeeListOperator {
             String availableLanguagesQuery,
             SearchCallback callback) {
         if (isSearching) {
+            MANAGER.LOGGER.info("検索中に検索ボタンが押されました");
             callback.onSearchFinished(false, null, "検索中です。");
             return;
         }
@@ -39,6 +61,7 @@ public class EmployeeListOperator {
                 isEmpty(engineerDateQuery) &&
                 isEmpty(availableLanguagesQuery);
         if (allEmpty) {
+            MANAGER.LOGGER.info("検索条件が入力されていません。検索処理は実行されませんでした。");
             callback.onSearchFinished(false, null, "検索条件が入力されていません。");
             return;
         }
@@ -72,6 +95,17 @@ public class EmployeeListOperator {
         thread.start();
     }
 
+    /**
+     * 指定された検索条件に基づき社員情報リストを検索
+     * AND条件で全ての単語を部分一致で判定
+     * 
+     * @param employeeIDQuery         社員IDの検索キーワード
+     * @param nameQuery               氏名の検索キーワード
+     * @param ageQuery                年齢の検索キーワード
+     * @param engineerDateQuery       エンジニア歴の検索キーワード
+     * @param availableLanguagesQuery 扱える言語の検索キーワード
+     * @return 条件に合致した社員情報のリスト
+     */
     private List<EmployeeInformation> search(
             String employeeIDQuery,
             String nameQuery,
@@ -103,6 +137,15 @@ public class EmployeeListOperator {
         return results;
     }
 
+    /**
+     * 与えられた文字列を正規化
+     * 
+     * 半角全角の統一、ひらがなをカタカナに変換
+     * 大文字に変換
+     *
+     * @param s 入力文字列
+     * @return 正規化された文字列
+     */
     // 半角全角・かなカナ変換含めた正規化
     private String normalize(String s) {
         if (s == null)
@@ -111,7 +154,6 @@ public class EmployeeListOperator {
         n = hiraToKana(n).toUpperCase(Locale.JAPAN);
         return n;
     }
-
     // ひらがな→カタカナ変換
     private String hiraToKana(String s) {
         if (s == null)
@@ -127,6 +169,15 @@ public class EmployeeListOperator {
         return sb.toString();
     }
 
+    /**
+     * 検索ボタン押下時、項目欄内に入力された文字列の判定
+     * AND条件で全ての単語が対象文字列に部分一致するか判定
+     * ※文字列制限も入れたが、不要なら書き換え
+     *
+     * @param words  検索単語リスト
+     * @param target 判定対象文字列
+     * @return すべての単語が含まれていればtrue、そうでなければfalse
+     */
     // AND条件で全単語を含むか判定（部分一致）
     private boolean matchesAllWords(List<String> words, String target) {
         if (words == null || words.isEmpty())
@@ -140,12 +191,10 @@ public class EmployeeListOperator {
         }
         return true;
     }
-
     // 空判定（nullまたはtrim後空文字）
     private boolean isEmpty(String s) {
         return s == null || s.trim().isEmpty();
     }
-
     // 100文字超えカット
     private String cutTo100(String s) {
         if (s == null)
@@ -166,6 +215,12 @@ public class EmployeeListOperator {
         return result;
     }
 
+    /**
+     * EmployeeInformationのディープコピーを作成
+     *
+     * @param emp コピー元のEmployeeInformation
+     * @return コピーしたEmployeeInformationインスタンス
+     */
     // コピー処理（フィールド単位）
     private EmployeeInformation copyEmployeeInformation(EmployeeInformation emp) {
         EmployeeInformation employee = new EmployeeInformation();
@@ -188,7 +243,6 @@ public class EmployeeListOperator {
         employee.setUpdatedDay(emp.getUpdatedDay() != null ? (Date) emp.getUpdatedDay().clone() : null);
         return employee;
     }
-
     // リストのディープコピー
     private List<EmployeeInformation> deepCopyEmployeeList(List<EmployeeInformation> source) {
         List<EmployeeInformation> copy = new ArrayList<>(source.size());
@@ -198,6 +252,12 @@ public class EmployeeListOperator {
         return copy;
     }
 
+    /**
+     * 指定された誕生日から年齢を計算
+     *
+     * @param birthday 生年月日
+     * @return 年齢（誕生日がnullの場合は0）
+     */
     // 年齢計算
     private int calcAge(Date birthday) {
         if (birthday == null)
@@ -211,8 +271,9 @@ public class EmployeeListOperator {
         }
         return age;
     }
-
-    // ソートキー定義※まだ
+    /**
+     * ソートキー定義
+     */
     public enum SortKey {
         EMPLOYEE_ID,
         NAME,
@@ -222,9 +283,9 @@ public class EmployeeListOperator {
     }
     // ソート実行
 
-    // ソート用コンパレータ生成
-
-    // 検索完了コールバック
+    /**
+     * 検索完了時のコールバックインターフェース。
+     */
     public interface SearchCallback {
         /**
          * @param success      成功したか
@@ -234,10 +295,31 @@ public class EmployeeListOperator {
         void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage);
     }
 
-    // 現在の検索結果取得（ディープコピー）
+    /**
+     * 現在の検索結果をディープコピーで取得する。
+     *
+     * @return 現在の検索結果リストのコピー
+     */
     public List<EmployeeInformation> getFilteredList() {
+        
         synchronized (lock) {
             return deepCopyEmployeeList(filteredList);
         }
     }
+    public void sort(SortKey key, boolean ascending) {
+        synchronized (lock) {
+            Comparator<EmployeeInformation> comparator = switch (key) {
+                case EMPLOYEE_ID -> Comparator.comparing(EmployeeInformation::getEmployeeID, Comparator.nullsFirst(String::compareTo));
+                case NAME -> Comparator.comparing(emp -> normalize(emp.getRubyLastName() + emp.getRubyFirstname()), Comparator.nullsFirst(String::compareTo));
+                case AGE -> Comparator.comparingInt(emp -> calcAge(emp.getBirthday()));
+                case ENGINEER_DATE -> Comparator.comparingInt(EmployeeInformation::getEngineerDate);
+                default -> null;
+            };
+            if (comparator == null) return;
+            if (!ascending) comparator = comparator.reversed();
+            // 登録順を保持するために安定ソート（JavaのCollections.sortは安定）
+            filteredList.sort(comparator);
+        }
+    }
+
 }
