@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -231,5 +233,111 @@ public class EmployeeManager extends SystemLog {
         //カンマ区切りで連結した文字列を返す
         csvTypeString = csvBuilder.toString();
         return csvTypeString;
+    }
+    /**
+     * 社員情報の形式が正しいかを検証 必須項目がすべて入力されているかを確認
+     *
+     * @param employee 検証する社員情報
+     * @return 形式が正しい場合はtrue、そうでない場合はfalse
+     * @author nishiyama
+     */
+    public boolean validateNotNull(EmployeeInformation employee) {
+        boolean validate = false;
+        if (employee.getEmployeeID() == null || employee.getEmployeeID().isEmpty()) {
+            LOGGER.warning("社員ID欄が空欄です");
+            validate = true;
+        }
+        if (employee.getLastName() == null || employee.getLastName().isEmpty()) {
+            LOGGER.warning("名字欄が空欄です");
+            validate = true;
+        }
+        if (employee.getFirstname() == null || employee.getFirstname().isEmpty()) {
+            LOGGER.warning("名前欄が空欄です");
+            validate = true;
+        }
+        if (employee.getRubyLastName() == null || employee.getRubyLastName().isEmpty()) {
+            LOGGER.warning("名字のフリガナ欄が空欄です");
+            validate = true;
+        }
+        if (employee.getRubyFirstname() == null || employee.getRubyFirstname().isEmpty()) {
+            LOGGER.warning("名前のフリガナ欄が空欄です");
+            validate = true;
+        }
+        if (employee.getBirthday() == null) {
+            LOGGER.warning("誕生日欄が空欄です");
+            validate = true;
+        }
+        if (employee.getJoiningDate() == null) {
+            LOGGER.warning("入社年月欄が空欄です");
+            validate = true;
+        }
+        if (employee.getSkillPoint() == null) {
+            LOGGER.warning("技術欄が空欄です");
+            validate = true;
+        }
+        if (employee.getCommunicationPoint() == null) {
+            LOGGER.warning("コミュニケーション能力欄が空欄です");
+            validate = true;
+        }
+        if (employee.getAttitudePoint() == null) {
+            LOGGER.warning("受講態度欄が空欄です");
+            validate = true;
+        }
+        if (employee.getLeadershipPoint() == null) {
+            LOGGER.warning("リーダーシップ欄が空欄です");
+            validate = true;
+        }
+        return validate;
+    }
+    /**
+     * 要求仕様書通りの仕様になっているのか確認用
+     * 
+     * @param employee 新規追加しようとしている社員情報
+     * @return true or false
+     * @author 下村
+     */
+    public boolean validateEmployee(ArrayList<String> employee) {
+        boolean validate = true;
+        try {
+            if (employee.get(0).length() != 7) {
+                validate = false;
+            }
+            if (employee.get(1).length() > 15) {
+                validate = false;
+            }
+            if (employee.get(2).length() > 15) {
+                validate = false;
+            }
+            if (employee.get(3).length() > 15) {
+                validate = false;
+            }
+            if (employee.get(4).length() > 15) {
+                validate = false;
+            }
+            if (validateNotFuture(employee.get(5))) {
+                validate = false;
+            }
+            if (validateNotFuture(employee.get(6))) {
+                validate = false;
+            }
+            if (Integer.parseInt(employee.get(7)) >= 600) {
+                validate = false;
+            }
+        } catch (Exception e) {
+            printErrorLog(e, "形式エラー");
+        }
+        return validate;
+    }
+    /**
+     * 日付が未来の日付では無いか確認用
+     * 
+     * @param date 日付
+     * @return true or false
+     * @author 下村
+     */
+    private boolean validateNotFuture(String date) {
+        LocalDate today = LocalDate.now();
+        LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("[]y年[]M月[]d日"));
+        return targetDate.isBefore(today);
     }
 }
