@@ -27,7 +27,7 @@ public class EmployeeInfoAddition implements Runnable {
     }
 
     public boolean validateNullEmployee() {
-        return validateEmployee(newEmployee);
+        return MANAGER.validateNotNull(newEmployee);
     }
 
     public boolean validateOverlappingEmployee() {
@@ -125,61 +125,7 @@ public class EmployeeInfoAddition implements Runnable {
         MANAGER.LOGGER.info("社員情報追加の終了");
     }
 
-    /**
-     * 社員情報の形式が正しいかを検証 必須項目がすべて入力されているかを確認
-     *
-     * @param e 検証する社員情報
-     * @return 形式が正しい場合はtrue、そうでない場合はfalse
-     * @author nishiyama
-     */
-    private boolean validateEmployee(EmployeeInformation e) {
-        boolean validate = false;
-        if (e.getEmployeeID() == null || e.getEmployeeID().isEmpty()) {
-            MANAGER.LOGGER.warning("社員ID欄が空欄です");
-            validate = true;
-        }
-        if (e.getLastName() == null || e.getLastName().isEmpty()) {
-            MANAGER.LOGGER.warning("名字欄が空欄です");
-            validate = true;
-        }
-        if (e.getFirstname() == null || e.getFirstname().isEmpty()) {
-            MANAGER.LOGGER.warning("名前欄が空欄です");
-            validate = true;
-        }
-        if (e.getRubyLastName() == null || e.getRubyLastName().isEmpty()) {
-            MANAGER.LOGGER.warning("名字のフリガナ欄が空欄です");
-            validate = true;
-        }
-        if (e.getRubyFirstname() == null || e.getRubyFirstname().isEmpty()) {
-            MANAGER.LOGGER.warning("名前のフリガナ欄が空欄です");
-            validate = true;
-        }
-        if (e.getBirthday() == null) {
-            MANAGER.LOGGER.warning("誕生日欄が空欄です");
-            validate = true;
-        }
-        if (e.getJoiningDate() == null) {
-            MANAGER.LOGGER.warning("入社年月欄が空欄です");
-            validate = true;
-        }
-        if (e.getSkillPoint() == null) {
-            MANAGER.LOGGER.warning("技術欄が空欄です");
-            validate = true;
-        }
-        if (e.getCommunicationPoint() == null) {
-            MANAGER.LOGGER.warning("コミュニケーション能力欄が空欄です");
-            validate = true;
-        }
-        if (e.getAttitudePoint() == null) {
-            MANAGER.LOGGER.warning("受講態度欄が空欄です");
-            validate = true;
-        }
-        if (e.getLeadershipPoint() == null) {
-            MANAGER.LOGGER.warning("リーダーシップ欄が空欄です");
-            validate = true;
-        }
-        return validate;
-    }
+    
 
     public void showValidationError(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
