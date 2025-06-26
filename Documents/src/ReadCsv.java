@@ -11,8 +11,6 @@ import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -66,7 +64,7 @@ public class ReadCsv implements Runnable {
                     String[] loadEmployeeData = scanner.nextLine().split(",");
                     ArrayList<String> loadEmployeeDate = new ArrayList<String>(Arrays.asList(loadEmployeeData));
                     // 読み込んだデータが要求仕様書通りの仕様になっているか確認
-                    if (validateEmployee(loadEmployeeDate) != false) {
+                    if (MANAGER.validateEmployee(loadEmployeeDate) != false) {
                         String message = "指定されたCSVファイルに形式エラーが有ります";
                         MANAGER.LOGGER.warning(message);
                         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
@@ -170,60 +168,6 @@ public class ReadCsv implements Runnable {
             return;
         }
     }
-
-    /**
-     * 要求仕様書通りの仕様になっているのか確認用
-     * 
-     * @param employee 新規追加しようとしている社員情報
-     * @return true or false
-     * @author 下村
-     */
-    private boolean validateEmployee(ArrayList<String> employee) {
-        boolean validate = true;
-        try {
-            if (employee.get(0).length() != 7) {
-                validate = false;
-            }
-            if (employee.get(1).length() > 15) {
-                validate = false;
-            }
-            if (employee.get(2).length() > 15) {
-                validate = false;
-            }
-            if (employee.get(3).length() > 15) {
-                validate = false;
-            }
-            if (employee.get(4).length() > 15) {
-                validate = false;
-            }
-            if (validateNotFuture(employee.get(5))) {
-                validate = false;
-            }
-            if (validateNotFuture(employee.get(6))) {
-                validate = false;
-            }
-            if (Integer.parseInt(employee.get(7)) >= 600) {
-                validate = false;
-            }
-        } catch (Exception e) {
-            MANAGER.printErrorLog(e, "形式エラー");
-        }
-        return validate;
-    }
-
-    /**
-     * 日付が未来の日付では無いか確認用
-     * 
-     * @param date 日付
-     * @return true or false
-     * @author 下村
-     */
-    private boolean validateNotFuture(String date) {
-        LocalDate today = LocalDate.now();
-        LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("[]y年[]M月[]d日"));
-        return targetDate.isBefore(today);
-    }
-
     /**
      * エラー表示用に用意したダイアログに文言表示させる
      *
