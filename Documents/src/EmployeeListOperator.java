@@ -13,6 +13,8 @@ public class EmployeeListOperator {
     private final Object lock = new Object();
     private volatile boolean isSearching = false;
 
+    
+
     /**
      * コンストラクタ。初期リストから最大1000件の社員情報を保持
      * filteredListに全件コピーを作成
@@ -30,8 +32,13 @@ public class EmployeeListOperator {
         this.filteredList = deepCopyEmployeeList(this.masterList);
     }
 
+
+
+    // ここに setEmployeeList を追加するイメージ
+    
+
     /**
-     * 非同期で検索を実行※検索処理を別スレッドで実行
+     * 非同期で検索を実行
      * AND条件で複数の検索項目に対応、空文字やnullは無視
      * 最大100文字までの入力を受け付ける
      *
