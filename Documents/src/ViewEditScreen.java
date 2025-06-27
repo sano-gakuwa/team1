@@ -105,7 +105,6 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         rubyFirstNameField = placeholderTextField("タロウ");
         rubyFirstNameField.setBounds(215, 15, 195, 30);
         namePanel.add(rubyFirstNameField);
-
         // 漢字（姓）
         lastNameField = placeholderTextField("山田");
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
@@ -159,24 +158,26 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupCareer() {
         careerPanel.add(createLabel("経歴", 0, 0), BorderLayout.NORTH);
         careerArea = new JTextArea(5, 30);
-        careerArea.setLineWrap(true); // 自動折り返し
-        placeholderTextArea("経歴", careerArea);
-        JScrollPane careerScroll = new JScrollPane(careerArea);
-        careerPanel.add(careerScroll, BorderLayout.CENTER);
+        careerArea.setLineWrap(true); // テキストがはみ出さないよう自動で折り返す
+        placeholderTextArea("経歴", careerArea); // プレースホルダを設定
+        JScrollPane careerScroll = new JScrollPane(careerArea); // スクロールバー付き
+        careerPanel.add(careerScroll, BorderLayout.CENTER); // パネル中央に配置
     }
 
     // スキルスコア欄のUI構築
     private void setupSkills() {
-        skillsPanel.add(createLabel("スキル", 0, 0), BorderLayout.NORTH);
+        skillsPanel.add(createLabel("スキル", 0, 0), BorderLayout.NORTH); // タイトルラベルを上部に追加
 
+        // 4行2列のグリッドレイアウトでスキル入力欄を配置
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         skillPanel.setBackground(Color.LIGHT_GRAY);
 
-        techCombo = createScoreCombo(); // 技術力
-        commCombo = createScoreCombo(); // コミュニケーション
-        attitudeCombo = createScoreCombo(); // 受講態度
-        leaderCombo = createScoreCombo(); // リーダーシップ
+        techCombo = createScoreCombo(); // 技術力用コンボボックス
+        commCombo = createScoreCombo(); // コミュニケーション能力用
+        attitudeCombo = createScoreCombo(); // 受講態度用
+        leaderCombo = createScoreCombo(); // リーダーシップ用
 
+        // ラベルとコンボボックスを交互に追加（横並びに配置）
         skillPanel.add(new JLabel("技術力"));
         skillPanel.add(techCombo);
         skillPanel.add(new JLabel("コミュニケーション能力"));
@@ -187,39 +188,39 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         skillPanel.add(leaderCombo);
 
         skillPanel.setBounds(0, 10, 360, 10);
-        skillsPanel.add(skillPanel, BorderLayout.CENTER);
+        skillsPanel.add(skillPanel, BorderLayout.CENTER); // スキルパネルを中央に配置
     }
 
     // 研修受講歴欄のUI構築
     private void setupTraining() {
-        trainingRecordsPanel.add(createLabel("研修受講歴", 0, 0), BorderLayout.NORTH);
-        trainingArea = new JTextArea(5, 30);
-        trainingArea.setLineWrap(true);
-        placeholderTextArea("2000年4月1日株式会社XXXX入社", trainingArea);
-        JScrollPane trainingScroll = new JScrollPane(trainingArea);
-        trainingRecordsPanel.add(trainingScroll, BorderLayout.CENTER);
+        trainingRecordsPanel.add(createLabel("研修受講歴", 0, 0), BorderLayout.NORTH); // 上部にラベル
+        trainingArea = new JTextArea(5, 30); // 複数行の入力欄
+        trainingArea.setLineWrap(true); // 自動折り返し
+        placeholderTextArea("2000年4月1日株式会社XXXX入社", trainingArea); // プレースホルダー設定
+        JScrollPane trainingScroll = new JScrollPane(trainingArea); // スクロール可能に
+        trainingRecordsPanel.add(trainingScroll, BorderLayout.CENTER); // 中央に追加
     }
 
     // 備考欄のUI構築
     private void setupRemarks() {
-        remarksPanel.add(createLabel("備考", 440, 340), BorderLayout.NORTH);
-        remarksArea = new JTextArea(5, 30);
-        remarksArea.setLineWrap(true);
-        placeholderTextArea("特になし", remarksArea);
-        JScrollPane remarksScroll = new JScrollPane(remarksArea);
-        remarksPanel.add(remarksScroll, BorderLayout.CENTER);
+        remarksPanel.add(createLabel("備考", 440, 340), BorderLayout.NORTH); // ラベル追加
+        remarksArea = new JTextArea(5, 30); // 複数行の備考欄
+        remarksArea.setLineWrap(true); // 自動折り返し
+        placeholderTextArea("特になし", remarksArea); // プレースホルダー
+        JScrollPane remarksScroll = new JScrollPane(remarksArea); // スクロール可能に
+        remarksPanel.add(remarksScroll, BorderLayout.CENTER); // 備考欄をパネルに追加
     }
 
     // 戻る・保存ボタンの設定
     private void setupButtons() {
-        bottomPanel.setLayout(null);
+        bottomPanel.setLayout(null); // パネル内の配置を自由に設定
 
-        // 戻るボタン
+        // 戻るボタン（編集中止）
         backButton = new JButton("< 編集キャンセル");
-        backButton.setBounds(0, 0, 140, 30);
-        bottomPanel.add(backButton);
+        backButton.setBounds(0, 0, 140, 30); // ボタンの位置とサイズ
+        bottomPanel.add(backButton); // パネルに追加
 
-        // 戻るボタン押下時の確認ダイアログ
+        // 戻るボタン押下時の確認ダイアログ処理
         backButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(
                     null,
@@ -228,160 +229,209 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE);
             if (result == JOptionPane.YES_OPTION) {
-                refreshUI();
+                refreshUI(); // UIリセット
                 ViewDetailsScreen details = new ViewDetailsScreen();
                 details.view(employeeInformation); // 詳細画面に戻る
             }
-            // NO_OPTIONの場合は何もしない
+            // 「いいえ」の場合は何もせずにそのまま
         });
 
         // 保存ボタン
         saveButton = new JButton("保存");
-        saveButton.setBounds(350, 0, 80, 30);
-        bottomPanel.add(saveButton);
+        saveButton.setBounds(350, 0, 80, 30); // ボタン位置とサイズ
+        bottomPanel.add(saveButton); // パネルに追加
+        // 保存ボタン押下時の処理（確認ダイアログ → バリデーション → 保存 → 一覧画面へ）
+        saveButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(
+                    null,
+                    "この情報で上書きしますか？",
+                    "確認",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
 
-saveButton.addActionListener(e -> {
-    int result = JOptionPane.showConfirmDialog(
-            null,
-            "この情報で上書きしますか？",
-            "確認",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE
-    );
+            // 「いいえ」または「×」を選んだ場合は何もせず終了
+            if (result != JOptionPane.YES_OPTION) {
+                return;
+            }
 
-    // ✅【修正】「いいえ」または「×」を選んだ場合は何もせず戻る（ここを追加）
-    if (result != JOptionPane.YES_OPTION) {
-        return;
-    }
+            // 各種バリデーションチェック（未入力・文字数制限・禁止文字）
+            // --- 氏名（漢字）の取得とチェック ---
+            String lastName = lastNameField.getText().trim();
+            String firstName = firstNameField.getText().trim();
 
-    // ★【漢字】----------------------
-    String lastName = lastNameField.getText().trim();
-    String firstName = firstNameField.getText().trim();
+            if (lastName.isEmpty() || firstName.isEmpty()) {
+                showValidationError("姓と名は必須です");
+                return;
+            }
 
-    if (lastName.isEmpty() || firstName.isEmpty()) {
-        showValidationError("姓と名は必須です");
-        return;
-    }
+            if (lastName.codePointCount(0, lastName.length()) > 15 ||
+                    firstName.codePointCount(0, firstName.length()) > 15) {
+                showValidationError("氏名（漢字）は15文字以内で入力してください");
+                return;
+            }
 
-    if (lastName.codePointCount(0, lastName.length()) > 15 ||
-            firstName.codePointCount(0, firstName.length()) > 15) {
-        showValidationError("氏名（漢字）は15文字以内で入力してください");
-        return;
-    }
+            // 禁止文字チェック（漢字）
+            if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
+                    || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
+                    || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
+                    || firstName.matches(".*[\\uFF61-\\uFF9F].*")
+                    || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
+                    || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+                showValidationError("使用できない文字が含まれています");
+                return;
+            }
 
-    if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
-            || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
-            || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
-            || firstName.matches(".*[\\uFF61-\\uFF9F].*")
-            || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
-            || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+            // サロゲートペア（絵文字など）の禁止
+            // 環境依存文字一覧（拡張可能）
+            String[] envDependentChars = {
+                    "髙", "﨑", "𠮷", "辻", "①", "②", "③", "㊤", "㈱", "㈲", "℡", "㎜", "㌔", "🈂", "🅰", "🅱", "©", "®", "™",
+                    "😃", "💻"
+            };
+
+            // 氏名に環境依存文字が含まれていないかをチェック
+            for (String ch : envDependentChars) {
+                if (lastName.contains(ch) || firstName.contains(ch)) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+            }
+
+            // サロゲートペア（絵文字など）の禁止（既存）
+            Pattern surrogatePattern = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
+            if (surrogatePattern.matcher(lastName).find() || surrogatePattern.matcher(firstName).find()) {
+                showValidationError("使用できない文字が含まれています");
+                return;
+            }
+
+            // --- フリガナのチェック（全角カタカナのみ・15文字以内） ---
+            String rubyLastName = rubyLastNameField.getText().trim();
+            String rubyFirstName = rubyFirstNameField.getText().trim();
+
+            if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
+                showValidationError("フリガナは必須です");
+                return;
+            }
+
+            if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
+                    rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
+                showValidationError("氏名（フリガナ）は15文字以内で入力してください");
+                return;
+            }
+            // 禁止文字チェック（フリガナ）
+            if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*")
+                    || rubyLastName.matches(".*[\\u3040-\\u309F].*") // ひらがな
+                    || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*") // 漢字
+                    || rubyLastName.matches(".*[A-Za-z].*") // 半角英字
+                    || rubyLastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
+                    || rubyFirstName.matches(".*[\\uFF61-\\uFF9F].*")
+                    || rubyFirstName.matches(".*[\\u3040-\\u309F].*")
+                    || rubyFirstName.matches(".*[\\u4E00-\\u9FFF].*")
+                    || rubyFirstName.matches(".*[A-Za-z].*")
+                    || rubyFirstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+                showValidationError("使用できない文字が含まれています");
+                return;
+            }
+
+            // --- 扱える言語のチェック ---
+            String setAvailable = availableLanguageField.getText().trim();
+
+            if (setAvailable.isEmpty()) {
+                showValidationError("使える言語は必須です");
+                return;
+            }
+
+if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
+    showValidationError("使える言語は100文字以内で入力してください");
+    return;
+}
+
+// 禁止文字（記号・全角英字・環境依存記号など）チェックを追加
+if (setAvailable.matches(".*[!@#$%^&*()_+=|{}\\[\\]:;\"'<>?/\\\\Ａ-Ｚａ-ｚ①-⑩©®™😃💻！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
+    showValidationError("使用できない文字が含まれています");
+    return;
+}
+
+// 環境依存文字リストからのチェック
+for (String ch : envDependentChars) {
+    if (setAvailable.contains(ch)) {
         showValidationError("使用できない文字が含まれています");
         return;
     }
+}
 
-    Pattern surrogatePattern = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
-    if (surrogatePattern.matcher(lastName).find() || surrogatePattern.matcher(firstName).find()) {
-        showValidationError("使用できない文字が含まれています");
-        return;
+// サロゲートペア（絵文字など）のチェック
+if (surrogatePattern.matcher(setAvailable).find()) {
+    showValidationError("使用できない文字が含まれています");
+    return;
+}
+
+            // --- 経歴のチェック ---
+            String career = careerArea.getText().trim();
+            if (career.isEmpty()) {
+                showValidationError("経歴は必須です");
+                return;
+            }
+
+            if (career.codePointCount(0, career.length()) > 400) {
+                showValidationError("経歴は400文字以内で入力してください");
+                return;
+            }
+
+            // --- 研修受講歴のチェック ---
+            String training = trainingArea.getText().trim();
+            if (training.isEmpty()) {
+                showValidationError("研修受講歴は必須です");
+                return;
+            }
+
+            if (training.codePointCount(0, training.length()) > 400) {
+                showValidationError("研修受講歴は400文字以内で入力してください");
+                return;
+            }
+
+            // --- 備考のチェック（任意だが400文字制限） ---
+            String remarks = remarksArea.getText().trim();
+
+            if (remarks.codePointCount(0, remarks.length()) > 400) {
+                showValidationError("備考は400文字以内で入力してください");
+                return;
+            }
+
+            // バリデーションOK：保存処理へ進む
+            EmployeeInformation editInfo = collectInputData(); // 入力情報をオブジェクトにまとめる
+            if (editInfo != null) {
+                EmployeeInfoUpdate update = new EmployeeInfoUpdate(); // 更新スレッド作成
+                update.update(editInfo); // 更新処理をセット
+                Thread updateThread = new Thread(update); // スレッドに詰める
+                updateThread.start(); // スレッドを実行
+            }
+
+            MANAGER.LOGGER.info("一覧画面に遷移"); // ログ出力
+            refreshUI(); // 画面をクリア
+            ViewTopScreen top = new ViewTopScreen();
+            top.View(); // 一覧画面に遷移
+        });
     }
 
-    // ★【フリガナ】----------------------
-    String rubyLastName = rubyLastNameField.getText().trim();
-    String rubyFirstName = rubyFirstNameField.getText().trim();
-
-    if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
-        showValidationError("フリガナは必須です");
-        return;
-    }
-
-    if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
-            rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
-        showValidationError("氏名（フリガナ）は15文字以内で入力してください");
-        return;
-    }
-
-    if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*")
-            || rubyLastName.matches(".*[\\u3040-\\u309F].*")
-            || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*")
-            || rubyLastName.matches(".*[A-Za-z].*")
-            || rubyLastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
-            || rubyFirstName.matches(".*[\\uFF61-\\uFF9F].*")
-            || rubyFirstName.matches(".*[\\u3040-\\u309F].*")
-            || rubyFirstName.matches(".*[\\u4E00-\\u9FFF].*")
-            || rubyFirstName.matches(".*[A-Za-z].*")
-            || rubyFirstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
-        showValidationError("使用できない文字が含まれています");
-        return;
-    }
-
-    // ★【使える言語】----------------------
-    String setAvailable = availableLanguageField.getText().trim();
-
-    if (setAvailable.isEmpty()) {
-        showValidationError("使える言語は必須です");
-        return;
-    }
-
-    if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
-        showValidationError("使える言語は100文字以内で入力してください");
-        return;
-    }
-
-    // ★【経歴】----------------------
-    String career = careerArea.getText().trim();
-    if (career.isEmpty()) {
-        showValidationError("経歴は必須です");
-        return;
-    }
-
-    if (career.codePointCount(0, career.length()) > 400) {
-        showValidationError("経歴は400文字以内で入力してください");
-        return;
-    }
-
-    // ★【研修受講歴】----------------------
-    String training = trainingArea.getText().trim();
-    if (training.isEmpty()) {
-        showValidationError("研修受講歴は必須です");
-        return;
-    }
-    if (training.codePointCount(0, training.length()) > 400) {
-        showValidationError("研修受講歴は400文字以内で入力してください");
-        return;
-    }
-
-    // ★【備考】----------------------
-    String remarks = remarksArea.getText().trim();
-
-    if (remarks.codePointCount(0, remarks.length()) > 400) {
-        showValidationError("備考は400文字以内で入力してください");
-        return;
-    }
-
-    // ✅【修正】「はい」の場合のみ保存処理を実行（従来の処理をここに残す）
-    EmployeeInformation editInfo = collectInputData();
-    if (editInfo != null) {
-        EmployeeInfoUpdate update = new EmployeeInfoUpdate();
-        update.update(editInfo);
-        Thread updateThread = new Thread(update);
-        updateThread.start();
-    }
-
-    MANAGER.LOGGER.info("一覧画面に遷移");
-    refreshUI();
-    ViewTopScreen top = new ViewTopScreen();
-    top.View(); // 一覧画面に戻る
-});
-    }
-
-    // ラベル（JLabel）を生成する汎用メソッド
+    /**
+     * ラベル（JLabel）を生成する汎用メソッド
+     * 
+     * @param title 表示するラベルの文字列
+     * @param x     ラベルのx座標
+     * @param y     ラベルのy座標
+     * @return JLabelインスタンス
+     */
     private JLabel createLabel(String title, int x, int y) {
         JLabel label = new JLabel(title);
         label.setBounds(x, y, 100, 20);
         return label;
     }
 
-    // スキルスコア用のコンボボックス（1.0〜5.0）を作成
+    /**
+     * スキルスコア用のコンボボックス（1.0〜5.0）を作成
+     * 
+     * @return JComboBoxインスタンス（スキルスコア選択用）
+     */
     private JComboBox<String> createScoreCombo() {
         String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
         return new JComboBox<>(scores);
@@ -420,7 +470,7 @@ saveButton.addActionListener(e -> {
         }
         dayBox.setModel(dayModel);
 
-        // パネルに追加
+        // パネルに追加して返す
         JPanel panel = new JPanel();
         panel.setPreferredSize(new Dimension(205, 40));
         panel.setMaximumSize(new Dimension(205, 40));
@@ -434,7 +484,9 @@ saveButton.addActionListener(e -> {
         return panel;
     }
 
-    // エンジニア歴入力用の年・月セレクターを作成
+    /**
+     * エンジニア歴入力用の年・月セレクターを作成
+     */
     private JPanel engineerDateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox) {
         JPanel panel = new JPanel();
         panel.setPreferredSize(new Dimension(155, 40));
@@ -520,7 +572,6 @@ saveButton.addActionListener(e -> {
             employee.setEngineerDate(years * 12 + months);
             employee.setAvailableLanguages(getFieldValue(availableLanguageField, "html・CSS"));
             employee.setCareerDate(getFieldValue(careerArea, "XXXXXXX"));
-            // スキルスコア
             employee.setSkillPoint(parseScore(techCombo));
             employee.setAttitudePoint(parseScore(attitudeCombo));
             employee.setCommunicationPoint(parseScore(commCombo));
@@ -540,15 +591,14 @@ saveButton.addActionListener(e -> {
     /**
      * プレースホルダーと同じ値なら空文字に置き換えるユーティリティメソッド
      */
-private String getFieldValue(JTextComponent field, String placeholder) {
-    String text = field.getText();
-    if (text == null || text.trim().isEmpty()) {
-        return "";
+    private String getFieldValue(JTextComponent field, String placeholder) {
+        String text = field.getText();
+        if (text == null || text.trim().isEmpty()) {
+            return "";
+        }
+        // プレースホルダーと同じ文字列でも、実際に編集していれば有効とみなす
+        return text;
     }
-    // プレースホルダーと同じ文字列でも、実際に編集していれば有効とみなす
-    return text;
-}
-
 
     /**
      * JComboBox から選択されたスコア値（文字列）を double に変換
@@ -602,7 +652,6 @@ private String getFieldValue(JTextComponent field, String placeholder) {
      * EmployeeInformation オブジェクトの値を画面の各項目に反映
      */
     private void setValues() {
-        // 社員ID・名前など基本情報のセット
         employeeIdField.setText(employeeInformation.getEmployeeID());
         rubyLastNameField.setText(employeeInformation.getRubyLastName());
         rubyFirstNameField.setText(employeeInformation.getRubyFirstname());
@@ -611,31 +660,26 @@ private String getFieldValue(JTextComponent field, String placeholder) {
         availableLanguageField.setText(employeeInformation.getAvailableLanguages());
         careerArea.setText(employeeInformation.getCareerDate());
 
-        // スキルスコアの反映
         techCombo.setSelectedItem(String.format("%.1f", employeeInformation.getSkillPoint()));
         attitudeCombo.setSelectedItem(String.format("%.1f", employeeInformation.getAttitudePoint()));
         commCombo.setSelectedItem(String.format("%.1f", employeeInformation.getCommunicationPoint()));
         leaderCombo.setSelectedItem(String.format("%.1f", employeeInformation.getLeadershipPoint()));
 
-        // 研修履歴・備考
         trainingArea.setText(employeeInformation.getTrainingDate());
         remarksArea.setText(employeeInformation.getRemarks());
 
-        // 生年月日
         Calendar birthCal = Calendar.getInstance();
         birthCal.setTime(employeeInformation.getBirthday());
         birthYearCombo.setSelectedItem(birthCal.get(Calendar.YEAR));
         birthMonthCombo.setSelectedItem(birthCal.get(Calendar.MONTH) + 1);
         birthDayCombo.setSelectedItem(birthCal.get(Calendar.DAY_OF_MONTH));
 
-        // 入社年月日
         Calendar joinCal = Calendar.getInstance();
         joinCal.setTime(employeeInformation.getJoiningDate());
         joinYearCombo.setSelectedItem(joinCal.get(Calendar.YEAR));
         joinMonthCombo.setSelectedItem(joinCal.get(Calendar.MONTH) + 1);
         joinDayCombo.setSelectedItem(joinCal.get(Calendar.DAY_OF_MONTH));
 
-        // エンジニア歴（月→年+月 に分割）
         int totalMonths = employeeInformation.getEngineerDate();
         engYearCombo.setSelectedItem(totalMonths / 12);
         engMonthCombo.setSelectedItem(totalMonths % 12);
