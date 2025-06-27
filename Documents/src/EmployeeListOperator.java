@@ -313,6 +313,17 @@ public class EmployeeListOperator {
             return deepCopyEmployeeList(filteredList);
         }
     }
+    /**
+    * マスターデータと検索結果を再設定（検索結果クリア）
+    */
+    public void setEmployeeList(List<EmployeeInformation> newList) {
+        synchronized (lock) {
+            masterList.clear();
+            masterList.addAll(newList);
+            filteredList = deepCopyEmployeeList(masterList);
+        }
+    }
+
     public void sort(SortKey key, boolean ascending) {
         synchronized (lock) {
             Comparator<EmployeeInformation> comparator = switch (key) {
