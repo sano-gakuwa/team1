@@ -106,9 +106,16 @@ public class ViewTopScreen extends SetUpTopScreen {
         functionButtonsPanel.setOpaque(false); // 背景透過
         functionButtonsPanel.add(new JLabel("エンジニア一覧"));
         JButton addEmployeeButton = new JButton("新規");
+        functionButtonsPanel.add(addEmployeeButton);//検索クリアボタン出現後の配置ずれ防止
         JButton loadButton = new JButton("読込");
+        functionButtonsPanel.add(loadButton);
         JButton templateButton = new JButton("テンプレート出力");
+        functionButtonsPanel.add(templateButton);
         JButton bulkSelectButton = new JButton("ページ内一括選択");
+        functionButtonsPanel.add(bulkSelectButton);
+        clearSearchResultButton = new JButton("検索クリア");
+        clearSearchResultButton.setVisible(false); // 検索後のみ表示
+        functionButtonsPanel.add(clearSearchResultButton);
 
         // =============================================
         // 各種ボタンイベント設定（下記担当者記載）
@@ -120,7 +127,6 @@ public class ViewTopScreen extends SetUpTopScreen {
             ViewAdditionScreen addition = new ViewAdditionScreen();
             addition.view();
         });
-        functionButtonsPanel.add(addEmployeeButton);
 
         // 「読込」ボタン押下後イベント※{}内追記お願いします
         loadButton.addActionListener(e -> {
@@ -133,7 +139,6 @@ public class ViewTopScreen extends SetUpTopScreen {
             }
             selectFile();
         });
-        functionButtonsPanel.add(loadButton);
 
         // 「テンプレート出力」ボタン押下後イベント
         templateButton.addActionListener(e -> {
@@ -165,10 +170,8 @@ public class ViewTopScreen extends SetUpTopScreen {
                 templateThread.start();
             }
         });
-        // ボタンをパネルに追加
-        functionButtonsPanel.add(templateButton);
+        
         // 選択画面（ViewSelectedScreen ）に遷移
-        functionButtonsPanel.add(bulkSelectButton);
         bulkSelectButton.addActionListener(e -> {
             for (int i = 0; i < 10; i++) {
                 selected.add((model.getValueAt(i, 0)).toString());
@@ -176,6 +179,15 @@ public class ViewTopScreen extends SetUpTopScreen {
             refreshUI();
             ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
             selectedScreen.View(tableEmployee, selected, currentPage);
+        });
+        // 検索結果クリア（検索後のみ表示）
+        clearSearchResultButton.addActionListener(e -> {
+            tableEmployee = new ArrayList<>(EmployeeManager.employeeList); // 全件表示に戻す
+            employeeListOperator.setEmployeeList(tableEmployee);
+            currentPage = 1;
+            refreshTable();
+            clearSearchResultButton.setVisible(false); // ボタン非表示に戻す
+            MANAGER.LOGGER.info("検索結果クリア：全件表示に戻しました");
         });
         // テーブル構築
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
@@ -322,23 +334,23 @@ public class ViewTopScreen extends SetUpTopScreen {
     private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery,  String langQuery) {
         if (searchOverlayPanel == null) setupSearchOverlay();
         showSearchOverlay();
-        employeeListOperator.searchAsync(
-            idQuery, nameQuery, ageQuery, engQuery, langQuery,
-            new EmployeeListOperator.SearchCallback() {
-                @Override
-                public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
+        employeeListOperator.searchAsync(idQuery, nameQuery, ageQuery, engQuery, langQuery,new EmployeeListOperator.SearchCallback() {
+            @Override
+            public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
+                SwingUtilities.invokeLater(() -> {
                     hideSearchOverlay();
                     if (success) {
-                        SwingUtilities.invokeLater(() -> {
-                            currentPage = 1;  // ページリセット
-                            tableEmployee = new ArrayList<>(results);
-                            refreshTable();
-                        });
+                        currentPage = 1;
+                        tableEmployee = new ArrayList<>(results);
+                        employeeListOperator.setEmployeeList(tableEmployee);
+                        refreshTable();
                     } else {
                         JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
                     }
-                }
-            });
+                });
+            }
+        });
+
     }
 
 
@@ -588,7 +600,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             selectFile();
         }
     }
-    // 🔽 検索中オーバーレイを準備するメソッド（setupViewTopScreenの後かクラス末尾に配置推奨）
+    // 検索中オーバーレイを準備するメソッド（setupViewTopScreenの後かクラス末尾に配置推奨）
     private void setupSearchOverlay() {
         searchOverlayPanel = new JPanel();
         searchOverlayPanel.setLayout(null);
@@ -624,9 +636,15 @@ public class ViewTopScreen extends SetUpTopScreen {
     // 検索中オーバーレイ非表示メソッド
     private void hideSearchOverlay() {
         searchOverlayPanel.setVisible(false);
+        System.out.println("hideSearchOverlay called");  // ← これが出力されるべき
         if (clearSearchResultButton != null) {
-            clearSearchResultButton.setVisible(true);  // nullチェック
+            clearSearchResultButton.setVisible(true);
+            functionButtonsPanel.revalidate();  // ← これ追加！
+            functionButtonsPanel.repaint();     // ← これ追加！
+        } else {
+            System.out.println("clearSearchResultButton is null");
         }
     }
+
 
 }
