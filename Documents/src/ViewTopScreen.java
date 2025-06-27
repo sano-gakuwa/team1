@@ -186,6 +186,12 @@ public class ViewTopScreen extends SetUpTopScreen {
             employeeListOperator.setEmployeeList(tableEmployee);
             currentPage = 1;
             refreshTable();
+            // 検索欄をクリア（← ここを追加）
+            ((JTextField) topPanel.getComponent(1)).setText("");
+            ((JTextField) topPanel.getComponent(3)).setText("");
+            ((JTextField) topPanel.getComponent(5)).setText("");
+            ((JTextField) topPanel.getComponent(7)).setText("");
+            ((JTextField) topPanel.getComponent(9)).setText("");
             clearSearchResultButton.setVisible(false); // ボタン非表示に戻す
             MANAGER.LOGGER.info("検索結果クリア：全件表示に戻しました");
         });
@@ -645,6 +651,4 @@ public class ViewTopScreen extends SetUpTopScreen {
             System.out.println("clearSearchResultButton is null");
         }
     }
-
-
 }
