@@ -240,144 +240,139 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton.setBounds(350, 0, 80, 30);
         bottomPanel.add(saveButton);
 
-        saveButton.addActionListener(e -> {
-            int result = JOptionPane.showConfirmDialog(
-                    null,
-                    "この情報で上書きしますか？",
-                    "確認",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE);
+saveButton.addActionListener(e -> {
+    int result = JOptionPane.showConfirmDialog(
+            null,
+            "この情報で上書きしますか？",
+            "確認",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+    );
 
-            if (result == JOptionPane.YES_OPTION) {
+    // ✅【修正】「いいえ」または「×」を選んだ場合は何もせず戻る（ここを追加）
+    if (result != JOptionPane.YES_OPTION) {
+        return;
+    }
 
-                // ★【漢字】----------------------
-                String lastName = lastNameField.getText().trim();
-                String firstName = firstNameField.getText().trim();
+    // ★【漢字】----------------------
+    String lastName = lastNameField.getText().trim();
+    String firstName = firstNameField.getText().trim();
 
-                if (lastName.isEmpty() || firstName.isEmpty()) {
-                    showValidationError("姓と名は必須です");
-                    return;
-                }
+    if (lastName.isEmpty() || firstName.isEmpty()) {
+        showValidationError("姓と名は必須です");
+        return;
+    }
 
-                if (lastName.codePointCount(0, lastName.length()) > 15 ||
-                        firstName.codePointCount(0, firstName.length()) > 15) {
-                    showValidationError("氏名（漢字）は15文字以内で入力してください");
-                    return; // 処理中断
-                }
+    if (lastName.codePointCount(0, lastName.length()) > 15 ||
+            firstName.codePointCount(0, firstName.length()) > 15) {
+        showValidationError("氏名（漢字）は15文字以内で入力してください");
+        return;
+    }
 
-                if (lastName.matches(".*[\\uFF61-\\uFF9F].*") 
-                || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
-                || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*") 
-                || firstName.matches(".*[\\uFF61-\\uFF9F].*") 
-                || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
-                || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
-                    showValidationError("使用できない文字が含まれています");
-                    return;
-                }
+    if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
+            || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
+            || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
+            || firstName.matches(".*[\\uFF61-\\uFF9F].*")
+            || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
+            || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+        showValidationError("使用できない文字が含まれています");
+        return;
+    }
 
-                Pattern surrogatePattern = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
-                if (surrogatePattern.matcher(lastName).find() || surrogatePattern.matcher(firstName).find()) {
-                    showValidationError("使用できない文字が含まれています");
-                    return;
-                }
+    Pattern surrogatePattern = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
+    if (surrogatePattern.matcher(lastName).find() || surrogatePattern.matcher(firstName).find()) {
+        showValidationError("使用できない文字が含まれています");
+        return;
+    }
 
-                // ------------------------------------------------------------
+    // ★【フリガナ】----------------------
+    String rubyLastName = rubyLastNameField.getText().trim();
+    String rubyFirstName = rubyFirstNameField.getText().trim();
 
-                // ★【フリガナ】----------------------
-                String rubyLastName = rubyLastNameField.getText().trim();
-                String rubyFirstName = rubyFirstNameField.getText().trim();
+    if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
+        showValidationError("フリガナは必須です");
+        return;
+    }
 
-                if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
-                    showValidationError("フリガナは必須です");
-                    return;
-                }
+    if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
+            rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
+        showValidationError("氏名（フリガナ）は15文字以内で入力してください");
+        return;
+    }
 
-                if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
-                        rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
-                    showValidationError("氏名（フリガナ）は15文字以内で入力してください");
-                    return; // 処理中断
-                }
+    if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*")
+            || rubyLastName.matches(".*[\\u3040-\\u309F].*")
+            || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*")
+            || rubyLastName.matches(".*[A-Za-z].*")
+            || rubyLastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
+            || rubyFirstName.matches(".*[\\uFF61-\\uFF9F].*")
+            || rubyFirstName.matches(".*[\\u3040-\\u309F].*")
+            || rubyFirstName.matches(".*[\\u4E00-\\u9FFF].*")
+            || rubyFirstName.matches(".*[A-Za-z].*")
+            || rubyFirstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+        showValidationError("使用できない文字が含まれています");
+        return;
+    }
 
-                if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*") 
-                || rubyLastName.matches(".*[\\u3040-\\u309F].*")
-                || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*") 
-                || rubyLastName.matches(".*[A-Za-z].*") 
-                || rubyLastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*") 
-                || rubyFirstName.matches(".*[\\uFF61-\\uFF9F].*") 
-                || rubyFirstName.matches(".*[\\u3040-\\u309F].*")
-                || rubyFirstName.matches(".*[\\u4E00-\\u9FFF].*") 
-                ||rubyFirstName.matches(".*[A-Za-z].*") 
-                || rubyFirstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
-                    showValidationError("使用できない文字が含まれています");
-                    return;
-                }
+    // ★【使える言語】----------------------
+    String setAvailable = availableLanguageField.getText().trim();
 
-                // ------------------------------------------------------------
+    if (setAvailable.isEmpty()) {
+        showValidationError("使える言語は必須です");
+        return;
+    }
 
-            // ★【使える言語】----------------------
-                String setAvailable = availableLanguageField.getText().trim();
+    if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
+        showValidationError("使える言語は100文字以内で入力してください");
+        return;
+    }
 
-                if (setAvailable.isEmpty()) {
-                    showValidationError("使える言語は必須です");
-                    return;
-                }
+    // ★【経歴】----------------------
+    String career = careerArea.getText().trim();
+    if (career.isEmpty()) {
+        showValidationError("経歴は必須です");
+        return;
+    }
 
-                if (rubyLastName.codePointCount(0, rubyLastName.length()) > 100 ||
-                        rubyFirstName.codePointCount(0, rubyFirstName.length()) > 100) {
-                    showValidationError("100文字以内で入力してください");
-                    return; // 処理中断
-                }
-                // ------------------------------------------------------------
-                
-            // ★【経歴】----------------------
-            String career = careerArea.getText().trim();
-            if (career.isEmpty()) {
-            showValidationError("経歴は必須です");
-            return;
-            }
+    if (career.codePointCount(0, career.length()) > 400) {
+        showValidationError("経歴は400文字以内で入力してください");
+        return;
+    }
 
-            if (career.codePointCount(0, career.length()) > 400) {
-                showValidationError("経歴は400文字以内で入力してください");
-                return;
-            }
-            // ------------------------------------------------------------
+    // ★【研修受講歴】----------------------
+    String training = trainingArea.getText().trim();
+    if (training.isEmpty()) {
+        showValidationError("研修受講歴は必須です");
+        return;
+    }
+    if (training.codePointCount(0, training.length()) > 400) {
+        showValidationError("研修受講歴は400文字以内で入力してください");
+        return;
+    }
 
-            // ★【研修受講歴】----------------------
-            String training = trainingArea.getText().trim();
-            if (training.isEmpty()) {
-                showValidationError("研修受講歴は必須です");
-                return;
-            }
-            if (training.codePointCount(0, training.length()) > 400) {
-                showValidationError("研修受講歴は400文字以内で入力してください");
-                return;
-            }
-            // ------------------------------------------------------------
+    // ★【備考】----------------------
+    String remarks = remarksArea.getText().trim();
 
-            // ★【備考】----------------------
-            String remarks = remarksArea.getText().trim();
+    if (remarks.codePointCount(0, remarks.length()) > 400) {
+        showValidationError("備考は400文字以内で入力してください");
+        return;
+    }
 
-            if (remarks.codePointCount(0, remarks.length()) > 400) {
-                showValidationError("備考は400文字以内で入力してください");
-                return;
-            }
-            // ------------------------------------------------------------
-            }
+    // ✅【修正】「はい」の場合のみ保存処理を実行（従来の処理をここに残す）
+    EmployeeInformation editInfo = collectInputData();
+    if (editInfo != null) {
+        EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+        update.update(editInfo);
+        Thread updateThread = new Thread(update);
+        updateThread.start();
+    }
 
-                MANAGER.LOGGER.info("一覧画面に遷移");
-                EmployeeInformation editInfo = collectInputData(); // 入力データを取得
-                if (editInfo != null) {
-                    EmployeeInfoUpdate update = new EmployeeInfoUpdate();
-                    update.update(editInfo);
-                    Thread updateThread = new Thread(update);
-                    updateThread.start();
-                }
-                refreshUI();
-                ViewTopScreen top = new ViewTopScreen();
-                top.View(); // 一覧画面に戻る
-            });
-            // 「いいえ」の場合は何もしない
-        };
+    MANAGER.LOGGER.info("一覧画面に遷移");
+    refreshUI();
+    ViewTopScreen top = new ViewTopScreen();
+    top.View(); // 一覧画面に戻る
+});
+    }
 
     // ラベル（JLabel）を生成する汎用メソッド
     private JLabel createLabel(String title, int x, int y) {
@@ -545,11 +540,15 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     /**
      * プレースホルダーと同じ値なら空文字に置き換えるユーティリティメソッド
      */
-    private String getFieldValue(JTextComponent field, String placeholder) {
-        String text = field.getText();
-        // 単に空白かどうかだけで判定
-        return (text == null || text.trim().isEmpty()) ? "" : text;
+private String getFieldValue(JTextComponent field, String placeholder) {
+    String text = field.getText();
+    if (text == null || text.trim().isEmpty()) {
+        return "";
     }
+    // プレースホルダーと同じ文字列でも、実際に編集していれば有効とみなす
+    return text;
+}
+
 
     /**
      * JComboBox から選択されたスコア値（文字列）を double に変換
