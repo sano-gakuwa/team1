@@ -26,6 +26,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -43,6 +44,12 @@ public class ViewTopScreen extends SetUpTopScreen {
     private ArrayList<EmployeeInformation> tableEmployee = null;// JTablに表示する社員情報
     private final EmployeeManager MANAGER = new EmployeeManager();// 社員情報の管理用
     private EmployeeListOperator employeeListOperator;// 検索機能 6/9追記
+    //検索中オーバーレイ表示用パネル・ラベル・ボタンのフィールド宣言
+    private JPanel searchOverlayPanel;
+    private JLabel searchingLabel;
+    private JButton cancelSearchButton;
+    private JButton clearSearchResultButton;
+
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
@@ -73,7 +80,12 @@ public class ViewTopScreen extends SetUpTopScreen {
         searchButton.setForeground(Color.WHITE);// 白文字
         searchButton.setFocusPainted(false); // フォーカス枠非表示（シンプル化）
         searchButton.addActionListener(e -> {
-            // 6/8 検索フィールドの値を取得（topPanelのコンポーネント順と合わせて取得）
+            if (searchOverlayPanel == null) {
+                setupSearchOverlay();  // 初期化
+            }
+            showSearchOverlay();
+
+            // 検索フィールドの値を取得
             String idQuery = ((JTextField) topPanel.getComponent(1)).getText();
             String nameQuery = ((JTextField) topPanel.getComponent(3)).getText();
             String ageQuery = ((JTextField) topPanel.getComponent(5)).getText();
@@ -82,6 +94,7 @@ public class ViewTopScreen extends SetUpTopScreen {
 
             executeSearch(idQuery, nameQuery, ageQuery, engQuery, langQuery);
         });
+
         // centerPanel 取得
         JPanel centerWrapper = (JPanel) fullScreenPanel.getComponent(3);
         JPanel centerPanel = (JPanel) centerWrapper.getComponent(0);
@@ -217,18 +230,45 @@ public class ViewTopScreen extends SetUpTopScreen {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int col = header.columnAtPoint(e.getPoint());
-                if (unsortableColumns.contains(col))
-                    return; // 「詳細」列はソート対象外
+                if (unsortableColumns.contains(col)) return;
+
                 int current = sortStates.getOrDefault(col, 0);
                 int next = switch (current) {
-                    case 0 -> 1;
-                    case 1 -> 2;
-                    default -> 1;
+                    case 0 -> 1; // 未ソート → 昇順
+                    case 1 -> 2; // 昇順 → 降順
+                    default -> 1; // 降順 → 昇順
                 };
+
+                // まず全ての状態リセット
+                sortStates.replaceAll((k, v) -> 0);
+                // 今回クリックされた列のみ状態を更新
                 sortStates.put(col, next);
-                header.repaint(); // 再描画して記号更新
+
+                header.repaint(); // ヘッダー再描画
+
+                // ソートキー判定
+                EmployeeListOperator.SortKey sortKey = switch (col) {
+                    case 0 -> EmployeeListOperator.SortKey.EMPLOYEE_ID;
+                    case 1 -> EmployeeListOperator.SortKey.NAME;
+                    case 2 -> EmployeeListOperator.SortKey.AGE;
+                    case 3 -> EmployeeListOperator.SortKey.ENGINEER_DATE;
+                    default -> null;
+                };
+                if (sortKey != null) {
+                    if (next == 0) {
+                        // 未ソート時は元の順（登録順）に戻す
+                        tableEmployee = new ArrayList<>(EmployeeManager.employeeList);
+                    } else {
+                        boolean ascending = (next == 1);
+                        employeeListOperator.sort(sortKey, ascending);
+                        tableEmployee = new ArrayList<>(employeeListOperator.getFilteredList());
+                    }
+                    currentPage = 1;
+                    refreshTable();
+                }
             }
         });
+
         engineerTable.setRowHeight(34);
 
         // 全列中央寄せ
@@ -279,22 +319,28 @@ public class ViewTopScreen extends SetUpTopScreen {
     }
 
     // 検索処理（検索ボタン押下時に呼ばれる）
-    private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery, String langQuery) {
+    private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery,  String langQuery) {
+        if (searchOverlayPanel == null) setupSearchOverlay();
+        showSearchOverlay();
         employeeListOperator.searchAsync(
-                idQuery, nameQuery, ageQuery, engQuery, langQuery,
-                new EmployeeListOperator.SearchCallback() {
-                    @Override
-                    public void onSearchFinished(boolean success, List<EmployeeInformation> results,
-                            String errorMessage) {
-                        if (success) {
+            idQuery, nameQuery, ageQuery, engQuery, langQuery,
+            new EmployeeListOperator.SearchCallback() {
+                @Override
+                public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
+                    hideSearchOverlay();
+                    if (success) {
+                        SwingUtilities.invokeLater(() -> {
+                            currentPage = 1;  // ページリセット
                             tableEmployee = new ArrayList<>(results);
                             refreshTable();
-                        } else {
-                            JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
-                        }
+                        });
+                    } else {
+                        JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
                     }
-                });
+                }
+            });
     }
+
 
     /*
      * refreshTableメソッドはengineerTable のデータモデルを更新
@@ -302,6 +348,7 @@ public class ViewTopScreen extends SetUpTopScreen {
      * EmployeeManager.getInitialData() は、最新の従業員データを2次元配列で返すメソッドであると仮定
      */
     public void refreshTable() {
+        
 
         int totalEmployees = tableEmployee.size();// 下村作成部分(本番時利用コード)
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
@@ -448,7 +495,8 @@ public class ViewTopScreen extends SetUpTopScreen {
     public void View(ArrayList<EmployeeInformation> tableEmployee, int currentPage) {
         this.currentPage = currentPage;
         this.tableEmployee = tableEmployee;
-        refreshTable(); // 画面初期表示とデータ同期
+        setupSearchOverlay();  // ここで1回だけ初期化する
+        refreshTable();
         frame.setVisible(true);
     }
 
@@ -540,4 +588,45 @@ public class ViewTopScreen extends SetUpTopScreen {
             selectFile();
         }
     }
+    // 🔽 検索中オーバーレイを準備するメソッド（setupViewTopScreenの後かクラス末尾に配置推奨）
+    private void setupSearchOverlay() {
+        searchOverlayPanel = new JPanel();
+        searchOverlayPanel.setLayout(null);
+        searchOverlayPanel.setBackground(new Color(0, 0, 0, 120)); // 半透明黒
+        searchOverlayPanel.setBounds(0, 0, frame.getWidth(), frame.getHeight());
+        searchOverlayPanel.setVisible(false);
+
+        searchingLabel = new JLabel("検索中…", SwingConstants.CENTER);
+        searchingLabel.setForeground(Color.WHITE);
+        searchingLabel.setFont(new Font("SansSerif", Font.BOLD, 32));
+        searchingLabel.setBounds((frame.getWidth() - 200) / 2, (frame.getHeight() - 50) / 2, 200, 50);
+        searchOverlayPanel.add(searchingLabel);
+
+        cancelSearchButton = new JButton("検索終了");
+        cancelSearchButton.setBounds(frame.getWidth() - 130, 10, 110, 30);
+        cancelSearchButton.addActionListener(e -> {
+            hideSearchOverlay();
+            tableEmployee = new ArrayList<>(EmployeeManager.employeeList);
+            refreshTable();
+        });
+        searchOverlayPanel.add(cancelSearchButton);
+
+        // 最前面に表示するため layeredPane に追加
+        frame.getLayeredPane().add(searchOverlayPanel, Integer.valueOf(Integer.MAX_VALUE));
+    }
+
+    // 検索中オーバーレイ表示メソッド
+    private void showSearchOverlay() {
+        searchOverlayPanel.setVisible(true);
+        searchOverlayPanel.repaint();
+    }
+
+    // 検索中オーバーレイ非表示メソッド
+    private void hideSearchOverlay() {
+        searchOverlayPanel.setVisible(false);
+        if (clearSearchResultButton != null) {
+            clearSearchResultButton.setVisible(true);  // nullチェック
+        }
+    }
+
 }
