@@ -374,9 +374,18 @@ public class ViewTopScreen extends SetUpTopScreen {
             totalPages = 1; // 0ページにならないように
 
         Object[][] pageData = getPageData(currentPage, 10);
-
         // テーブルのヘッダー
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
+        
+        // テーブルモデル作成（編集不可）
+        model = new DefaultTableModel(pageData, columnNames) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        
 
         // テーブルモデル作成（編集不可）
         model = new DefaultTableModel(pageData, columnNames) {
@@ -386,33 +395,44 @@ public class ViewTopScreen extends SetUpTopScreen {
             }
         };
         engineerTable.setModel(model); // モデルの設定後にレンダラー設定
-        // refreshTable() の最後にこのループを追加
-        for (int i = 0; i < engineerTable.getColumnCount(); i++) {
-            if (i == 4) {
-                // 文字数カット＋中央寄せのカスタムレンダラー
-                engineerTable.getColumnModel().getColumn(i).setCellRenderer(new DefaultTableCellRenderer() {
-                    @Override
-                    public Component getTableCellRendererComponent(JTable table, Object value,
-                            boolean isSelected, boolean hasFocus, int row, int column) {
-                        JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-                                row, column);
-                        label.setHorizontalAlignment(SwingConstants.CENTER);
-                        if (value != null) {
-                            String str = value.toString();
-                            label.setText(str.length() > 10 ? str.substring(0, 10) + "..." : str);
-                        }
-                        return label;
+        engineerTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+
+                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, false, false, row, column);
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                label.setOpaque(true);
+                label.setBackground(Color.WHITE); // 選択しても背景白のまま
+                label.setForeground(Color.BLACK);
+
+                // 「扱える言語」列（index = 4）の文字数制限
+                if (column == 4 && value != null) {
+                    String str = value.toString();
+                    label.setText(str.length() > 10 ? str.substring(0, 10) + "..." : str);
+                }
+
+                // 「エンジニア歴」列（index = 3）の年月変換
+                if (column == 3 && value != null) {
+                    try {
+                        String valStr = value.toString().replaceAll("[^0-9]", ""); // 数字抽出
+                        int months = Integer.parseInt(valStr);
+                        int years = months / 12;
+                        int remain = months % 12;
+                        label.setText(years + "年" + remain + "ヶ月");
+                    } catch (NumberFormatException e) {
+                        label.setText(value.toString()); // エラー時は元の表示
                     }
-                });
-            } else {
-                // その他中央寄せ（これが必要なら）
-                DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-                centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-                engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+                }
+
+                return label;
             }
-        }
+        });
+
+        
 
         JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
+        header.setReorderingAllowed(false);// テーブルの列移動を不許可にする。
         header.setFont(new Font("SansSerif", Font.BOLD, 16));
         engineerTable.setRowHeight(34);
         pageLabel.setText(currentPage + " / " + totalPages);
@@ -648,11 +668,11 @@ public class ViewTopScreen extends SetUpTopScreen {
     // 検索中オーバーレイ非表示メソッド
     private void hideSearchOverlay() {
         searchOverlayPanel.setVisible(false);
-        System.out.println("hideSearchOverlay called");  // これが出力されるべき
+        System.out.println("hideSearchOverlay called");  // 出力されるべき
         if (clearSearchResultButton != null) {
             clearSearchResultButton.setVisible(true);
             functionButtonsPanel.revalidate();  
-            functionButtonsPanel.repaint();     
+            functionButtonsPanel.repaint();   
         } else {
             System.out.println("clearSearchResultButton is null");
         }
