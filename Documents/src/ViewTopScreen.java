@@ -540,7 +540,13 @@ public class ViewTopScreen extends SetUpTopScreen {
             displayList[i][0] = empioyee.getEmployeeID();
             displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
             displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
-            displayList[i][3] = empioyee.getEngineerDate() + "カ月";
+
+            // 修正点：エンジニア歴を「○年○ヶ月」に変換して代入
+            int months = empioyee.getEngineerDate();
+            int years = months / 12;
+            int remain = months % 12;
+            displayList[i][3] = years + "年" + remain + "ヶ月";
+
             displayList[i][4] = empioyee.getAvailableLanguages();
             displayList[i][5] = "詳細";
         }
@@ -642,11 +648,11 @@ public class ViewTopScreen extends SetUpTopScreen {
     // 検索中オーバーレイ非表示メソッド
     private void hideSearchOverlay() {
         searchOverlayPanel.setVisible(false);
-        System.out.println("hideSearchOverlay called");  // ← これが出力されるべき
+        System.out.println("hideSearchOverlay called");  // これが出力されるべき
         if (clearSearchResultButton != null) {
             clearSearchResultButton.setVisible(true);
-            functionButtonsPanel.revalidate();  // ← これ追加！
-            functionButtonsPanel.repaint();     // ← これ追加！
+            functionButtonsPanel.revalidate();  
+            functionButtonsPanel.repaint();     
         } else {
             System.out.println("clearSearchResultButton is null");
         }
