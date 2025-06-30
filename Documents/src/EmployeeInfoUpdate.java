@@ -33,7 +33,7 @@ public class EmployeeInfoUpdate implements Runnable {
     public void run() {
         updateLock.lock(); // ロックを取得
         // --- 入力内容のチェック（必須項目が空ならエラーダイアログ表示） ---
-        if (!validateEmployee(updatedEmployee)) {
+        if (MANAGER.validateEmployee(updatedEmployee)) {
             showErrorDialog("必須項目が入力されていません");
             return;
         }
@@ -112,62 +112,6 @@ public class EmployeeInfoUpdate implements Runnable {
         }
         updateLock.unlock(); // ロック解除
         MANAGER.LOGGER.info("社員情報更新完了");
-    }
-
-    /**
-     * 社員情報の形式が正しいかを検証 必須項目がすべて入力されているかを確認
-     *
-     * @param e 検証する社員情報
-     * @return 形式が正しい場合はtrue、そうでない場合はfalse
-     * @author nishiyama
-     */
-    private boolean validateEmployee(EmployeeInformation e) {
-        boolean validate = true;
-        if (e.getEmployeeID() == null || e.getEmployeeID().isEmpty()) {
-            MANAGER.LOGGER.warning("社員ID欄が空欄です");
-            validate = false;
-        }
-        if (e.getLastName() == null || e.getLastName().isEmpty()) {
-            MANAGER.LOGGER.warning("名字欄が空欄です");
-            validate = false;
-        }
-        if (e.getFirstname() == null || e.getFirstname().isEmpty()) {
-            MANAGER.LOGGER.warning("名前欄が空欄です");
-            validate = false;
-        }
-        if (e.getRubyLastName() == null || e.getRubyLastName().isEmpty()) {
-            MANAGER.LOGGER.warning("名字のフリガナ欄が空欄です");
-            validate = false;
-        }
-        if (e.getRubyFirstname() == null || e.getRubyFirstname().isEmpty()) {
-            MANAGER.LOGGER.warning("名前のフリガナ欄が空欄です");
-            validate = false;
-        }
-        if (e.getBirthday() == null) {
-            MANAGER.LOGGER.warning("誕生日欄が空欄です");
-            validate = false;
-        }
-        if (e.getJoiningDate() == null) {
-            MANAGER.LOGGER.warning("入社年月欄が空欄です");
-            validate = false;
-        }
-        if (e.getSkillPoint() == null) {
-            MANAGER.LOGGER.warning("技術欄が空欄です");
-            validate = false;
-        }
-        if (e.getCommunicationPoint() == null) {
-            MANAGER.LOGGER.warning("コミュニケーション能力欄が空欄です");
-            validate = false;
-        }
-        if (e.getAttitudePoint() == null) {
-            MANAGER.LOGGER.warning("受講態度欄が空欄です");
-            validate = false;
-        }
-        if (e.getLeadershipPoint() == null) {
-            MANAGER.LOGGER.warning("リーダーシップ欄が空欄です");
-            validate = false;
-        }
-        return validate;
     }
 
     /**
