@@ -12,6 +12,15 @@ import javax.swing.text.JTextComponent; // JTextField / JTextArea を共通操�
  */
 public class ViewEditScreen extends SetUpDetailsScreen {
 
+    // 環境依存文字一覧（一度だけ定義）
+    private static final String[] ENV_DEPENDENT_CHARS = {
+            "髙", "﨑", "𠮷", "辻", "①", "②", "③", "㊤", "㈱", "㈲", "℡",
+            "㎜", "㌔", "🈂", "🅰", "🅱", "©", "®", "™", "😃", "💻"
+    };
+
+    // サロゲートペア文字パターン
+    private static final Pattern SURROGATE_PATTERN = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
+
     // ===== 各種UI部品の定義 =====
 
     // 社員ID入力欄
@@ -255,22 +264,21 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             }
 
             // 各種バリデーションチェック（未入力・文字数制限・禁止文字）
-            // --- 氏名（漢字）の取得とチェック ---
+            // --- 氏名（漢字）のチェック ---
             String lastName = lastNameField.getText().trim();
             String firstName = firstNameField.getText().trim();
-
+            // ---空白チェック ---
             if (lastName.isEmpty() || firstName.isEmpty()) {
                 showValidationError("姓と名は必須です");
                 return;
             }
-
+            // ---文字数制限チェック ---
             if (lastName.codePointCount(0, lastName.length()) > 15 ||
                     firstName.codePointCount(0, firstName.length()) > 15) {
                 showValidationError("氏名（漢字）は15文字以内で入力してください");
                 return;
             }
-
-            // 禁止文字チェック（漢字）
+            // --- 禁止文字チェック ---
             if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
                     || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
                     || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
@@ -280,15 +288,12 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 showValidationError("使用できない文字が含まれています");
                 return;
             }
-
-            // サロゲートペア（絵文字など）の禁止
-            // 環境依存文字一覧（拡張可能）
+            // 環境依存文字一覧
             String[] envDependentChars = {
                     "髙", "﨑", "𠮷", "辻", "①", "②", "③", "㊤", "㈱", "㈲", "℡", "㎜", "㌔", "🈂", "🅰", "🅱", "©", "®", "™",
                     "😃", "💻"
             };
-
-            // 氏名に環境依存文字が含まれていないかをチェック
+            // ---環境依存文字チェック ---
             for (String ch : envDependentChars) {
                 if (lastName.contains(ch) || firstName.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
@@ -296,7 +301,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 }
             }
 
-            // サロゲートペア（絵文字など）の禁止（既存）
+            // --- サローゲートペアチェック ---
             Pattern surrogatePattern = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
             if (surrogatePattern.matcher(lastName).find() || surrogatePattern.matcher(firstName).find()) {
                 showValidationError("使用できない文字が含まれています");
@@ -306,18 +311,18 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             // --- フリガナのチェック（全角カタカナのみ・15文字以内） ---
             String rubyLastName = rubyLastNameField.getText().trim();
             String rubyFirstName = rubyFirstNameField.getText().trim();
-
+            // ---文字数制限チェック ---
             if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
                 showValidationError("フリガナは必須です");
                 return;
             }
-
+            // ---文字数制限チェック ---
             if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
                     rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
                 showValidationError("氏名（フリガナ）は15文字以内で入力してください");
                 return;
             }
-            // 禁止文字チェック（フリガナ）
+            // --- 禁止文字チェック ---
             if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*")
                     || rubyLastName.matches(".*[\\u3040-\\u309F].*") // ひらがな
                     || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*") // 漢字
@@ -332,6 +337,14 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 return;
             }
 
+            // --- 生年月日のチェック ---
+            int years = (int) engYearCombo.getSelectedItem();
+            int months = (int) engMonthCombo.getSelectedItem();
+            if (years == 0 && months == 0) {
+                showValidationError("エンジニア歴は1ヶ月以上で入力してください");
+                return;
+            }
+
             // --- 扱える言語のチェック ---
             String setAvailable = availableLanguageField.getText().trim();
 
@@ -340,35 +353,46 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 return;
             }
 
-if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
-    showValidationError("使える言語は100文字以内で入力してください");
-    return;
-}
+            // 空白を全角中黒に変換（2025/06 仕様追加対応）
+            setAvailable = setAvailable.replaceAll("\\s+", "・");
+            availableLanguageField.setText(setAvailable); // 画面上の表示も変換
 
-// 禁止文字（記号・全角英字・環境依存記号など）チェックを追加
-if (setAvailable.matches(".*[!@#$%^&*()_+=|{}\\[\\]:;\"'<>?/\\\\Ａ-Ｚａ-ｚ①-⑩©®™😃💻！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
-    showValidationError("使用できない文字が含まれています");
-    return;
-}
+            if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
+                showValidationError("使える言語は100文字以内で入力してください");
+                return;
+            }
 
-// 環境依存文字リストからのチェック
-for (String ch : envDependentChars) {
-    if (setAvailable.contains(ch)) {
-        showValidationError("使用できない文字が含まれています");
-        return;
-    }
-}
+            // 禁止文字（記号・全角英字・環境依存記号など）チェックを追加
+            if (setAvailable.matches(
+                    ".*[!@#$%^&*()_+=|{}\\[\\]:;\"'<>?/\\\\Ａ-Ｚａ-ｚ①-⑩©®™😃💻！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
+                showValidationError("使用できない文字が含まれています");
+                return;
+            }
 
-// サロゲートペア（絵文字など）のチェック
-if (surrogatePattern.matcher(setAvailable).find()) {
-    showValidationError("使用できない文字が含まれています");
-    return;
-}
+            // 環境依存文字リストからのチェック
+            for (String ch : envDependentChars) {
+                if (setAvailable.contains(ch)) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+            }
+
+            // サロゲートペア（絵文字など）のチェック
+            if (surrogatePattern.matcher(setAvailable).find()) {
+                showValidationError("使用できない文字が含まれています");
+                return;
+            }
 
             // --- 経歴のチェック ---
             String career = careerArea.getText().trim();
+
             if (career.isEmpty()) {
                 showValidationError("経歴は必須です");
+                return;
+            }
+
+            if (career.matches(".*[＠！＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
+                showValidationError("使用できない文字が含まれています");
                 return;
             }
 
@@ -377,8 +401,21 @@ if (surrogatePattern.matcher(setAvailable).find()) {
                 return;
             }
 
+            for (String ch : ENV_DEPENDENT_CHARS) {
+                if (career.contains(ch)) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+            }
+
+            if (SURROGATE_PATTERN.matcher(career).find()) {
+                showValidationError("使用できない文字が含まれています");
+                return;
+            }
+
             // --- 研修受講歴のチェック ---
             String training = trainingArea.getText().trim();
+
             if (training.isEmpty()) {
                 showValidationError("研修受講歴は必須です");
                 return;
@@ -389,11 +426,35 @@ if (surrogatePattern.matcher(setAvailable).find()) {
                 return;
             }
 
+            for (String ch : ENV_DEPENDENT_CHARS) {
+                if (training.contains(ch)) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+            }
+
+            if (SURROGATE_PATTERN.matcher(training).find()) {
+                showValidationError("使用できない文字が含まれています");
+                return;
+            }
+
             // --- 備考のチェック（任意だが400文字制限） ---
             String remarks = remarksArea.getText().trim();
 
             if (remarks.codePointCount(0, remarks.length()) > 400) {
                 showValidationError("備考は400文字以内で入力してください");
+                return;
+            }
+
+            for (String ch : ENV_DEPENDENT_CHARS) {
+                if (remarks.contains(ch)) {
+                    showValidationError("使用できない文字が含まれています");
+                    return;
+                }
+            }
+
+            if (SURROGATE_PATTERN.matcher(remarks).find()) {
+                showValidationError("使用できない文字が含まれています");
                 return;
             }
 
