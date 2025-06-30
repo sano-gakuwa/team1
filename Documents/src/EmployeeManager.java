@@ -11,9 +11,10 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -242,50 +243,50 @@ public class EmployeeManager extends SystemLog {
      * @author nishiyama
      */
     public boolean validateNotNull(EmployeeInformation employee) {
-        boolean validate = false;
+        boolean validate = true;
         if (employee.getEmployeeID() == null || employee.getEmployeeID().isEmpty()) {
             LOGGER.warning("社員ID欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getLastName() == null || employee.getLastName().isEmpty()) {
             LOGGER.warning("名字欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getFirstname() == null || employee.getFirstname().isEmpty()) {
             LOGGER.warning("名前欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getRubyLastName() == null || employee.getRubyLastName().isEmpty()) {
             LOGGER.warning("名字のフリガナ欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getRubyFirstname() == null || employee.getRubyFirstname().isEmpty()) {
             LOGGER.warning("名前のフリガナ欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getBirthday() == null) {
             LOGGER.warning("誕生日欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getJoiningDate() == null) {
             LOGGER.warning("入社年月欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getSkillPoint() == null) {
             LOGGER.warning("技術欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getCommunicationPoint() == null) {
             LOGGER.warning("コミュニケーション能力欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getAttitudePoint() == null) {
             LOGGER.warning("受講態度欄が空欄です");
-            validate = true;
+            validate = false;
         }
         if (employee.getLeadershipPoint() == null) {
             LOGGER.warning("リーダーシップ欄が空欄です");
-            validate = true;
+            validate = false;
         }
         return validate;
     }
@@ -296,31 +297,31 @@ public class EmployeeManager extends SystemLog {
      * @return true or false
      * @author 下村
      */
-    public boolean validateEmployee(ArrayList<String> employee) {
+    public boolean validateEmployee(EmployeeInformation employee) {
         boolean validate = true;
         try {
-            if (employee.get(0).length() != 7) {
+            if (employee.getEmployeeID().length() != 7) {
                 validate = false;
             }
-            if (employee.get(1).length() > 15) {
+            if (employee.getLastName().length() > 15) {
                 validate = false;
             }
-            if (employee.get(2).length() > 15) {
+            if (employee.getFirstname().length() > 15) {
                 validate = false;
             }
-            if (employee.get(3).length() > 15) {
+            if (employee.getRubyLastName().length() > 15) {
                 validate = false;
             }
-            if (employee.get(4).length() > 15) {
+            if (employee.getRubyFirstname().length() > 15) {
                 validate = false;
             }
-            if (validateNotFuture(employee.get(5))) {
+            if (validateNotFuture(employee.getBirthday())) {
                 validate = false;
             }
-            if (validateNotFuture(employee.get(6))) {
+            if (validateNotFuture(employee.getJoiningDate())) {
                 validate = false;
             }
-            if (Integer.parseInt(employee.get(7)) >= 600) {
+            if (employee.getEngineerDate() >= 600) {
                 validate = false;
             }
         } catch (Exception e) {
@@ -335,9 +336,26 @@ public class EmployeeManager extends SystemLog {
      * @return true or false
      * @author 下村
      */
-    private boolean validateNotFuture(String date) {
+    private boolean validateNotFuture(Date date) {
         LocalDate today = LocalDate.now();
-        LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("[]y年[]M月[]d日"));
+        LocalDate targetDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        // LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("[]y年[]M月[]d日"));
         return targetDate.isBefore(today);
+    }
+    /**
+     * 重複する社員IDが存在するかを検証
+     *
+     * @param employee 検証する社員情報
+     * @return 重複がある場合はtrue、そうでない場合はfalse
+     * @author nishiyama
+     */
+    public boolean validateOverlappingEmployee(EmployeeInformation employee) {
+        // 重複チェック：既に同じ社員IDが存在していないか
+        for (EmployeeInformation existing : employeeList) {
+            if (existing.getEmployeeID().equals(employee.getEmployeeID())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
