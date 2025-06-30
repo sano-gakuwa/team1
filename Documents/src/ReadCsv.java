@@ -63,13 +63,6 @@ public class ReadCsv implements Runnable {
                     // 1行分のデータをカンマ区切りで分割
                     String[] loadEmployeeData = scanner.nextLine().split(",");
                     ArrayList<String> loadEmployeeDate = new ArrayList<String>(Arrays.asList(loadEmployeeData));
-                    // 読み込んだデータが要求仕様書通りの仕様になっているか確認
-                    if (MANAGER.validateEmployee(loadEmployeeDate) != false) {
-                        String message = "指定されたCSVファイルに形式エラーが有ります";
-                        MANAGER.LOGGER.warning(message);
-                        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
                     // 日付のフォーマットを指定
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
                     // 読み込んだデータをEmployeeInformationオブジェクトに変換
@@ -91,6 +84,13 @@ public class ReadCsv implements Runnable {
                     employee.setLeadershipPoint(Double.parseDouble(loadEmployeeDate.get(14)));
                     employee.setRemarks(loadEmployeeDate.get(15));
                     employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
+                    // 読み込んだデータが要求仕様書通りの仕様になっているか確認
+                    if (MANAGER.validateEmployee(employee) != false) {
+                        String message = "指定されたCSVファイルに形式エラーが有ります";
+                        MANAGER.LOGGER.warning(message);
+                        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                     // 読み込んだ社員情報を新規社員情報リストに追加
                     newEmployeeList.add(employee);
                 }
@@ -168,6 +168,7 @@ public class ReadCsv implements Runnable {
             return;
         }
     }
+
     /**
      * エラー表示用に用意したダイアログに文言表示させる
      *
