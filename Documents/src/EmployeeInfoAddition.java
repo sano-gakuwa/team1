@@ -26,20 +26,6 @@ public class EmployeeInfoAddition implements Runnable {
         return additionLock.isLocked();
     }
 
-    public boolean validateNullEmployee() {
-        return MANAGER.validateNotNull(newEmployee);
-    }
-
-    public boolean validateOverlappingEmployee() {
-        // 重複チェック：既に同じ社員IDが存在していないか
-        for (EmployeeInformation existing : EmployeeManager.employeeList) {
-            if (existing.getEmployeeID().equals(newEmployee.getEmployeeID())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void addition(EmployeeInformation newEmployee) {
         this.newEmployee = newEmployee;
     }
