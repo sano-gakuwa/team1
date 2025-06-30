@@ -29,6 +29,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     private JTextArea careerArea, trainingArea, remarksArea;
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
     private JButton saveButton, backButton;
+    private final EmployeeManager MANAGER = new EmployeeManager();
 
     public ViewAdditionScreen() {
         setupViewAdditionScreen();
@@ -236,11 +237,15 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
                 return;
             }
             EmployeeInformation info = collectInputData();
-            if (addition.validateNullEmployee()) {
+            if (!MANAGER.validateNotNull(info)) {
                 showErrorDialog("必須項目が入力されていません");
                 return;
             }
-            if (addition.validateOverlappingEmployee()) {
+            if(!MANAGER.validateEmployee(info)){
+                showErrorDialog("社員情報の内容に誤りがあります");
+                return;
+            }
+            if (MANAGER.validateOverlappingEmployee(info)) {
                 showErrorDialog("重複する社員IDが存在します");
                 return;
             }
@@ -507,6 +512,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             employee.setUpdatedDay(new Date());
             return employee;
         } catch (Exception e) {
+            MANAGER.printErrorLog(e, "データ取得中にエラーが発生しました");
             showValidationError("データ取得中にエラーが発生しました");
             return null;
         }
@@ -536,12 +542,15 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @author nishiyama
      */
     private Date getDateFromSelector(JPanel panel) {
-        JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
-        JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
-        JComboBox<?> dayBox = panel.getComponentCount() > 4 ? (JComboBox<?>) panel.getComponent(4) : null;
+        JPanel datePanel = (JPanel) panel.getComponent(0);
+        JComboBox<?> yearBox = (JComboBox<?>) datePanel.getComponent(0);
+        JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(2);
+        JComboBox<?> dayBox=(JComboBox<?>) datePanel.getComponent(4);
+        // 年、月、日を取得
         int year = (int) yearBox.getSelectedItem();
         int month = (int) monthBox.getSelectedItem() - 1;
-        int day = dayBox != null ? (int) dayBox.getSelectedItem() : 1;
+        int day = (int) dayBox.getSelectedItem();
+        // 日付を Calendar で構築し、Date 型に変換して返す
         Calendar cal = Calendar.getInstance();
         cal.set(year, month, day);
         return cal.getTime();
@@ -557,8 +566,9 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @author nishiyama
      */
     private int getYearMonthFromSelector(JPanel panel) {
-        JComboBox<?> yearBox = (JComboBox<?>) panel.getComponent(0);
-        JComboBox<?> monthBox = (JComboBox<?>) panel.getComponent(2);
+        JPanel datePanel = (JPanel) panel.getComponent(0);
+        JComboBox<?> yearBox = (JComboBox<?>) datePanel.getComponent(0);
+        JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(2);
         int years = (int) yearBox.getSelectedItem();
         int months = (int) monthBox.getSelectedItem();
         return years * 12 + months;
@@ -615,7 +625,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @param message 表示するエラーメッセージ
      * @author nishiyama
      */
-    public void showErrorDialog(String message) {
+    private void showErrorDialog(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 }
