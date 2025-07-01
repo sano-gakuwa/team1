@@ -383,6 +383,65 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 return;
             }
 
+            // バリデーション例（保存ボタン押下時など）
+
+            // 日付必須チェック
+            if (birthYearCombo.getSelectedItem() == null || birthMonthCombo.getSelectedItem() == null
+                    || birthDayCombo.getSelectedItem() == null) {
+                showValidationError("生年月日は必須です");
+                return;
+            }
+            int year = (int) birthYearCombo.getSelectedItem();
+            int month = (int) birthMonthCombo.getSelectedItem();
+            int day = (int) birthDayCombo.getSelectedItem();
+
+            Calendar today = Calendar.getInstance();
+            Calendar inputDate = Calendar.getInstance();
+            inputDate.setLenient(false); // 厳密な日付チェックを有効にする
+            try {
+                inputDate.set(year, month - 1, day);
+                inputDate.getTime(); // ここで例外が出れば不正な日付
+            } catch (IllegalArgumentException ex) {
+                showValidationError("無効な日付が選択されています");
+                return;
+            }
+
+            Calendar minDate = Calendar.getInstance();
+            minDate.set(1925, Calendar.JUNE, 1);
+
+            // 下限チェック
+            if (inputDate.before(minDate)) {
+                showValidationError("生年月日は1925年6月1日以降で入力してください");
+                return;
+            }
+
+            // 上限境界値チェック（現在日付+1日以降は不可）
+            Calendar tomorrow = (Calendar) today.clone();
+            tomorrow.add(Calendar.DATE, 1);
+
+            if (!inputDate.before(tomorrow)) {
+                showValidationError("生年月日は現在日付までで入力してください");
+                return;
+            }
+
+            // 入社年月の必須チェックと未来年月チェック
+            if (joinYearCombo.getSelectedItem() == null || joinMonthCombo.getSelectedItem() == null) {
+                showValidationError("入社年月は必須です");
+                return;
+            }
+
+            int joinYear = (int) joinYearCombo.getSelectedItem();
+            int joinMonth = (int) joinMonthCombo.getSelectedItem();
+
+            Calendar currentDate = Calendar.getInstance();
+            int currentYear = currentDate.get(Calendar.YEAR);
+            int currentMonth = today.get(Calendar.MONTH) + 1;
+
+            if (joinYear > currentYear || (joinYear == currentYear && joinMonth > currentMonth)) {
+                showValidationError("入社年月は現在年月までで入力してください");
+                return;
+            }
+
             // --- 経歴のチェック ---
             String career = careerArea.getText().trim();
 
