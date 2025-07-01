@@ -353,9 +353,9 @@ public class EmployeeManager extends SystemLog {
         // 重複チェック：既に同じ社員IDが存在していないか
         for (EmployeeInformation existing : employeeList) {
             if (existing.getEmployeeID().equals(employee.getEmployeeID())) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 }
