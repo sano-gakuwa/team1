@@ -84,15 +84,28 @@ public class ReadCsv implements Runnable {
                     employee.setLeadershipPoint(Double.parseDouble(loadEmployeeDate.get(14)));
                     employee.setRemarks(loadEmployeeDate.get(15));
                     employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
+                    // 読み込んだデータがnullでないか確認
+                    if (!MANAGER.validateNotNull(employee)) {
+                        showErrorDialog("必須項目が入力されていません");
+                        return;
+                    }
                     // 読み込んだデータが要求仕様書通りの仕様になっているか確認
-                    if (MANAGER.validateEmployee(employee) != false) {
-                        String message = "指定されたCSVファイルに形式エラーが有ります";
-                        MANAGER.LOGGER.warning(message);
-                        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+                    if (!MANAGER.validateEmployee(employee)) {
+                        showErrorDialog("社員情報の内容に誤りがあります");
+                        return;
+                    }
+                    // 読み込んだ社員IDが重複していないか確認
+                    if (!MANAGER.validateOverlappingEmployee(employee)) {
+                        showErrorDialog("重複する社員IDが存在します");
                         return;
                     }
                     // 読み込んだ社員情報を新規社員情報リストに追加
                     newEmployeeList.add(employee);
+                }
+                // 読み込んだ社員情報の総数が上限を超えていないか確認
+                if (newEmployeeList.size() + EmployeeManager.employeeList.size() > 1000) {
+                    showErrorDialog("社員情報の総数が上限を超えています");
+                    return;
                 }
             } catch (Exception e) {
                 String message = "指定されたCSVファイルから情報の読み込みが出来ませんでした";
