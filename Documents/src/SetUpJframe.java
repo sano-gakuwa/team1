@@ -1,5 +1,14 @@
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 
 public abstract class SetUpJframe {
 
@@ -14,6 +23,13 @@ public abstract class SetUpJframe {
 
     // JFrame の設定
     protected static void Frame() {
+
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         // frame = new JFrame(); // method内のローカル変数
         frame.setSize(850, 690);
         frame.setResizable(false);  // サイズ変更不可
