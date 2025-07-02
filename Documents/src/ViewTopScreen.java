@@ -45,6 +45,7 @@ public class ViewTopScreen extends SetUpTopScreen {
     private final EmployeeManager MANAGER = new EmployeeManager();// 社員情報の管理用
     private EmployeeListOperator employeeListOperator;// 検索機能 6/9追記
     //検索中オーバーレイ表示用パネル・ラベル・ボタンのフィールド宣言
+    private JPanel functionButtonsPanel;
     private JPanel searchOverlayPanel;
     private JLabel searchingLabel;
     private JButton cancelSearchButton;
@@ -98,7 +99,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         // centerPanel 取得
         JPanel centerWrapper = (JPanel) fullScreenPanel.getComponent(3);
         JPanel centerPanel = (JPanel) centerWrapper.getComponent(0);
-        JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
+        functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
         JPanel employeeListPanel = (JPanel) centerPanel.getComponent(2);
         centerPanel.setOpaque(false);// 背景透過
         // ボタン配置
