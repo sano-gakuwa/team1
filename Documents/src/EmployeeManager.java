@@ -264,30 +264,6 @@ public class EmployeeManager extends SystemLog {
             LOGGER.warning("名前のフリガナ欄が空欄です");
             validate = false;
         }
-        if (employee.getBirthday() == null) {
-            LOGGER.warning("誕生日欄が空欄です");
-            validate = false;
-        }
-        if (employee.getJoiningDate() == null) {
-            LOGGER.warning("入社年月欄が空欄です");
-            validate = false;
-        }
-        if (employee.getSkillPoint() == null) {
-            LOGGER.warning("技術欄が空欄です");
-            validate = false;
-        }
-        if (employee.getCommunicationPoint() == null) {
-            LOGGER.warning("コミュニケーション能力欄が空欄です");
-            validate = false;
-        }
-        if (employee.getAttitudePoint() == null) {
-            LOGGER.warning("受講態度欄が空欄です");
-            validate = false;
-        }
-        if (employee.getLeadershipPoint() == null) {
-            LOGGER.warning("リーダーシップ欄が空欄です");
-            validate = false;
-        }
         return validate;
     }
     /**
@@ -339,19 +315,21 @@ public class EmployeeManager extends SystemLog {
     private boolean validateNotFuture(Date date) {
         LocalDate today = LocalDate.now();
         LocalDate targetDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        // LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("[]y年[]M月[]d日"));
-        return targetDate.isBefore(today);
+        boolean isFuture = targetDate.isAfter(today);
+        return isFuture;
     }
     /**
      * 重複する社員IDが存在するかを検証
      *
      * @param employee 検証する社員情報
-     * @return 重複がある場合はtrue、そうでない場合はfalse
+     * @return 重複がある場合はalse、そうでない場合はftrue
      * @author nishiyama
      */
     public boolean validateOverlappingEmployee(EmployeeInformation employee) {
         // 重複チェック：既に同じ社員IDが存在していないか
         for (EmployeeInformation existing : employeeList) {
+            System.out.println("existing.getEmployeeID() = " + existing.getEmployeeID());
+            System.out.println("employee.getEmployeeID() = " + employee.getEmployeeID());
             if (existing.getEmployeeID().equals(employee.getEmployeeID())) {
                 return false;
             }
