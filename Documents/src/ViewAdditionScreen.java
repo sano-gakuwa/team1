@@ -232,8 +232,8 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         saveButton.addActionListener(e -> {
             EmployeeInfoAddition addition = new EmployeeInfoAddition();
             if (addition.validateAdditionLock()) {
-                // CSV出力中のロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "CSV出力中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                // 新規追加のロックがかかっている場合
+                JOptionPane.showMessageDialog(frame, "新規追加中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             EmployeeInformation info = collectInputData();
@@ -245,7 +245,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
                 showErrorDialog("社員情報の内容に誤りがあります");
                 return;
             }
-            if (MANAGER.validateOverlappingEmployee(info)) {
+            if (!MANAGER.validateOverlappingEmployee(info)) {
                 showErrorDialog("重複する社員IDが存在します");
                 return;
             }
