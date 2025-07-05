@@ -249,8 +249,10 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton = new JButton("保存");
         saveButton.setBounds(350, 0, 80, 30); // ボタン位置とサイズ
         bottomPanel.add(saveButton); // パネルに追加
-        // 保存ボタン押下時の処理（確認ダイアログ → バリデーション → 保存 → 一覧画面へ）
+
         saveButton.addActionListener(e -> {
+            setUIEnabled(false); // UIロック
+
             int result = JOptionPane.showConfirmDialog(
                     null,
                     "この情報で上書きしますか？",
@@ -258,27 +260,25 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
 
-            // 「いいえ」または「×」を選んだ場合は何もせず終了
             if (result != JOptionPane.YES_OPTION) {
+                setUIEnabled(true); // UI解除
                 return;
             }
 
             // 各種バリデーションチェック（未入力・文字数制限・禁止文字）
-            // --- 氏名（漢字）のチェック ---
             String lastName = lastNameField.getText().trim();
             String firstName = firstNameField.getText().trim();
-            // ---空白チェック ---
             if (lastName.isEmpty() || firstName.isEmpty()) {
                 showValidationError("姓と名は必須です");
+                setUIEnabled(true);
                 return;
             }
-            // ---文字数制限チェック ---
             if (lastName.codePointCount(0, lastName.length()) > 15 ||
                     firstName.codePointCount(0, firstName.length()) > 15) {
                 showValidationError("氏名（漢字）は15文字以内で入力してください");
+                setUIEnabled(true);
                 return;
             }
-            // --- 禁止文字チェック ---
             if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
                     || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
                     || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
@@ -286,47 +286,41 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
                     || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
-            // 環境依存文字一覧
-            String[] envDependentChars = {
-                    "髙", "﨑", "𠮷", "辻", "①", "②", "③", "㊤", "㈱", "㈲", "℡", "㎜", "㌔", "🈂", "🅰", "🅱", "©", "®", "™",
-                    "😃", "💻"
-            };
-            // ---環境依存文字チェック ---
-            for (String ch : envDependentChars) {
+
+            for (String ch : ENV_DEPENDENT_CHARS) {
                 if (lastName.contains(ch) || firstName.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
+                    setUIEnabled(true);
                     return;
                 }
             }
 
-            // --- サローゲートペアチェック ---
-            Pattern surrogatePattern = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
-            if (surrogatePattern.matcher(lastName).find() || surrogatePattern.matcher(firstName).find()) {
+            if (SURROGATE_PATTERN.matcher(lastName).find() || SURROGATE_PATTERN.matcher(firstName).find()) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
-            // --- フリガナのチェック（全角カタカナのみ・15文字以内） ---
             String rubyLastName = rubyLastNameField.getText().trim();
             String rubyFirstName = rubyFirstNameField.getText().trim();
-            // ---文字数制限チェック ---
             if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
                 showValidationError("フリガナは必須です");
+                setUIEnabled(true);
                 return;
             }
-            // ---文字数制限チェック ---
             if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
                     rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
                 showValidationError("氏名（フリガナ）は15文字以内で入力してください");
+                setUIEnabled(true);
                 return;
             }
-            // --- 禁止文字チェック ---
             if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*")
-                    || rubyLastName.matches(".*[\\u3040-\\u309F].*") // ひらがな
-                    || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*") // 漢字
-                    || rubyLastName.matches(".*[A-Za-z].*") // 半角英字
+                    || rubyLastName.matches(".*[\\u3040-\\u309F].*")
+                    || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*")
+                    || rubyLastName.matches(".*[A-Za-z].*")
                     || rubyLastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
                     || rubyFirstName.matches(".*[\\uFF61-\\uFF9F].*")
                     || rubyFirstName.matches(".*[\\u3040-\\u309F].*")
@@ -334,99 +328,86 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     || rubyFirstName.matches(".*[A-Za-z].*")
                     || rubyFirstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
-            // --- 生年月日のチェック ---
             int years = (int) engYearCombo.getSelectedItem();
             int months = (int) engMonthCombo.getSelectedItem();
             if (years == 0 && months == 0) {
                 showValidationError("エンジニア歴は1ヶ月以上で入力してください");
+                setUIEnabled(true);
                 return;
             }
 
-            // --- 扱える言語のチェック ---
             String setAvailable = availableLanguageField.getText().trim();
+            setAvailable = setAvailable.replaceAll("\\s+", "・");
+            availableLanguageField.setText(setAvailable);
 
-            if (setAvailable.isEmpty()) {
-                showValidationError("使える言語は必須です");
+            if (!validateAvailableLanguageFormat(setAvailable)) {
+                showValidationError("扱える言語の区切り文字が不正です。正しく「・」で区切ってください。");
+                setUIEnabled(true);
                 return;
             }
-
-            // 空白を全角中黒に変換（2025/06 仕様追加対応）
-            setAvailable = setAvailable.replaceAll("\\s+", "・");
-            availableLanguageField.setText(setAvailable); // 画面上の表示も変換
 
             if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
                 showValidationError("使える言語は100文字以内で入力してください");
+                setUIEnabled(true);
                 return;
             }
 
-            // 禁止文字（記号・全角英字・環境依存記号など）チェックを追加
             if (setAvailable.matches(
                     ".*[!@#$%^&*()_+=|{}\\[\\]:;\"'<>?/\\\\Ａ-Ｚａ-ｚ①-⑩©®™😃💻！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
-            // 環境依存文字リストからのチェック
-            for (String ch : envDependentChars) {
+            for (String ch : ENV_DEPENDENT_CHARS) {
                 if (setAvailable.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
+                    setUIEnabled(true);
                     return;
                 }
             }
 
-            // サロゲートペア（絵文字など）のチェック
-            if (surrogatePattern.matcher(setAvailable).find()) {
+            if (SURROGATE_PATTERN.matcher(setAvailable).find()) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
-            // バリデーション例（保存ボタン押下時など）
-
-            // 日付必須チェック
-            if (birthYearCombo.getSelectedItem() == null || birthMonthCombo.getSelectedItem() == null
-                    || birthDayCombo.getSelectedItem() == null) {
-                showValidationError("生年月日は必須です");
-                return;
-            }
             int year = (int) birthYearCombo.getSelectedItem();
             int month = (int) birthMonthCombo.getSelectedItem();
             int day = (int) birthDayCombo.getSelectedItem();
 
             Calendar today = Calendar.getInstance();
             Calendar inputDate = Calendar.getInstance();
-            inputDate.setLenient(false); // 厳密な日付チェックを有効にする
+            inputDate.setLenient(false);
             try {
                 inputDate.set(year, month - 1, day);
-                inputDate.getTime(); // ここで例外が出れば不正な日付
+                inputDate.getTime();
             } catch (IllegalArgumentException ex) {
                 showValidationError("無効な日付が選択されています");
+                setUIEnabled(true);
                 return;
             }
 
             Calendar minDate = Calendar.getInstance();
             minDate.set(1925, Calendar.JUNE, 1);
 
-            // 下限チェック
             if (inputDate.before(minDate)) {
                 showValidationError("生年月日は1925年6月1日以降で入力してください");
+                setUIEnabled(true);
                 return;
             }
 
-            // 上限境界値チェック（現在日付+1日以降は不可）
             Calendar tomorrow = (Calendar) today.clone();
             tomorrow.add(Calendar.DATE, 1);
 
             if (!inputDate.before(tomorrow)) {
                 showValidationError("生年月日は現在日付までで入力してください");
-                return;
-            }
-
-            // 入社年月の必須チェックと未来年月チェック
-            if (joinYearCombo.getSelectedItem() == null || joinMonthCombo.getSelectedItem() == null) {
-                showValidationError("入社年月は必須です");
+                setUIEnabled(true);
                 return;
             }
 
@@ -439,98 +420,148 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
             if (joinYear > currentYear || (joinYear == currentYear && joinMonth > currentMonth)) {
                 showValidationError("入社年月は現在年月までで入力してください");
+                setUIEnabled(true);
                 return;
             }
 
-            // --- 経歴のチェック ---
             String career = careerArea.getText().trim();
-
-            if (career.isEmpty()) {
-                showValidationError("経歴は必須です");
-                return;
-            }
 
             if (career.matches(".*[＠！＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
             if (career.codePointCount(0, career.length()) > 400) {
                 showValidationError("経歴は400文字以内で入力してください");
+                setUIEnabled(true);
                 return;
             }
 
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (career.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
+                    setUIEnabled(true);
                     return;
                 }
             }
 
             if (SURROGATE_PATTERN.matcher(career).find()) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
-            // --- 研修受講歴のチェック ---
             String training = trainingArea.getText().trim();
-
-            if (training.isEmpty()) {
-                showValidationError("研修受講歴は必須です");
-                return;
-            }
 
             if (training.codePointCount(0, training.length()) > 400) {
                 showValidationError("研修受講歴は400文字以内で入力してください");
+                setUIEnabled(true);
                 return;
             }
 
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (training.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
+                    setUIEnabled(true);
                     return;
                 }
             }
 
             if (SURROGATE_PATTERN.matcher(training).find()) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
-            // --- 備考のチェック（任意だが400文字制限） ---
             String remarks = remarksArea.getText().trim();
 
             if (remarks.codePointCount(0, remarks.length()) > 400) {
                 showValidationError("備考は400文字以内で入力してください");
+                setUIEnabled(true);
                 return;
             }
 
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (remarks.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
+                    setUIEnabled(true);
                     return;
                 }
             }
 
             if (SURROGATE_PATTERN.matcher(remarks).find()) {
                 showValidationError("使用できない文字が含まれています");
+                setUIEnabled(true);
                 return;
             }
 
-            // バリデーションOK：保存処理へ進む
-            EmployeeInformation editInfo = collectInputData(); // 入力情報をオブジェクトにまとめる
-            if (editInfo != null) {
-                EmployeeInfoUpdate update = new EmployeeInfoUpdate(); // 更新スレッド作成
-                update.update(editInfo); // 更新処理をセット
-                Thread updateThread = new Thread(update); // スレッドに詰める
-                updateThread.start(); // スレッドを実行
+            // 評価項目の刻み・範囲チェック ここで追加
+            double[] validScores = {1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0};
+            for (double score : new double[] {
+                parseScore(techCombo),
+                parseScore(commCombo),
+                parseScore(attitudeCombo),
+                parseScore(leaderCombo)
+            }) {
+                boolean valid = false;
+                for (double v : validScores) {
+                    if (score == v) {
+                        valid = true;
+                        break;
+                    }
+                }
+                if (!valid) {
+                    showValidationError("評価項目の値は1.0〜5.0の0.5刻みで選択してください");
+                    setUIEnabled(true);
+                    return;
+                }
             }
 
-            MANAGER.LOGGER.info("一覧画面に遷移"); // ログ出力
-            refreshUI(); // 画面をクリア
+            EmployeeInformation editInfo = collectInputData();
+            if (editInfo != null) {
+                EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+                update.update(editInfo);
+                Thread updateThread = new Thread(update);
+                updateThread.start();
+            }
+
+            MANAGER.LOGGER.info("一覧画面に遷移");
+            refreshUI();
             ViewTopScreen top = new ViewTopScreen();
-            top.View(); // 一覧画面に遷移
+            top.View();
         });
+    }
+
+    /**
+     * 画面の入力部品の有効・無効を切り替える
+     *
+     * @param enabled trueで有効（操作可能）、falseで無効（操作不可）
+     */
+    private void setUIEnabled(boolean enabled) {
+        employeeIdField.setEnabled(enabled);
+        rubyLastNameField.setEnabled(enabled);
+        rubyFirstNameField.setEnabled(enabled);
+        lastNameField.setEnabled(enabled);
+        firstNameField.setEnabled(enabled);
+        availableLanguageField.setEnabled(enabled);
+        birthYearCombo.setEnabled(enabled);
+        birthMonthCombo.setEnabled(enabled);
+        birthDayCombo.setEnabled(enabled);
+        joinYearCombo.setEnabled(enabled);
+        joinMonthCombo.setEnabled(enabled);
+        joinDayCombo.setEnabled(enabled);
+        engYearCombo.setEnabled(enabled);
+        engMonthCombo.setEnabled(enabled);
+        careerArea.setEnabled(enabled);
+        trainingArea.setEnabled(enabled);
+        remarksArea.setEnabled(enabled);
+        techCombo.setEnabled(enabled);
+        commCombo.setEnabled(enabled);
+        attitudeCombo.setEnabled(enabled);
+        leaderCombo.setEnabled(enabled);
+        saveButton.setEnabled(enabled);
+        backButton.setEnabled(enabled);
     }
 
     /**
@@ -678,7 +709,6 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         try {
             System.out.println("【DEBUG】データ取得開始");
 
-            // 各フィールドの入力値を取得（プレースホルダーは無視）
             EmployeeInformation employee = new EmployeeInformation();
             employee.setEmployeeID(getFieldValue(employeeIdField, "01234xx"));
             employee.setlastName(getFieldValue(lastNameField, "山田"));
@@ -702,7 +732,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             System.out.println("【DEBUG】データ取得完了");
             return employee;
         } catch (Exception e) {
-            e.printStackTrace(); // エラーの詳細をコンソールに出力
+            e.printStackTrace();
             showValidationError("データ取得中にエラーが発生しました");
             return null;
         }
@@ -716,7 +746,6 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         if (text == null || text.trim().isEmpty()) {
             return "";
         }
-        // プレースホルダーと同じ文字列でも、実際に編集していれば有効とみなす
         return text;
     }
 
@@ -733,7 +762,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private Date getDateFromComboBoxes(JComboBox<Integer> yearCombo, JComboBox<Integer> monthCombo,
             JComboBox<Integer> dayCombo) {
         int year = (int) yearCombo.getSelectedItem();
-        int month = (int) monthCombo.getSelectedItem() - 1; // 月は0始まり
+        int month = (int) monthCombo.getSelectedItem() - 1;
         int day = (dayCombo != null) ? (int) dayCombo.getSelectedItem() : 1;
 
         Calendar cal = Calendar.getInstance();
@@ -803,5 +832,33 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         int totalMonths = employeeInformation.getEngineerDate();
         engYearCombo.setSelectedItem(totalMonths / 12);
         engMonthCombo.setSelectedItem(totalMonths % 12);
+    }
+
+    /**
+     * 扱える言語の区切り文字フォーマットを厳密にチェックするメソッド
+     * ・全角中黒（・）で区切られているか
+     * ・連続した区切り文字がないか
+     * ・前後に区切り文字がないか
+     * 
+     * @param text チェック対象文字列
+     * @return 正しい形式なら true、そうでなければ false
+     */
+    private boolean validateAvailableLanguageFormat(String text) {
+        if (text.isEmpty()) {
+            return true;
+        }
+        if (text.startsWith("・") || text.endsWith("・")) {
+            return false;
+        }
+        if (text.contains("・・")) {
+            return false;
+        }
+        String[] parts = text.split("・", -1);
+        for (String part : parts) {
+            if (part.trim().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
