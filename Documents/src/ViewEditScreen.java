@@ -677,26 +677,29 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 updateThread.start();
             }
 
-// 保存完了メッセージを Windows風に表示（情報アイコン＋ボタン1つ）
-int option = JOptionPane.showOptionDialog(
-        frame,
-        "保存完了しました",
-        "成功",
-        JOptionPane.DEFAULT_OPTION,
-        JOptionPane.INFORMATION_MESSAGE,
-        null,
-        new Object[] { "一覧画面へ戻る" },
-        "一覧画面へ戻る"
-);
+ // ==== 保存完了後の「成功ダイアログ」の表示 ====
+            JOptionPane optionPane = new JOptionPane(
+                    "保存完了しました", // 表示メッセージ
+                    JOptionPane.INFORMATION_MESSAGE,
+                    JOptionPane.DEFAULT_OPTION,
+                    null,
+                    new Object[] { "一覧画面へ戻る" }, // ボタン
+                    "一覧画面へ戻る" // 初期選択
+            );
 
-// 「一覧画面へ戻る」ボタンが押された場合の処理
-if (option == 0) {
-    refreshUI();
-    ViewTopScreen top = new ViewTopScreen();
-    top.View();
-}
+            // カスタムダイアログの設定と表示
+            JDialog dialog = optionPane.createDialog("成功");
+            dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // 閉じる操作を禁止
+            dialog.setModal(true); // 他操作をブロック
+            dialog.setVisible(true); // ダイアログ表示
 
-
+            // ユーザーの選択を取得し、「一覧画面へ戻る」が押されたか確認
+            Object selectedValue = optionPane.getValue();
+            if ("一覧画面へ戻る".equals(selectedValue)) {
+                refreshUI(); // 画面をリセット
+                ViewTopScreen top = new ViewTopScreen(); // 一覧画面を新しく作成
+                top.View(); // 一覧画面を表示
+            }
         });
     }
 
