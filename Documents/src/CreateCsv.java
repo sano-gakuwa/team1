@@ -19,6 +19,7 @@ public class CreateCsv implements Runnable {
     private ArrayList<String> selected;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private static ReentrantLock createCsvLock = new ReentrantLock();
+
     /**
      * CSV出力のロックを取得
      * 
@@ -40,6 +41,7 @@ public class CreateCsv implements Runnable {
         this.directory = directory;
         this.selected = selected;
     }
+
     // CSV出力処理
     @Override
     public void run() {
@@ -48,16 +50,10 @@ public class CreateCsv implements Runnable {
         createCsvLock.lock();
         MANAGER.LOGGER.info("CSV出力処理をロックしました");
         Path filePath = createCsvPath(directory);
-        File makeCsvFile = new File(filePath.toString());
+        // 今から出力しようとしているファイル
+        File makeCsvFile = makeCsvFile(filePath);
         // 出力処理を実行
         try {
-            while (Files.exists(filePath)) {
-                // ファイルがすでに存在する場合、1秒だけ一時停止
-                Thread.sleep(1000);
-                MANAGER.LOGGER.info("CSV出力:1秒待機中...");
-                filePath = createCsvPath(directory);
-                makeCsvFile = new File(filePath.toString());
-            }
             try {
                 // 出力先のファイルの新規作成
                 Files.createFile(filePath);
@@ -68,10 +64,10 @@ public class CreateCsv implements Runnable {
                 return;
             }
             MANAGER.LOGGER.info("CSV出力先のファイルを作成しました: " + makeCsvFile.getAbsolutePath());
-            //社員情報リストをロックしてCSV出力処理を行う
+            // 社員情報リストをロックしてCSV出力処理を行う
             synchronized (EmployeeManager.employeeList) {
                 MANAGER.LOGGER.info("社員情報リストをロックしました");
-                //PrintWriterクラスのオブジェクトを生成する
+                // PrintWriterクラスのオブジェクトを生成する
                 FileOutputStream fileOutputStream = new FileOutputStream(makeCsvFile);
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, "Shift-JIS");
                 BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
@@ -102,9 +98,10 @@ public class CreateCsv implements Runnable {
                 // 出力しようとしたファイルの削除に失敗
                 MANAGER.printErrorLog(ex, "出力しようとしたファイルの削除に失敗");
             }
+        } finally {
+            // CSV出力処理が完了したのでロックを解除
+            createCsvLock.unlock();
         }
-        // CSV出力処理が完了したのでロックを解除
-        createCsvLock.unlock();
         // CSV出力処理が成功したことをログに記録
         MANAGER.LOGGER.info("CSV出力処理が完了しました");
         // 成功ダイアログを表示
@@ -130,6 +127,29 @@ public class CreateCsv implements Runnable {
         Path filePath = Paths.get(fileName);
         // ファイルパスを返す
         return filePath;
+    }
+
+    /**
+     * 作成するCSVファイルの作成
+     * 
+     * @param filePath
+     * @return 作成しようとしているFile
+     */
+    private File makeCsvFile(Path filePath) {
+        try {
+            // 同じ名前のCSVファイルがフォルダー(ディレクトリー)にあるか確認
+            while (Files.exists(filePath)) {
+                MANAGER.LOGGER.info(filePath + "は存在します");
+                // ファイルがすでに存在する場合、1秒だけ一時停止
+                MANAGER.LOGGER.info("CSV出力:1秒待機中...");
+                Thread.sleep(1000);
+                // ファイルのパスを再設定
+                filePath = createCsvPath(directory);
+            }
+        } catch (Exception e) {
+            MANAGER.printErrorLog(e, "スレッドの一時停止に失敗しました");
+        }
+        return new File(filePath.toString());
     }
 
     /**
