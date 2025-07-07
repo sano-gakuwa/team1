@@ -33,7 +33,7 @@ public class EmployeeInfoUpdate implements Runnable {
     public void run() {
         updateLock.lock(); // ロックを取得
         // --- 入力内容のチェック（必須項目が空ならエラーダイアログ表示） ---
-        if (MANAGER.validateNotNull(updatedEmployee)) {
+        if (!MANAGER.validateNotNull(updatedEmployee)) {
             showErrorDialog("必須項目が入力されていません");
             return;
         }
