@@ -20,6 +20,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
     private Set<Integer> unsortableColumns;
     private Map<Integer, Integer> sortStates;
     private JLabel pageLabel = new JLabel("", SwingConstants.CENTER);// ページ数表示箇所
+    private JLabel selectedLabel = new JLabel("", SwingConstants.CENTER);
     public int currentPage = 1; // 現在のページ数
     public int totalPages = 1;// 最後のページ数
     private ArrayList<String> selected = new ArrayList<>();
@@ -47,11 +48,6 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         searchButton.setBackground(new Color(30, 144, 255)); // ボタン枠内塗りつぶし
         searchButton.setForeground(Color.WHITE);// 白文字
         searchButton.setFocusPainted(false); // フォーカス枠非表示（シンプル化）
-        // centerPanel 取得
-        JPanel centerWrapper = (JPanel) fullScreenPanel.getComponent(3);
-        JPanel centerPanel = (JPanel) centerWrapper.getComponent(0);
-        JPanel functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
-        JPanel employeeListPanel = (JPanel) centerPanel.getComponent(2);
         centerPanel.setOpaque(false);// 背景透過
         // ボタン配置
         functionButtonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -60,10 +56,13 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         bulkSelectButton = new JButton("ページ内一括選択");
         createCsvButton = new JButton("CSV出力");
         deleteButton = new JButton("削除");
+        selectedLabel.setText(selected.size() + "/" + tableEmployee.size() + "選択中");
+        functionButtonsPanel.add(new JLabel("エンジニア一覧"));
         functionButtonsPanel.add(bulkCancellationtButton);
         functionButtonsPanel.add(bulkSelectButton);
         functionButtonsPanel.add(createCsvButton);
         functionButtonsPanel.add(deleteButton);
+        functionButtonsPanel.add(selectedLabel);
         bulkCancellationtButton.addActionListener(e -> {
             // ページ内一括解除
             manager.LOGGER.info("ページ内一括解除ボタンが押されました");
@@ -76,7 +75,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                     // 選択されている社員情報が0名分
                     viewTopScreen();
                 }
-                engineerTable.repaint();
+                showselected();
             }
         });
         bulkSelectButton.addActionListener(e -> {
@@ -87,7 +86,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 if (selected.contains(select) == false) {
                     selected.add(select);
                 }
-                engineerTable.repaint();
+                showselected();
             }
         });
         createCsvButton.addActionListener(e -> {
@@ -224,7 +223,14 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         });
     }
 
-    public void refreshTable() {
+    //社員情報を選択した際の再表示メソッド
+    private void showselected() {
+        selectedLabel.setText(selected.size() + "/" + tableEmployee.size() + "選択中");
+        selectedLabel.repaint();
+        engineerTable.repaint();
+    }
+
+    private void refreshTable() {
         // ページ数表示
         int totalEmployees = tableEmployee.size();
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
@@ -301,12 +307,12 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                         // 未選択の社員情報の行をクリック
                         selected.add(select);
                         manager.LOGGER.info("社員ID:" + select + "を選択");
-                        engineerTable.repaint();
+                        showselected();
                     } else if (selected.contains(select) == true) {
                         // 選択済みの社員情報の行をクリック
                         selected.remove(selected.indexOf(select));
                         manager.LOGGER.info("社員ID:" + select + "を選択解除");
-                        engineerTable.repaint();
+                        showselected();
                     }
                     if (selected.size() <= 0) {
                         // 選択されている社員情報が0名分
@@ -370,8 +376,8 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 EmployeeInformation empioyee = tableEmployee.get(i + ((currentPage - 1) * maxDisplayCount));
                 displayList[i][0] = empioyee.getEmployeeID();
                 displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
-                displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
-                displayList[i][3] = empioyee.getEngineerDate() + "カ月";
+                displayList[i][2] = calcAge(empioyee.getBirthday(), now);
+                displayList[i][3] = calcEngineerDate(empioyee.getEngineerDate());
                 displayList[i][4] = empioyee.getAvailableLanguages();
             }
         } else {
@@ -380,8 +386,8 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 EmployeeInformation empioyee = tableEmployee.get(i + ((currentPage - 1) * maxDisplayCount));
                 displayList[i][0] = empioyee.getEmployeeID();
                 displayList[i][1] = empioyee.getLastName() + " " + empioyee.getFirstname();
-                displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
-                displayList[i][3] = empioyee.getEngineerDate() + "カ月";
+                displayList[i][2] = calcAge(empioyee.getBirthday(), now);
+                displayList[i][3] = calcEngineerDate(empioyee.getEngineerDate());
                 displayList[i][4] = empioyee.getAvailableLanguages();
             }
             for (int i = displayCount; i < maxDisplayCount; i++) {
@@ -392,12 +398,32 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 displayList[i][4] = "";
             }
         }
-
         return displayList;
     }
 
-    // 年齢を計算するメソッド（第１引数：誕生日、第2引数：現在日）
-    public static int calcAge(Date birthday, Date now) {
+    /**
+     * エンジニア歴を〇年△ヶ月に計算するメソッド
+     * 
+     * @param months   エンジニア歴(〇ヶ月表記)
+     * @param years    〇年
+     * @param remonths △ヶ月
+     * @return 〇年△ヶ月
+     * @author 下村
+     */
+    private String calcEngineerDate(int months) {
+        int years = months / 12;
+        int reremonths = months % 12;
+        return years + "年" + reremonths + "ヶ月";
+    }
+
+    /**
+     * 年齢を計算するメソッド（第１引数：誕生日、第2引数：現在日）
+     * 
+     * @param birthday 誕生日
+     * @param now      現在日
+     * @return 〇歳
+     */
+    private String calcAge(Date birthday, Date now) {
         // Calendar型のインスタンス生成
         Calendar calendarBirth = Calendar.getInstance();
         Calendar calendarNow = Calendar.getInstance();
@@ -415,7 +441,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 age -= 1;
             }
         }
-        return age;
+        return age + "歳";
     }
 
     private void selectFolder() {
