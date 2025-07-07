@@ -1,8 +1,12 @@
-
 import java.awt.*;
 import javax.swing.*;
 
 public abstract class SetUpTopScreen extends SetUpJframe {
+    protected JPanel topPanel;
+    protected JPanel centerPanel;
+    protected JPanel functionButtonsPanel;
+    protected JPanel employeeListPanel;
+    protected JPanel bottomPanel;
 
     public SetUpTopScreen() {
         layoutPanals();
@@ -16,33 +20,29 @@ public abstract class SetUpTopScreen extends SetUpJframe {
         fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 53)));
 
         // 上段パネル（715*23px）
-        JPanel topPanel = createPanel(new Dimension(715, 23));
+        topPanel = createPanel(new Dimension(715, 23));
         fullScreenPanel.add(wrapCentered(topPanel));
 
         // 上段と中央の間（53px）
         fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 53)));
 
         // 中央パネル（715*395px）
-        JPanel centerPanel = createPanel(new Dimension(715, 395));
+        centerPanel = createPanel(new Dimension(715, 395));
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
 
         // 中央パネル_上段（715*22px）
-        JPanel functionButtonsPanel = new JPanel();
-        functionButtonsPanel.setPreferredSize(new Dimension(715, 22));
-        functionButtonsPanel.setMaximumSize(new Dimension(715, 22));
+        functionButtonsPanel = new JPanel();
+        functionButtonsPanel.setPreferredSize(new Dimension(715, 30));
+        functionButtonsPanel.setMaximumSize(new Dimension(715, 30));
         functionButtonsPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 左寄せ
-        functionButtonsPanel.setBackground(Color.DARK_GRAY); // 仮背景色
         centerPanel.add(functionButtonsPanel);
         
         // 中央パネル_上下段ギャップ（10px）
         centerPanel.add(Box.createRigidArea(new Dimension(0,10)));
 
         // 中央パネル_下段（715*363px）
-        JPanel employeeListPanel = new JPanel();
-        employeeListPanel.setPreferredSize(new Dimension(715,363));
-        employeeListPanel.setMaximumSize(new Dimension(715,363));
+        employeeListPanel = new JPanel();
         employeeListPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 左寄せ
-        employeeListPanel.setBackground(Color.DARK_GRAY); // 仮背景色
         centerPanel.add(employeeListPanel);
 
         // centerPanelをfullScreenPanelに追加（中央寄せ）
@@ -52,7 +52,7 @@ public abstract class SetUpTopScreen extends SetUpJframe {
         fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 27)));
 
         // 下段パネル（715*23px）
-        JPanel bottomPanel = createPanel(new Dimension(715, 23));
+        bottomPanel = createPanel(new Dimension(715, 23));
         fullScreenPanel.add(wrapCentered(bottomPanel));
 
         // 下段の下スペース（26px）
