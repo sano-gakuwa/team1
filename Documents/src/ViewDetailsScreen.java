@@ -1,10 +1,23 @@
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
 
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
 /**
@@ -55,7 +68,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         setupNameFields();
         setupDateAndLanguageFields();
         setupCareer();
-        setupSkills();
+        setupSkills((employeeInformation));
         setupTraining();
         setupRemarks();
         setupButtons();
@@ -139,14 +152,17 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         careerPanel.add(careerScroll, BorderLayout.CENTER);
     }
 
-    private void setupSkills() {
+    //スキルパネル修正 20250709
+    private void setupSkills(EmployeeInformation info) {
         skillsPanel.add(createLabel("スキル", 0, 0), BorderLayout.NORTH);
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         skillPanel.setBackground(Color.LIGHT_GRAY);
-        techCombo = createScoreCombo();
-        commCombo = createScoreCombo();
-        attitudeCombo = createScoreCombo();
-        leaderCombo = createScoreCombo();
+    
+        techCombo = createScoreCombo(info.getSkillPoint());
+        commCombo = createScoreCombo(info.getCommunicationPoint());
+        attitudeCombo = createScoreCombo(info.getAttitudePoint());
+        leaderCombo = createScoreCombo(info.getLeadershipPoint());
+    
         skillPanel.add(new JLabel("技術力"));
         skillPanel.add(techCombo);
         skillPanel.add(new JLabel("コミュニケーション能力"));
@@ -155,6 +171,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         skillPanel.add(attitudeCombo);
         skillPanel.add(new JLabel("リーダーシップ"));
         skillPanel.add(leaderCombo);
+    
         skillPanel.setBounds(0, 10, 360, 10);
         skillsPanel.add(skillPanel, BorderLayout.CENTER);
     }
@@ -216,10 +233,13 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         return label;
     }
 
-    // スキルスコア
-    private JComboBox<String> createScoreCombo() {
-        String[] scores = { "1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5", "5.0" };
+    private JComboBox<String> createScoreCombo(Double score) {
+        String[] scores = { String.format("%.1f", score) }; // 例: "3.5"
         JComboBox<String> comboBox = new JComboBox<>(scores);
+        comboBox.setSelectedIndex(0);
+        comboBox.setEnabled(true);         // グレーアウトしない
+        comboBox.setEditable(false);       // 編集不可
+        comboBox.setFocusable(false);      // 枠の強調表示なし
         return comboBox;
     }
 
