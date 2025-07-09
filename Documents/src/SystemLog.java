@@ -1,25 +1,20 @@
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 public abstract class SystemLog {
-    protected Date nowTime = new Date();
-    protected static final String LOG_FOLDER = "LOG";
-    protected static final String LOG_FILEPATH = LOG_FOLDER + "/system_log_" + LocalDate.now() + ".txt";
-    protected static final File SYSTEM_LOG = new File(LOG_FILEPATH);
-    public final Logger LOGGER = Logger.getLogger("SystemLog");;
+    private final String LOG_FOLDER = "LOG";
+    private final String LOG_FILEPATH = LOG_FOLDER + "/system_log_" + LocalDate.now() + ".txt";
+    private final File SYSTEM_LOG = new File(LOG_FILEPATH);
+    protected final Logger LOGGER = Logger.getLogger("SystemLog");;
 
     /**
      * ログファイルの読み込み。
-     * 
      * @author 下村
      */
     protected void setUpLog() {
@@ -42,11 +37,10 @@ public abstract class SystemLog {
     //
     /**
      * ログファイルの存在確認用。
-     * 
      * @return ログファイルの存在確認するかの真偽
      * @author 下村
      */
-    protected boolean verificationLogFile() {
+    private boolean verificationLogFile() {
         try {
             if (SYSTEM_LOG.exists()) {
                 if (SYSTEM_LOG.isFile() && SYSTEM_LOG.canWrite()) {
@@ -64,10 +58,9 @@ public abstract class SystemLog {
 
     /**
      * ログファイルが存在しない場合にログファイルを作成する用。
-     * 
      * @author 下村
      */
-    protected void makeLogFile() {
+    private void makeLogFile() {
         Path path = Paths.get(LOG_FILEPATH);
         try {
             Files.createFile(path);// ファイルが存在しない為、ファイルを新規作成
@@ -78,15 +71,15 @@ public abstract class SystemLog {
 
     /**
      * ログにスタックトレースを出力する
-     * 
      * @param e           スタックトレースを持っている例外クラス
      * @param errorString ログに出力するエラー文言
      * @author 下村
      */
-    public void printErrorLog(Exception e, String errorString) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        e.printStackTrace(printWriter);
-        LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
-    }
+    public abstract void printErrorLog(Exception e, String errorString);
+    /**
+     * ログに情報を出力する
+     * @param infoString　出力する文言
+     * @author 下村
+     */
+    public abstract void printInfoLog(String infoString);
 }

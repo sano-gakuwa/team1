@@ -1,3 +1,5 @@
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,5 +30,16 @@ public class ThreadsManager extends SystemLog{
         synchronized (USING_THREAD) {
             return (int) USING_THREAD.stream().filter(Thread::isAlive).count();
         }
+    }
+    @Override
+    public void printErrorLog(Exception e, String errorString) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
+        LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
+    }
+    @Override
+    public void printInfoLog(String infoString){
+        LOGGER.info(infoString);
     }
 }

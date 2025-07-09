@@ -21,24 +21,6 @@ import java.util.Scanner;
 
 /**
  * 社員情報を登録・管理するためのマネージャークラス
- * <ul>
- * <li>呼び出せる変数
- * <ul>
- * <li>employeeList 読み込んだ社員情報リスト
- * <li>LOGGER ログ
- * <ul>
- * <li>LOGGER.info(String {文言}) ログに情報を残すために使用
- * <li>LOGGER.warning(String {文言}) ログにヒューマンエラーを残すために使用
- * </ul>
- * <li>EMPLOYEE_CSV 社員情報保存用CSVファイル
- * <li>EMPLOYEE_CATEGORY 社員情報のカテゴリー
- * </ul>
- * <li>呼び出せるメソッド
- * <ul>
- * <li>printErrorLog(Exception e, String errorString) ログにシステムエラーを残すために使用
- * </ul>
- * </ul>
- * 
  * @atuthor 下村
  */
 public class EmployeeManager extends SystemLog {
@@ -51,8 +33,7 @@ public class EmployeeManager extends SystemLog {
             "扱える言語", "経歴", "研修の受講歴", "技術力", "受講態度", "コミュニケーション能力", "リーダーシップ",
             "備考", "更新日"
     };
-    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
-
+    public SimpleDateFormat dateFormat = new SimpleDateFormat("y[]年M[]月d[]日");
     public EmployeeManager() {
         // インスタンス生成時のメソッド等無し
     }
@@ -188,19 +169,16 @@ public class EmployeeManager extends SystemLog {
             printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
         }
     }
-
-    /**
-     * ログにスタックトレースを出力する
-     * 
-     * @param e           スタックトレースを持っている例外クラス
-     * @param errorString ログに出力するエラー文言
-     * @author 下村
-     */
+    @Override
     public void printErrorLog(Exception e, String errorString) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
         LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
+    }
+    @Override
+    public void printInfoLog(String infoString){
+        LOGGER.info(infoString);
     }
     /**
      * 社員情報をCSV形式の文字列に変換

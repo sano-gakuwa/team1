@@ -46,11 +46,11 @@ public class CreateCsv implements Runnable {
     // CSV出力処理
     @Override
     public void run() {
-        MANAGER.LOGGER.info("CSV出力処理を開始します");
+        MANAGER.printInfoLog("CSV出力処理を開始します");
         threadsManager.startUsing(Thread.currentThread());
         // ロックを取得
         createCsvLock.lock();
-        MANAGER.LOGGER.info("CSV出力処理をロックしました");
+        MANAGER.printInfoLog("CSV出力処理をロックしました");
         Path filePath = createCsvPath(directory);
         // 今から出力しようとしているファイル
         File makeCsvFile = makeCsvFile(filePath);
@@ -65,10 +65,10 @@ public class CreateCsv implements Runnable {
                 showErrorDialog("ファイル新規作成で例外が発生しました");
                 return;
             }
-            MANAGER.LOGGER.info("CSV出力先のファイルを作成しました: " + makeCsvFile.getAbsolutePath());
+            MANAGER.printInfoLog("CSV出力先のファイルを作成しました: " + makeCsvFile.getAbsolutePath());
             // 社員情報リストをロックしてCSV出力処理を行う
             synchronized (EmployeeManager.employeeList) {
-                MANAGER.LOGGER.info("社員情報リストをロックしました");
+                MANAGER.printInfoLog("社員情報リストをロックしました");
                 // PrintWriterクラスのオブジェクトを生成する
                 FileOutputStream fileOutputStream = new FileOutputStream(makeCsvFile);
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, "Shift-JIS");
@@ -95,7 +95,7 @@ public class CreateCsv implements Runnable {
                 // 出力しようとしたファイルを削除
                 Files.deleteIfExists(makeCsvFile.toPath());
                 // 削除に成功したことをログに記録
-                MANAGER.LOGGER.info("出力しようとしたファイルを削除しました: " + makeCsvFile.getAbsolutePath());
+                MANAGER.printInfoLog("出力しようとしたファイルを削除しました: " + makeCsvFile.getAbsolutePath());
             } catch (Exception ex) {
                 // 出力しようとしたファイルの削除に失敗
                 MANAGER.printErrorLog(ex, "出力しようとしたファイルの削除に失敗");
@@ -106,7 +106,7 @@ public class CreateCsv implements Runnable {
             threadsManager.endUsing(Thread.currentThread());
         }
         // CSV出力処理が成功したことをログに記録
-        MANAGER.LOGGER.info("CSV出力処理が完了しました");
+        MANAGER.printInfoLog("CSV出力処理が完了しました");
         // 成功ダイアログを表示
         showDialog("CSVファイルを出力しました: " + makeCsvFile.getAbsolutePath());
     }
@@ -142,9 +142,9 @@ public class CreateCsv implements Runnable {
         try {
             // 同じ名前のCSVファイルがフォルダー(ディレクトリー)にあるか確認
             while (Files.exists(filePath)) {
-                MANAGER.LOGGER.info(filePath + "は存在します");
+                MANAGER.printInfoLog(filePath + "は存在します");
                 // ファイルがすでに存在する場合、1秒だけ一時停止
-                MANAGER.LOGGER.info("CSV出力:1秒待機中...");
+                MANAGER.printInfoLog("CSV出力:1秒待機中...");
                 Thread.sleep(1000);
                 // ファイルのパスを再設定
                 filePath = createCsvPath(directory);
