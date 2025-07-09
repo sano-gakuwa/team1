@@ -32,11 +32,6 @@ public class EmployeeListOperator {
         this.filteredList = deepCopyEmployeeList(this.masterList);
     }
 
-
-
-    // ここに setEmployeeList を追加するイメージ
-    
-
     /**
      * 非同期で検索を実行
      * AND条件で複数の検索項目に対応、空文字やnullは無視
@@ -56,50 +51,50 @@ public class EmployeeListOperator {
             String engineerDateQuery,
             String availableLanguagesQuery,
             SearchCallback callback) {
-        if (isSearching) {
-            MANAGER.LOGGER.info("検索中に検索ボタンが押されました");
-            callback.onSearchFinished(false, null, "検索中です。");
-            return;
-        }
-        // 空検索なら何もしない（再検索対応）
-        boolean allEmpty = isEmpty(employeeIDQuery) &&
-                isEmpty(nameQuery) &&
-                isEmpty(ageQuery) &&
-                isEmpty(engineerDateQuery) &&
-                isEmpty(availableLanguagesQuery);
-        if (allEmpty) {
-            MANAGER.LOGGER.info("検索条件が入力されていません。検索処理は実行されませんでした。");
-            callback.onSearchFinished(false, null, "検索条件が入力されていません。");
-            return;
-        }
-        // 100文字
-        final String trimmedEmployeeIDQuery = cutTo100(employeeIDQuery);
-        final String trimmedNameQuery = cutTo100(nameQuery);
-        final String trimmedAgeQuery = cutTo100(ageQuery);
-        final String trimmedEngineerDateQuery = cutTo100(engineerDateQuery);
-        final String trimmedAvailableLanguagesQuery = cutTo100(availableLanguagesQuery);
-        isSearching = true;
-        Runnable searchTask = () -> {
-            try {
-                List<EmployeeInformation> results = search(
-                        trimmedEmployeeIDQuery,
-                        trimmedNameQuery,
-                        trimmedAgeQuery,
-                        trimmedEngineerDateQuery,
-                        trimmedAvailableLanguagesQuery);
-                synchronized (lock) {
-                    filteredList = results;
+                if (isSearching) {
+                    MANAGER.LOGGER.info("検索中に検索ボタンが押されました");
+                    callback.onSearchFinished(false, null, "検索中です。");
+                    return;
                 }
-                callback.onSearchFinished(true, deepCopyEmployeeList(results), null);
-            } catch (Exception e) {
-                callback.onSearchFinished(false, null, e.getMessage());
-            } finally {
-                isSearching = false;
-            }
-        };
-        Thread thread = new Thread(searchTask);
-        thread.setDaemon(true);
-        thread.start();
+                // 空検索なら何もしない（再検索対応）
+                boolean allEmpty = isEmpty(employeeIDQuery) &&
+                        isEmpty(nameQuery) &&
+                        isEmpty(ageQuery) &&
+                        isEmpty(engineerDateQuery) &&
+                        isEmpty(availableLanguagesQuery);
+                if (allEmpty) {
+                    MANAGER.LOGGER.info("検索条件が入力されていません。検索処理は実行されませんでした。");
+                    callback.onSearchFinished(false, null, "検索条件が入力されていません。");
+                    return;
+                }
+                // 100文字
+                final String trimmedEmployeeIDQuery = cutTo100(employeeIDQuery);
+                final String trimmedNameQuery = cutTo100(nameQuery);
+                final String trimmedAgeQuery = cutTo100(ageQuery);
+                final String trimmedEngineerDateQuery = cutTo100(engineerDateQuery);
+                final String trimmedAvailableLanguagesQuery = cutTo100(availableLanguagesQuery);
+                isSearching = true;
+                Runnable searchTask = () -> {
+                    try {
+                        List<EmployeeInformation> results = search(
+                                trimmedEmployeeIDQuery,
+                                trimmedNameQuery,
+                                trimmedAgeQuery,
+                                trimmedEngineerDateQuery,
+                                trimmedAvailableLanguagesQuery);
+                        synchronized (lock) {
+                            filteredList = results;
+                        }
+                        callback.onSearchFinished(true, deepCopyEmployeeList(results), null);
+                    } catch (Exception e) {
+                        callback.onSearchFinished(false, null, e.getMessage());
+                    } finally {
+                        isSearching = false;
+                    }
+                };
+                Thread thread = new Thread(searchTask);
+                thread.setDaemon(true);
+                thread.start();
     }
 
     /**
@@ -114,35 +109,54 @@ public class EmployeeListOperator {
      * @return 条件に合致した社員情報のリスト
      */
     private List<EmployeeInformation> search(
-            String employeeIDQuery,
-            String nameQuery,
-            String ageQuery,
-            String engineerDateQuery,
-            String availableLanguagesQuery) {
-        // 入力の単語リスト化（スペース区切り）
-        List<String> employeeIDWords = splitBySpace(employeeIDQuery);
-        List<String> nameWords = splitBySpace(nameQuery);
-        List<String> ageWords = splitBySpace(ageQuery);
-        List<String> engineerDateWords = splitBySpace(engineerDateQuery);
-        List<String> availableLanguagesWords = splitBySpace(availableLanguagesQuery);
-        List<EmployeeInformation> results = new ArrayList<>();
-        for (EmployeeInformation emp : masterList) {
-            // AND条件: 5項目のみ対象
-            if (!matchesAllWords(employeeIDWords, normalize(emp.getEmployeeID())))
-                continue;
-            if (!matchesAllWords(nameWords,
-                    normalize(emp.getLastName() + emp.getFirstname() + emp.getRubyLastName() + emp.getRubyFirstname())))
-                continue;
-            if (!matchesAllWords(ageWords, String.valueOf(calcAge(emp.getBirthday()))))
-                continue;
-            if (!matchesAllWords(engineerDateWords, String.valueOf(emp.getEngineerDate())))
-                continue;
-            if (!matchesAllWords(availableLanguagesWords, normalize(emp.getAvailableLanguages())))
-                continue;
-            results.add(copyEmployeeInformation(emp));
+        String employeeIDQuery,
+        String nameQuery,
+        String ageQuery,
+        String engineerDateQuery,
+        String availableLanguagesQuery) {
+            // 入力の単語リスト化（スペース区切り）
+            List<String> employeeIDWords = splitBySpace(employeeIDQuery);
+            List<String> nameWords = splitBySpace(nameQuery);
+            List<String> ageWords = splitBySpace(ageQuery);
+            List<String> engineerDateWords = splitBySpace(engineerDateQuery);
+            List<String> availableLanguagesWords = splitBySpace(availableLanguagesQuery);
+
+            List<EmployeeInformation> results = new ArrayList<>();
+            for (EmployeeInformation emp : masterList) {
+                if (!matchesAllWords(employeeIDWords, normalize(emp.getEmployeeID())))
+                    continue;
+
+                if (!matchesAllWords(nameWords,
+                        normalize(emp.getLastName() + emp.getFirstname() + emp.getRubyLastName() + emp.getRubyFirstname())))
+                    continue;
+
+                if (!matchesAllWords(ageWords, String.valueOf(calcAge(emp.getBirthday()))))
+                    continue;
+
+                // エンジニア歴は「月数」+「○年○ヶ月」の両方で検索に対応
+                String engineerDateStr = emp.getEngineerDate() + ""; // 例: "24"
+                engineerDateStr += " " + formatEngineerDate(emp.getEngineerDate()); // 例: "24 2年0ヶ月"
+                if (!matchesAllWords(engineerDateWords, engineerDateStr))
+                    continue;
+
+                if (!matchesAllWords(availableLanguagesWords, normalize(emp.getAvailableLanguages())))
+                    continue;
+
+                results.add(copyEmployeeInformation(emp));
+            }
+            return results;
         }
-        return results;
-    }
+        /**
+         * 月数を「○年○ヶ月」形式に変換する
+         */
+        public static String formatEngineerDate(int months) {
+            int years = months / 12;
+            int remain = months % 12;
+            return years + "年" + remain + "ヶ月";
+        }
+
+
+
 
     /**
      * 与えられた文字列を正規化
