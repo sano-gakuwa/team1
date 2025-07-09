@@ -51,7 +51,7 @@ public class EmployeeInfoDeletion implements Runnable {
                         }
                     }
                 } catch (Exception e) {
-                    MANAGER.printErrorLog(e, "選択された社員情報の削除に失敗しました");
+                    MANAGER.printExceptionLog(e, "選択された社員情報の削除に失敗しました");
                     // employeeListにbackupEmployeeListをコピー
                     EmployeeManager.employeeList.clear();
                     EmployeeManager.employeeList = backupEmployeeList;
@@ -69,7 +69,7 @@ public class EmployeeInfoDeletion implements Runnable {
                     // バックアップファイル作成
                     Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 } catch (IOException e) {
-                    MANAGER.printErrorLog(e, "バックアップファイルの作成に失敗しました");
+                    MANAGER.printExceptionLog(e, "バックアップファイルの作成に失敗しました");
                     showErrorDialog("バックアップファイルの作成に失敗しました");
                     return;
                 }
@@ -104,13 +104,13 @@ public class EmployeeInfoDeletion implements Runnable {
                 } catch (IOException ex) {
                     MANAGER.LOGGER.info("社員情報保存CSVファイルロック解除失敗");
                 }
-                MANAGER.printErrorLog(e, "削除後の社員情報リストの保存に失敗しました");
+                MANAGER.printExceptionLog(e, "削除後の社員情報リストの保存に失敗しました");
                 if (originalFile.exists() && backupFile.exists()) {
                     try {
                         Files.deleteIfExists(originalFile.toPath());
                     } catch (Exception ex) {
                         // オリジナルの社員情報保存CSVファイルが削除に失敗した場合
-                        MANAGER.printErrorLog(ex, "オリジナルの社員情報保存CSVファイルが削除できませんでした");
+                        MANAGER.printExceptionLog(ex, "オリジナルの社員情報保存CSVファイルが削除できませんでした");
                         showErrorDialog("オリジナルの社員情報保存CSVファイルが削除できませんでした");
                         return;
                     }
@@ -123,7 +123,7 @@ public class EmployeeInfoDeletion implements Runnable {
             Files.deleteIfExists(backupFile.toPath());
         } catch (Exception e) {
             // 社員情報保存CSV＆社員情報リスト以外で例外が発生した場合 (メモリがいっぱいなど)
-            MANAGER.printErrorLog(e, "社員情報の削除に失敗しました");
+            MANAGER.printExceptionLog(e, "社員情報の削除に失敗しました");
             showErrorDialog("社員情報の削除に失敗しました");
             return;
         }

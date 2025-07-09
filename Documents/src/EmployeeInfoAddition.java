@@ -40,7 +40,7 @@ public class EmployeeInfoAddition implements Runnable {
             Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             MANAGER.LOGGER.info("CSVバックアップ作成成功");
         } catch (IOException e) {
-            MANAGER.printErrorLog(e, "CSVバックアップ作成失敗");
+            MANAGER.printExceptionLog(e, "CSVバックアップ作成失敗");
             return;
         }
         // CSVファイルのロック処理
@@ -58,7 +58,7 @@ public class EmployeeInfoAddition implements Runnable {
             pw.close();
             MANAGER.LOGGER.info("ファイルロック解除成功");
         } catch (IOException e) {
-            MANAGER.printErrorLog(e, "CSVファイル新規追加失敗しました");
+            MANAGER.printExceptionLog(e, "CSVファイル新規追加失敗しました");
             // 追記中エラー時のロールバック処理を追加
             try {
                 if (lock != null && lock.isValid()) {
@@ -66,13 +66,13 @@ public class EmployeeInfoAddition implements Runnable {
                     MANAGER.LOGGER.info("ファイルロック解除成功");
                 }
             } catch (IOException ex) {
-                MANAGER.printErrorLog(e, "ファイルロック解除失敗");
+                MANAGER.printExceptionLog(e, "ファイルロック解除失敗");
             }
             try {
                 Files.deleteIfExists(originalFile.toPath()); // 失敗時にCSVファイルを削除
                 Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // バックアップを復元
             } catch (IOException ex) {
-                MANAGER.printErrorLog(ex, "CSVファイルのロールバック処理に失敗");
+                MANAGER.printExceptionLog(ex, "CSVファイルのロールバック処理に失敗");
             }
             javax.swing.SwingUtilities.invokeLater(() -> {
                 showValidationError("CSVファイルへの追加に失敗しました。"); // UIclassでエラーメッセージを表示
@@ -97,7 +97,7 @@ public class EmployeeInfoAddition implements Runnable {
                     MANAGER.LOGGER.info("ファイル出力ストリームクローズ成功");
                 }
             } catch (IOException e) {
-                MANAGER.printErrorLog(e, "finally句での後処理に失敗");
+                MANAGER.printExceptionLog(e, "finally句での後処理に失敗");
             }
         }
         // 社員情報リストに新規データを追加
@@ -105,7 +105,7 @@ public class EmployeeInfoAddition implements Runnable {
             EmployeeManager.employeeList.add(newEmployee);
             MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
         } catch (Exception e) {
-            MANAGER.printErrorLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
+            MANAGER.printExceptionLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
         }
         additionLock.unlock(); // ロックを解放
         MANAGER.LOGGER.info("社員情報追加の終了");

@@ -89,12 +89,12 @@ public class EmployeeInfoUpdate implements Runnable {
 
         } catch (IOException e) {
             // --- 書き込みエラー時：ロールバック処理（元に戻す） ---
-            MANAGER.printErrorLog(e, "社員情報更新失敗");
+            MANAGER.printExceptionLog(e, "社員情報更新失敗");
             try {
                 Files.deleteIfExists(originalFile.toPath()); // 壊れたファイル削除
                 Files.move(backupFile.toPath(), originalFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // バックアップ復元
             } catch (IOException ex) {
-                MANAGER.printErrorLog(ex, "CSVロールバック失敗");
+                MANAGER.printExceptionLog(ex, "CSVロールバック失敗");
             }
             showErrorDialog("社員情報の保存に失敗しました");
             return;
@@ -107,7 +107,7 @@ public class EmployeeInfoUpdate implements Runnable {
                     fos.close(); // ストリームクローズ
                 Files.deleteIfExists(backupFile.toPath()); // バックアップ削除
             } catch (IOException e) {
-                MANAGER.printErrorLog(e, "リソースの解放に失敗しました");
+                MANAGER.printExceptionLog(e, "リソースの解放に失敗しました");
             }
         }
         updateLock.unlock(); // ロック解除

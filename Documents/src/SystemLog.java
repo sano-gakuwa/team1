@@ -30,7 +30,7 @@ public abstract class SystemLog {
                 LOGGER.addHandler(fileHandler);
             }
         } catch (Exception e) {
-            printErrorLog(e, "ログ設定で例外が発生しました");
+            printExceptionLog(e, "ログ設定で例外が発生しました");
         }
     }
 
@@ -51,7 +51,7 @@ public abstract class SystemLog {
                 return true;
             }
         } catch (Exception e) {
-            printErrorLog(e, "ログファイルの存在確認で例外が発生しました");
+            printExceptionLog(e, "ログファイルの存在確認で例外が発生しました");
         }
         return false;
     }
@@ -65,7 +65,7 @@ public abstract class SystemLog {
         try {
             Files.createFile(path);// ファイルが存在しない為、ファイルを新規作成
         } catch (Exception e) {
-            printErrorLog(e, "ログファイルの新規作成で例外が発生しました");
+            printExceptionLog(e, "ログファイルの新規作成で例外が発生しました");
         }
     }
 
@@ -75,11 +75,19 @@ public abstract class SystemLog {
      * @param errorString ログに出力するエラー文言
      * @author 下村
      */
-    public abstract void printErrorLog(Exception e, String errorString);
+    public abstract void printExceptionLog(Exception e, String errorString);
+
     /**
      * ログに情報を出力する
      * @param infoString　出力する文言
      * @author 下村
      */
     public abstract void printInfoLog(String infoString);
+
+    /**
+     * ログにエラーを出力する
+     * @param infoString　出力する文言
+     * @author 下村
+     */
+    public abstract void printErrorLog(String errString);
 }

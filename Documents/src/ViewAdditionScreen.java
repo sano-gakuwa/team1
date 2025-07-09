@@ -520,7 +520,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             employee.setUpdatedDay(new Date());
             return employee;
         } catch (Exception e) {
-            MANAGER.printErrorLog(e, "データ取得中にエラーが発生しました");
+            MANAGER.printExceptionLog(e, "データ取得中にエラーが発生しました");
             showValidationError("データ取得中にエラーが発生しました");
             return null;
         }

@@ -429,7 +429,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                 TableColumn detailColumn = engineerTable.getColumn("詳細");
                 detailColumn.setCellRenderer(new ButtonRenderer());
             } catch (IllegalArgumentException e) {
-                MANAGER.printErrorLog(e, "詳細列の設定失敗：");
+                MANAGER.printExceptionLog(e, "詳細列の設定失敗：");
             }
         }
         // 表示更新の後で、マウスイベント登録メソッドを呼び出す
@@ -467,7 +467,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                                 }
                             }
                         } catch (Exception ex) {
-                            MANAGER.printErrorLog(ex, "社員情報の取得に失敗");
+                            MANAGER.printExceptionLog(ex, "社員情報の取得に失敗");
                             return;
                         }
                         MANAGER.LOGGER.info("社員番号が" + selectID + "の社員情報を表示");

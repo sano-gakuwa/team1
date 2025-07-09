@@ -61,7 +61,7 @@ public class CreateCsv implements Runnable {
                 Files.createFile(filePath);
             } catch (Exception e) {
                 // ファイル新規作成で例外が発生
-                MANAGER.printErrorLog(e, "ファイル新規作成で例外が発生しました");
+                MANAGER.printExceptionLog(e, "ファイル新規作成で例外が発生しました");
                 showErrorDialog("ファイル新規作成で例外が発生しました");
                 return;
             }
@@ -89,7 +89,7 @@ public class CreateCsv implements Runnable {
             }
         } catch (Exception e) {
             // CSV出力時に例外発生
-            MANAGER.printErrorLog(e, "CSV出力時に例外発生");
+            MANAGER.printExceptionLog(e, "CSV出力時に例外発生");
             showErrorDialog("CSV出力時に例外が発生しました");
             try {
                 // 出力しようとしたファイルを削除
@@ -98,7 +98,7 @@ public class CreateCsv implements Runnable {
                 MANAGER.printInfoLog("出力しようとしたファイルを削除しました: " + makeCsvFile.getAbsolutePath());
             } catch (Exception ex) {
                 // 出力しようとしたファイルの削除に失敗
-                MANAGER.printErrorLog(ex, "出力しようとしたファイルの削除に失敗");
+                MANAGER.printExceptionLog(ex, "出力しようとしたファイルの削除に失敗");
             }
         } finally {
             // CSV出力処理が完了したのでロックを解除
@@ -150,7 +150,7 @@ public class CreateCsv implements Runnable {
                 filePath = createCsvPath(directory);
             }
         } catch (Exception e) {
-            MANAGER.printErrorLog(e, "スレッドの一時停止に失敗しました");
+            MANAGER.printExceptionLog(e, "スレッドの一時停止に失敗しました");
         }
         return new File(filePath.toString());
     }

@@ -109,7 +109,7 @@ public class ReadCsv implements Runnable {
                 }
             } catch (Exception e) {
                 String message = "指定されたCSVファイルから情報の読み込みが出来ませんでした";
-                MANAGER.printErrorLog(e, message);
+                MANAGER.printExceptionLog(e, message);
                 JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -120,7 +120,7 @@ public class ReadCsv implements Runnable {
                 // バックアップファイル作成
                 Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (Exception e) {
-                MANAGER.printErrorLog(e, "バックアップファイルの作成に失敗しました");
+                MANAGER.printExceptionLog(e, "バックアップファイルの作成に失敗しました");
                 showErrorDialog("バックアップファイルの作成に失敗しました");
                 return;
             }
@@ -136,7 +136,7 @@ public class ReadCsv implements Runnable {
                         printWriter.println(MANAGER.convertToCSV(employee));
                     }
                 } catch (Exception e) {
-                    MANAGER.printErrorLog(e, "社員情報リストの内容を社員情報保存CSVに保存失敗");
+                    MANAGER.printExceptionLog(e, "社員情報リストの内容を社員情報保存CSVに保存失敗");
                     return;
                 }
                 try {
@@ -145,17 +145,17 @@ public class ReadCsv implements Runnable {
                         MANAGER.LOGGER.info("社員情報保存CSVファイルのロックを解除しました");
                     }
                 } catch (Exception ex) {
-                    MANAGER.printErrorLog(ex, "社員情報保存CSVファイルのロック解除に失敗しました");
+                    MANAGER.printExceptionLog(ex, "社員情報保存CSVファイルのロック解除に失敗しました");
                 }
             } catch (Exception e) {
                 // 追記中エラー時のロールバック処理を追加
-                MANAGER.printErrorLog(e, "削除後の社員情報リストの保存に失敗しました");
+                MANAGER.printExceptionLog(e, "削除後の社員情報リストの保存に失敗しました");
                 if (originalFile.exists() && backupFile.exists()) {
                     try {
                         Files.deleteIfExists(originalFile.toPath());
                     } catch (Exception ex) {
                         // オリジナルの社員情報保存CSVファイルが削除に失敗した場合
-                        MANAGER.printErrorLog(ex, "オリジナルの社員情報保存CSVファイルが削除できませんでした");
+                        MANAGER.printExceptionLog(ex, "オリジナルの社員情報保存CSVファイルが削除できませんでした");
                         showErrorDialog("オリジナルの社員情報保存CSVファイルが削除できませんでした");
                         return;
                     }
@@ -176,7 +176,7 @@ public class ReadCsv implements Runnable {
             showDialog(message);
         } catch (Exception e) {
             String message = "指定されたCSVファイルの読み込みが出来ませんでした";
-            MANAGER.printErrorLog(e, message);
+            MANAGER.printExceptionLog(e, message);
             JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
             return;
         }

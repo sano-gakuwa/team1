@@ -21,6 +21,7 @@ import java.util.Scanner;
 
 /**
  * 社員情報を登録・管理するためのマネージャークラス
+ * 
  * @atuthor 下村
  */
 public class EmployeeManager extends SystemLog {
@@ -34,6 +35,7 @@ public class EmployeeManager extends SystemLog {
             "備考", "更新日"
     };
     public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
+
     public EmployeeManager() {
         // インスタンス生成時のメソッド等無し
     }
@@ -45,9 +47,9 @@ public class EmployeeManager extends SystemLog {
      */
     public void setUp() {
         setUpLog();
-        LOGGER.info("起動");
+        printInfoLog("起動");
         setUpCSV();
-        setFrameExit exit=new setFrameExit();
+        setFrameExit exit = new setFrameExit();
         exit.setExit();
         ViewTopScreen top = new ViewTopScreen();
         top.View();
@@ -67,7 +69,7 @@ public class EmployeeManager extends SystemLog {
             employeeLoading();
             // checkArrayList();
         } catch (Exception e) {
-            printErrorLog(e, "社員情報保存用CSVファイル読み込み失敗");
+            printExceptionLog(e, "社員情報保存用CSVファイル読み込み失敗");
         }
     }
 
@@ -89,7 +91,7 @@ public class EmployeeManager extends SystemLog {
                 return true;
             }
         } catch (Exception e) {
-            printErrorLog(e, "社員情報保存用CSVファイルの存在が確認出来ません");
+            printExceptionLog(e, "社員情報保存用CSVファイルの存在が確認出来ません");
         }
         return false;
     }
@@ -103,25 +105,25 @@ public class EmployeeManager extends SystemLog {
         Path path = Paths.get(CSV_FILEPATH);
         try {
             Files.createFile(path);// ファイルが存在しない為、ファイルを新規作成
+            printInfoLog("ファイルを新規作成");
         } catch (FileAlreadyExistsException e) {
             // ファイルがすでに存在する場合
-            printErrorLog(e, "同じファイルがすでに存在します");
+            printExceptionLog(e, "同じファイルがすでに存在します");
         } catch (Exception e) {
-            printErrorLog(e, "ファイル新規作成で例外が発生しました");
+            printExceptionLog(e, "ファイル新規作成で例外が発生しました");
         }
         if (EMPLOYEE_CSV.isFile() && EMPLOYEE_CSV.canWrite()) {
-            try {
-                // 文字コードを指定する
-                PrintWriter newFileWriter = new PrintWriter(
-                        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(CSV_FILEPATH), "Shift-JIS")));
+            // 文字コードを指定する
+            try (PrintWriter newFileWriter = new PrintWriter(new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(CSV_FILEPATH), "Shift-JIS")))) {
                 // ヘッダー行(必須などの項目は記載無し)を記載する
                 for (String category : EMPLOYEE_CATEGORY) {
                     newFileWriter.append(category + ",");
                 }
+                printInfoLog("ヘッダー部分にカテゴリー名入力済み");
                 newFileWriter.append("\n");
-                newFileWriter.close();
             } catch (Exception e) {
-                printErrorLog(e, "社員情報保存用CSVファイルのヘッダー部分が作成出来ませんでした");
+                printExceptionLog(e, "社員情報保存用CSVファイルのヘッダー部分が作成出来ませんでした");
             }
         }
     }
@@ -139,47 +141,75 @@ public class EmployeeManager extends SystemLog {
             scanner.next();
             try {
                 while (scanner.hasNext()) { // 次に読み込むべき行があるか判定
-                    ArrayList<String> loadEmployeeDate = new ArrayList<String>(
-                            Arrays.asList(scanner.next().split(",")));
-                    EmployeeInformation employee = new EmployeeInformation();
-                    employee.setEmployeeID(loadEmployeeDate.get(0));
-                    employee.setlastName(loadEmployeeDate.get(1));
-                    employee.setFirstname(loadEmployeeDate.get(2));
-                    employee.setRubyLastName(loadEmployeeDate.get(3));
-                    employee.setRubyFirstname(loadEmployeeDate.get(4));
-                    employee.setBirthday(dateFormat.parse(loadEmployeeDate.get(5)));
-                    employee.setJoiningDate(dateFormat.parse(loadEmployeeDate.get(6)));
-                    employee.setEngineerDate(Integer.parseInt(loadEmployeeDate.get(7)));
-                    employee.setAvailableLanguages(loadEmployeeDate.get(8));
-                    employee.setCareerDate(loadEmployeeDate.get(9));
-                    employee.setTrainingDate(loadEmployeeDate.get(10));
-                    employee.setSkillPoint(Double.parseDouble(loadEmployeeDate.get(11)));
-                    employee.setAttitudePoint(Double.parseDouble(loadEmployeeDate.get(12)));
-                    employee.setCommunicationPoint(Double.parseDouble(loadEmployeeDate.get(13)));
-                    employee.setLeadershipPoint(Double.parseDouble(loadEmployeeDate.get(14)));
-                    employee.setRemarks(loadEmployeeDate.get(15));
-                    employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
+                    // 読み込んだ社員情報の文字列
+                    ArrayList<String> loadEmployeeDate;
+                    loadEmployeeDate = new ArrayList<String>(Arrays.asList(scanner.next().split(",")));
+                    // 読み込んだ社員情報を社員情報型に変換
+                    EmployeeInformation employee = convertEmployeeInformation(loadEmployeeDate);
+                    // 社員情報リストに社員情報を追加
                     employeeList.add(employee);
                 }
             } catch (Exception e) {
-                printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
+                printExceptionLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
+            }finally{
+                scanner.close();
             }
-            scanner.close();
         } catch (Exception e) {
-            printErrorLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
+            printExceptionLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
         }
     }
+
     @Override
-    public void printErrorLog(Exception e, String errorString) {
+    public void printExceptionLog(Exception e, String errorString) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
         LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
+
     @Override
-    public void printInfoLog(String infoString){
+    public void printInfoLog(String infoString) {
         LOGGER.info(infoString);
     }
+
+    @Override
+    public void printErrorLog(String errString){
+        LOGGER.warning(errString);
+    }
+
+    
+    /**
+     * 文字列を社員情報型に変換
+     * @param loadEmployeeDate 読み込まれた社員情報の文字列
+     * @return 社員情報型
+     * @author simomura
+     */
+    private EmployeeInformation convertEmployeeInformation(ArrayList<String> loadEmployeeDate) {
+        EmployeeInformation employee = new EmployeeInformation();
+        try {
+            employee.setEmployeeID(loadEmployeeDate.get(0));
+            employee.setlastName(loadEmployeeDate.get(1));
+            employee.setFirstname(loadEmployeeDate.get(2));
+            employee.setRubyLastName(loadEmployeeDate.get(3));
+            employee.setRubyFirstname(loadEmployeeDate.get(4));
+            employee.setBirthday(dateFormat.parse(loadEmployeeDate.get(5)));
+            employee.setJoiningDate(dateFormat.parse(loadEmployeeDate.get(6)));
+            employee.setEngineerDate(Integer.parseInt(loadEmployeeDate.get(7)));
+            employee.setAvailableLanguages(loadEmployeeDate.get(8));
+            employee.setCareerDate(loadEmployeeDate.get(9));
+            employee.setTrainingDate(loadEmployeeDate.get(10));
+            employee.setSkillPoint(Double.parseDouble(loadEmployeeDate.get(11)));
+            employee.setAttitudePoint(Double.parseDouble(loadEmployeeDate.get(12)));
+            employee.setCommunicationPoint(Double.parseDouble(loadEmployeeDate.get(13)));
+            employee.setLeadershipPoint(Double.parseDouble(loadEmployeeDate.get(14)));
+            employee.setRemarks(loadEmployeeDate.get(15));
+            employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
+        } catch (Exception e) {
+            printExceptionLog(e, "文字列から社員情報に変換に失敗しました");
+        }
+        return employee;
+    }
+
     /**
      * 社員情報をCSV形式の文字列に変換
      *
@@ -190,7 +220,7 @@ public class EmployeeManager extends SystemLog {
      */
     public String convertToCSV(EmployeeInformation employee) {
         // 社員情報をCSV形式の文字列に変換するメソッド
-        //カンマ区切りの文字列
+        // カンマ区切りの文字列
         String csvTypeString = null;
         // 社員情報の各フィールドをカンマ区切りで連結
         StringBuilder csvBuilder = new StringBuilder();
@@ -211,10 +241,11 @@ public class EmployeeManager extends SystemLog {
         csvBuilder.append(employee.getLeadershipPoint()).append(",");
         csvBuilder.append(employee.getRemarks()).append(",");
         csvBuilder.append(EmployeeInformation.formatDate(employee.getUpdatedDay())).append(",");
-        //カンマ区切りで連結した文字列を返す
+        // カンマ区切りで連結した文字列を返す
         csvTypeString = csvBuilder.toString();
         return csvTypeString;
     }
+
     /**
      * 社員情報の形式が正しいかを検証 必須項目がすべて入力されているかを確認
      *
@@ -246,6 +277,7 @@ public class EmployeeManager extends SystemLog {
         }
         return validate;
     }
+
     /**
      * 要求仕様書通りの仕様になっているのか確認用
      * 
@@ -257,34 +289,51 @@ public class EmployeeManager extends SystemLog {
         boolean validate = true;
         try {
             if (employee.getEmployeeID().length() != 7) {
+                printErrorLog("エラー:社員IDが7桁ではありません");
                 validate = false;
             }
             if (employee.getLastName().length() > 15) {
+                printErrorLog("エラー:姓が15文字より多いです");
                 validate = false;
             }
             if (employee.getFirstname().length() > 15) {
+                printErrorLog("エラー:名が15文字より多いです");
                 validate = false;
             }
             if (employee.getRubyLastName().length() > 15) {
+                printErrorLog("エラー:姓の読みが15文字より多いです");
                 validate = false;
             }
             if (employee.getRubyFirstname().length() > 15) {
+                printErrorLog("エラー:名の読みがが15文字より多いです");
                 validate = false;
             }
             if (validateNotFuture(employee.getBirthday())) {
+                printErrorLog("エラー:誕生日が未来の日付です");
                 validate = false;
             }
             if (validateNotFuture(employee.getJoiningDate())) {
+                printErrorLog("エラー:入社日が未来の日付です");
+                validate = false;
+            }
+            if(employee.getEngineerDate()<0){
+                printErrorLog("エラー:エンジニア歴がマイナスです");
+                validate = false;
+            }
+            if(employee.getEngineerDate()>=600){
+                printErrorLog("エラー:エンジニア歴が50年以上です");
                 validate = false;
             }
             if (employee.getEngineerDate() >= 600) {
+                printErrorLog("エラー:");
                 validate = false;
             }
         } catch (Exception e) {
-            printErrorLog(e, "形式エラー");
+            printExceptionLog(e, "形式エラー");
         }
         return validate;
     }
+
     /**
      * 日付が未来の日付では無いか確認用
      * 
@@ -296,8 +345,12 @@ public class EmployeeManager extends SystemLog {
         LocalDate today = LocalDate.now();
         LocalDate targetDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         boolean isFuture = targetDate.isAfter(today);
+        if (isFuture) {
+            printErrorLog("エラー:未来の日付です");
+        }
         return isFuture;
     }
+
     /**
      * 重複する社員IDが存在するかを検証
      *
@@ -308,8 +361,6 @@ public class EmployeeManager extends SystemLog {
     public boolean validateOverlappingEmployee(EmployeeInformation employee) {
         // 重複チェック：既に同じ社員IDが存在していないか
         for (EmployeeInformation existing : employeeList) {
-            System.out.println("existing.getEmployeeID() = " + existing.getEmployeeID());
-            System.out.println("employee.getEmployeeID() = " + employee.getEmployeeID());
             if (existing.getEmployeeID().equals(employee.getEmployeeID())) {
                 return false;
             }

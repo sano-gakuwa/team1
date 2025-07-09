@@ -32,7 +32,7 @@ public class ThreadsManager extends SystemLog{
         }
     }
     @Override
-    public void printErrorLog(Exception e, String errorString) {
+    public void printExceptionLog(Exception e, String errorString) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
@@ -41,5 +41,10 @@ public class ThreadsManager extends SystemLog{
     @Override
     public void printInfoLog(String infoString){
         LOGGER.info(infoString);
+    }
+    @Override
+    public void printErrorLog(String errString) {
+        LOGGER.warning(errString);
+        
     }
 }
