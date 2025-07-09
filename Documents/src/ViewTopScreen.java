@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.text.*;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -72,32 +73,56 @@ public class ViewTopScreen extends SetUpTopScreen {
         JPanel topPanel = (JPanel) topWrapper.getComponent(0);
         topPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
         topPanel.setOpaque(false);
-        String[] labels = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語" };
-        for (String label : labels) {
-            topPanel.add(new JLabel(label));
-            JTextField field = new JTextField(5);
-            topPanel.add(field);
-        }
+
+        // それぞれの検索フィールドを変数化して保持
+        JTextField idField = new JTextField(5);
+        JTextField nameField = new JTextField(5);
+        JTextField ageField = new JTextField(5);
+        JTextField engField = new JTextField(5);
+        JTextField langField = new JTextField(5);
+
+        // ラベル + フィールドを追加
+        topPanel.add(new JLabel("社員ID"));
+        topPanel.add(idField);
+        topPanel.add(new JLabel("氏名"));
+        topPanel.add(nameField);
+        topPanel.add(new JLabel("年齢"));
+        topPanel.add(ageField);
+        topPanel.add(new JLabel("エンジニア歴"));
+        topPanel.add(engField);
+        topPanel.add(new JLabel("扱える言語"));
+        topPanel.add(langField);
+
+        // 入力制限フィルター（最大100文字）をそれぞれ適用
+        ((AbstractDocument) idField.getDocument()).setDocumentFilter(new TextLengthFilter(100));
+        ((AbstractDocument) nameField.getDocument()).setDocumentFilter(new TextLengthFilter(100));
+        ((AbstractDocument) ageField.getDocument()).setDocumentFilter(new TextLengthFilter(100));
+        ((AbstractDocument) engField.getDocument()).setDocumentFilter(new TextLengthFilter(100));
+        ((AbstractDocument) langField.getDocument()).setDocumentFilter(new TextLengthFilter(100));
+
+        // 検索ボタンの設定
         JButton searchButton = new JButton("検索");
         topPanel.add(searchButton);
-        searchButton.setBackground(new Color(30, 144, 255)); // ボタン枠内塗りつぶし
-        searchButton.setForeground(Color.WHITE);// 白文字
-        searchButton.setFocusPainted(false); // フォーカス枠非表示（シンプル化）
+        searchButton.setBackground(new Color(30, 144, 255));
+        searchButton.setForeground(Color.WHITE);
+        searchButton.setFocusPainted(false);
+
         searchButton.addActionListener(e -> {
             if (searchOverlayPanel == null) {
                 setupSearchOverlay();  // 初期化
             }
             showSearchOverlay();
 
-            // 検索フィールドの値を取得
-            String idQuery = ((JTextField) topPanel.getComponent(1)).getText();
-            String nameQuery = ((JTextField) topPanel.getComponent(3)).getText();
-            String ageQuery = ((JTextField) topPanel.getComponent(5)).getText();
-            String engQuery = ((JTextField) topPanel.getComponent(7)).getText();
-            String langQuery = ((JTextField) topPanel.getComponent(9)).getText();
+            // 検索キーワード取得
+            String idQuery = idField.getText();
+            String nameQuery = nameField.getText();
+            String ageQuery = ageField.getText();
+            String engQuery = engField.getText();
+            String langQuery = langField.getText();
 
             executeSearch(idQuery, nameQuery, ageQuery, engQuery, langQuery);
         });
+
 
         // centerPanel 取得
         JPanel centerWrapper = (JPanel) fullScreenPanel.getComponent(3);
@@ -381,8 +406,8 @@ public class ViewTopScreen extends SetUpTopScreen {
         JScrollPane scrollPane = new JScrollPane(engineerTable);
         employeeListPanel.add(scrollPane, BorderLayout.CENTER);
 
-employeeListPanel.revalidate();
-employeeListPanel.repaint();
+        employeeListPanel.revalidate();
+        employeeListPanel.repaint();
         
 
         int totalEmployees = tableEmployee.size();// 下村作成部分(本番時利用コード)
@@ -422,13 +447,17 @@ employeeListPanel.repaint();
                 // 「エンジニア歴」列（index = 3）の年月変換
                 if (column == 3 && value != null) {
                     try {
-                        String valStr = value.toString().replaceAll("[^0-9]", ""); // 数字抽出
-                        int months = Integer.parseInt(valStr);
-                        int years = months / 12;
-                        int remain = months % 12;
-                        label.setText(years + "年" + remain + "ヶ月");
+                        String valStr = value.toString();
+                        if (valStr.matches("\\d+")) {
+                            int months = Integer.parseInt(valStr);
+                            int years = months / 12;
+                            int remain = months % 12;
+                            label.setText(years + "年" + remain + "ヶ月");
+                        } else {
+                            label.setText(valStr);
+                        }
                     } catch (NumberFormatException e) {
-                        label.setText(value.toString()); // エラー時は元の表示
+                        label.setText(value.toString());
                     }
                 }
                 return label;
@@ -568,10 +597,8 @@ employeeListPanel.repaint();
             displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
 
             // 修正点：エンジニア歴を「○年○ヶ月」に変換して代入
-            int months = empioyee.getEngineerDate();
-            int years = months / 12;
-            int remain = months % 12;
-            displayList[i][3] = years + "年" + remain + "ヶ月";
+            displayList[i][3] = empioyee.getEngineerDate(); 
+
 
             displayList[i][4] = empioyee.getAvailableLanguages();
             displayList[i][5] = "詳細";
@@ -683,4 +710,50 @@ employeeListPanel.repaint();
             System.out.println("clearSearchResultButton is null");
         }
     }
+    // 入力文字数制限用フィルター（最大100文字）
+    private static class TextLengthFilter extends DocumentFilter {
+        private int maxLength;
+
+        public TextLengthFilter(int maxLength) {
+            this.maxLength = maxLength;
+        }
+
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
+                throws BadLocationException {
+            if (string == null) return;
+
+            int currentLength = fb.getDocument().getLength();
+            int newLength = currentLength + string.length();
+            if (newLength <= maxLength) {
+                super.insertString(fb, offset, string, attr);
+            } else {
+                int allowedLength = maxLength - currentLength;
+                if (allowedLength > 0) {
+                    super.insertString(fb, offset, string.substring(0, allowedLength), attr);
+                }
+                // それ以上は無視（入力しない）
+            }
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                throws BadLocationException {
+            if (text == null) return;
+
+            int currentLength = fb.getDocument().getLength();
+            int newLength = currentLength - length + text.length();
+            if (newLength <= maxLength) {
+                super.replace(fb, offset, length, text, attrs);
+            } else {
+                int allowedLength = maxLength - (currentLength - length);
+                if (allowedLength > 0) {
+                    super.replace(fb, offset, length, text.substring(0, allowedLength), attrs);
+                }
+                // それ以上は無視（入力しない）
+            }
+        }
+    }
+
+    
 }
