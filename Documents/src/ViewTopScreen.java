@@ -1,7 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
@@ -262,9 +261,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                 sortStates.replaceAll((k, v) -> 0);
                 // 今回クリックされた列のみ状態を更新
                 sortStates.put(col, next);
-
                 header.repaint(); // ヘッダー再描画
-
                 // ソートキー判定
                 EmployeeListOperator.SortKey sortKey = switch (col) {
                     case 0 -> EmployeeListOperator.SortKey.EMPLOYEE_ID;
@@ -297,7 +294,6 @@ public class ViewTopScreen extends SetUpTopScreen {
             engineerTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
         JScrollPane scrollPane = new JScrollPane(engineerTable);
-        scrollPane.setPreferredSize(new Dimension(715, 363));
         employeeListPanel.setLayout(new BorderLayout());
         employeeListPanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -385,16 +381,6 @@ public class ViewTopScreen extends SetUpTopScreen {
                 return false;
             }
         };
-
-        
-
-        // テーブルモデル作成（編集不可）
-        model = new DefaultTableModel(pageData, columnNames) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
         engineerTable.setModel(model); // モデルの設定後にレンダラー設定
         engineerTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -425,7 +411,6 @@ public class ViewTopScreen extends SetUpTopScreen {
                         label.setText(value.toString()); // エラー時は元の表示
                     }
                 }
-
                 return label;
             }
         });

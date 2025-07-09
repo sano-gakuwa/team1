@@ -66,6 +66,8 @@ public class EmployeeManager extends SystemLog {
         setUpLog();
         LOGGER.info("起動");
         setUpCSV();
+        setFrameExit exit=new setFrameExit();
+        exit.setExit();
         ViewTopScreen top = new ViewTopScreen();
         top.View();
     }

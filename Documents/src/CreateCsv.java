@@ -18,6 +18,7 @@ public class CreateCsv implements Runnable {
     private String directory;
     private ArrayList<String> selected;
     private final EmployeeManager MANAGER = new EmployeeManager();
+    private ThreadsManager threadsManager=new ThreadsManager();
     private static ReentrantLock createCsvLock = new ReentrantLock();
 
     /**
@@ -46,6 +47,7 @@ public class CreateCsv implements Runnable {
     @Override
     public void run() {
         MANAGER.LOGGER.info("CSV出力処理を開始します");
+        threadsManager.startUsing(Thread.currentThread());
         // ロックを取得
         createCsvLock.lock();
         MANAGER.LOGGER.info("CSV出力処理をロックしました");
@@ -101,6 +103,7 @@ public class CreateCsv implements Runnable {
         } finally {
             // CSV出力処理が完了したのでロックを解除
             createCsvLock.unlock();
+            threadsManager.endUsing(Thread.currentThread());
         }
         // CSV出力処理が成功したことをログに記録
         MANAGER.LOGGER.info("CSV出力処理が完了しました");

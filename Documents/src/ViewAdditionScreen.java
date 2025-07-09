@@ -11,16 +11,16 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     private JTextField rubyLastNameField, rubyFirstNameField;
     private JTextField lastNameField, firstNameField;
     // 生年月日
-    private JComboBox<Integer> birthYearCombo;
-    private JComboBox<Integer> birthMonthCombo;
-    private JComboBox<Integer> birthDayCombo;
+    private JComboBox<String> birthYearCombo;
+    private JComboBox<String> birthMonthCombo;
+    private JComboBox<String> birthDayCombo;
     // 入社年月日
-    private JComboBox<Integer> joinYearCombo;
-    private JComboBox<Integer> joinMonthCombo;
-    private JComboBox<Integer> joinDayCombo;
+    private JComboBox<String> joinYearCombo;
+    private JComboBox<String> joinMonthCombo;
+    private JComboBox<String> joinDayCombo;
     // エンジニア歴
-    private JComboBox<Integer> engYearCombo = new JComboBox<>();
-    private JComboBox<Integer> engMonthCombo = new JComboBox<>();
+    private JComboBox<String> engYearCombo = new JComboBox<>();
+    private JComboBox<String> engMonthCombo = new JComboBox<>();
     private JPanel birthPanel = new JPanel();
     private JPanel joinPanel = new JPanel();
     private JPanel engPanel = new JPanel();
@@ -82,7 +82,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
 
     // upperPanelに要素追加（生年月日、入社年月、エンジニア歴、扱える言語）
     private void setupDateAndLanguageFields() {
-        //
+        //現在の年月日
         LocalDate now = LocalDate.now();
         Integer[] nowInteger = { now.getYear(), now.getMonthValue(), now.getDayOfMonth() };
         // 生年月日
@@ -105,7 +105,6 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         joinMonthCombo = new JComboBox<>(monthModel(nowInteger));
         joinDayCombo = new JComboBox<>(dayModel(joinYearCombo, joinMonthCombo, nowInteger));
         joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo));
-        joinPanel.setBackground(Color.WHITE);
         joiningDatePanel.add(joinPanel, BorderLayout.SOUTH);
         joinYearCombo.addItemListener(e -> {
             updateDayCombo(joinYearCombo, joinMonthCombo, joinDayCombo);
@@ -116,7 +115,6 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         // エンジニア歴
         engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
         engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo));
-        engPanel.setBackground(Color.WHITE);
         engineerDatePanel.add(engPanel, BorderLayout.SOUTH);
         // 扱える言語
         JLabel availableLanguagesLabel = new JLabel("扱える言語");
@@ -127,7 +125,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         availableLanguageFieldPanel.setBackground(Color.LIGHT_GRAY);
         availableLanguageFieldPanel.setLayout(null);
         availableLanguageField = placeholderTextField("html・CSS");
-        availableLanguageField.setBounds(0, 5, 190, 30);
+        availableLanguageField.setBounds(5, 5, 180, 30);
         availableLanguageFieldPanel.add(availableLanguageField);
         availableLanguagesPanel.add(availableLanguageFieldPanel);
     }
@@ -287,38 +285,42 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         return comboBox;
     }
 
-    private DefaultComboBoxModel<Integer> yearModel(Integer nowInteger[]) {
+    private DefaultComboBoxModel<String> yearModel(Integer nowInteger[]) {
         // 年のコンボボックス設定
-        Integer[] yearInteger = {};
-        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
+        String[] yearString = {};
+        DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>(yearString);
         for (int i = nowInteger[0] - 100; i <= nowInteger[0]; i++) {
-            yearModel.addElement(i);
+            yearModel.addElement(i+"年");
         }
         return yearModel;
     }
 
-    private DefaultComboBoxModel<Integer> monthModel(Integer nowInteger[]) {
+    private DefaultComboBoxModel<String> monthModel(Integer nowInteger[]) {
         // 月のコンボボックス設定
-        Integer[] monthInteger = {};
-        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
+        String[] monthString = {};
+        DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>(monthString);
         for (int i = 1; i <= 12; i++) {
-            monthModel.addElement(i);
+            monthModel.addElement(i+"月");
         }
         return monthModel;
     }
 
-    private DefaultComboBoxModel<Integer> dayModel(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox,
+    private DefaultComboBoxModel<String> dayModel(JComboBox<String> yearBox, JComboBox<String> monthBox,
             Integer nowInteger[]) {
         // 日のコンボボックス設定
-        int year = (int) yearBox.getSelectedItem();
-        int month = (int) monthBox.getSelectedItem();
+        String yearsString=(String)yearBox.getSelectedItem();
+        yearsString=yearsString.replace("年","");
+        int year = Integer.parseInt(yearsString);
+        String mounthString=(String)monthBox.getSelectedItem();
+        mounthString=mounthString.replace("月","");
+        int month = Integer.parseInt(mounthString);
         Calendar calendar = Calendar.getInstance();
         calendar.set(year, month - 1, 1);
         int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        Integer[] dayInteger = {};
-        DefaultComboBoxModel<Integer> dayModel = new DefaultComboBoxModel<>(dayInteger);
+        String[] dayString = {};
+        DefaultComboBoxModel<String> dayModel = new DefaultComboBoxModel<>(dayString);
         for (int i = 1; i <= maxDay; i++) {
-            dayModel.addElement(i);
+            dayModel.addElement(i+"日");
         }
         return dayModel;
     }
@@ -332,20 +334,22 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @return 年月（＋日）選択用の JPanel コンポネント
      * @author nishiyama
      */
-    private JPanel dateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox, JComboBox<Integer> dayBox) {
+    private JPanel dateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox) {
         JPanel panel = new JPanel();
-        Dimension size = new Dimension(205, 40);
+        panel.setLayout(new FlowLayout());
+        Dimension size = new Dimension(210, 40);
         int wrapperWidth = size.width;
         int wrapperHeight = size.height;
         panel.setPreferredSize(new Dimension(wrapperWidth, wrapperHeight));
         panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
         panel.setBackground(Color.LIGHT_GRAY);
+        yearBox.setSize(1,1);
         panel.add(yearBox);
-        panel.add(new JLabel("年"));
+        // panel.add(new JLabel("年"));
         panel.add(monthBox);
-        panel.add(new JLabel("月"));
+        // panel.add(new JLabel("月"));
         panel.add(dayBox);
-        panel.add(new JLabel("日"));
+        // panel.add(new JLabel("日"));
         return panel;
     }
 
@@ -357,32 +361,33 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @return エンジニア歴を表示するコンボボックス等を載せたパネル
      * @author 下村
      */
-    private JPanel engineerDateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox) {
+    private JPanel engineerDateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox) {
         JPanel panel = new JPanel();
-        Dimension size = new Dimension(140, 40);
+        panel.setLayout(new FlowLayout());
+        Dimension size = new Dimension(200, 40);
         int wrapperWidth = size.width + 15;
         int wrapperHeight = size.height;
         panel.setPreferredSize(new Dimension(wrapperWidth, size.height));
         panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
-        // 年のコンボボックス設定
-        Integer[] yearInteger = {};
-        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
         panel.setBackground(Color.LIGHT_GRAY);
+        // 年のコンボボックス設定
+        String[] yearString = {};
+        DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>(yearString);
         for (int i = 0; i < 50; i++) {
-            yearModel.addElement(i);
+            yearModel.addElement(i+"年");
         }
         yearBox = new JComboBox<>(yearModel);
         // 月のコンボボックス設定
-        Integer[] monthInteger = {};
-        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
+        String[] monthString = {};
+        DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>(monthString);
         for (int i = 0; i <= 11; i++) {
-            monthModel.addElement(i);
+            monthModel.addElement(i+"ヵ月");
         }
         monthBox = new JComboBox<>(monthModel);
         panel.add(yearBox);
-        panel.add(new JLabel("年"));
+        // panel.add(new JLabel("年"));
         panel.add(monthBox);
-        panel.add(new JLabel("月"));
+        // panel.add(new JLabel("月"));
         return panel;
     }
 
@@ -395,16 +400,19 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @param dayCombo   日の JComboBox（再構築対象）
      * @author nishiyama
      */
-    private void updateDayCombo(JComboBox<Integer> yearCombo, JComboBox<Integer> monthCombo,
-            JComboBox<Integer> dayCombo) {
-        int year = (int) yearCombo.getSelectedItem();
-        int month = (int) monthCombo.getSelectedItem();
+    private void updateDayCombo(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox) {
+        String yearsString=(String)yearBox.getSelectedItem();
+        yearsString=yearsString.replace("年","");
+        int year = Integer.parseInt(yearsString);
+        String mounthString=(String)monthBox.getSelectedItem();
+        mounthString=mounthString.replace("月","");
+        int month = Integer.parseInt(mounthString);
         Calendar calendar = Calendar.getInstance();
         calendar.set(year, month - 1, 1);
         int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        dayCombo.removeAllItems();
+        dayBox.removeAllItems();
         for (int i = 1; i <= maxDay; i++) {
-            dayCombo.addItem(i);
+            dayBox.addItem(i+"日");
         }
     }
 
@@ -547,9 +555,15 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(2);
         JComboBox<?> dayBox=(JComboBox<?>) datePanel.getComponent(4);
         // 年、月、日を取得
-        int year = (int) yearBox.getSelectedItem();
-        int month = (int) monthBox.getSelectedItem() - 1;
-        int day = (int) dayBox.getSelectedItem();
+        String yearsString=(String)yearBox.getSelectedItem();
+        yearsString=yearsString.replace("年","");
+        int year = Integer.parseInt(yearsString);
+        String mounthString=(String)monthBox.getSelectedItem();
+        mounthString=mounthString.replace("月","");
+        int month = Integer.parseInt(mounthString);
+        String dayString=(String)dayBox.getSelectedItem();
+        dayString=dayString.replace("日","");
+        int day =Integer.parseInt(dayString);
         // 日付を Calendar で構築し、Date 型に変換して返す
         Calendar cal = Calendar.getInstance();
         cal.set(year, month, day);
@@ -569,9 +583,13 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         JPanel datePanel = (JPanel) panel.getComponent(0);
         JComboBox<?> yearBox = (JComboBox<?>) datePanel.getComponent(0);
         JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(2);
-        int years = (int) yearBox.getSelectedItem();
-        int months = (int) monthBox.getSelectedItem();
-        return years * 12 + months;
+        String yearsString=(String)yearBox.getSelectedItem();
+        yearsString=yearsString.replace("年","");
+        int year = Integer.parseInt(yearsString);
+        String mounthString=(String)monthBox.getSelectedItem();
+        mounthString=mounthString.replace("月","");
+        int month = Integer.parseInt(mounthString);
+        return year * 12 + month;
     }
 
     /**

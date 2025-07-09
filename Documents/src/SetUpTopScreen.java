@@ -1,3 +1,4 @@
+
 import java.awt.*;
 import javax.swing.*;
 
@@ -27,13 +28,13 @@ public abstract class SetUpTopScreen extends SetUpJframe {
         fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 53)));
 
         // 中央パネル（715*395px）
-        centerPanel = createPanel(new Dimension(715, 395));
+        centerPanel = createPanel(new Dimension(750, 500));
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
 
         // 中央パネル_上段（715*22px）
         functionButtonsPanel = new JPanel();
-        functionButtonsPanel.setPreferredSize(new Dimension(715, 30));
-        functionButtonsPanel.setMaximumSize(new Dimension(715, 30));
+        functionButtonsPanel.setPreferredSize(new Dimension(750, 30));
+        functionButtonsPanel.setMaximumSize(new Dimension(750, 30));
         functionButtonsPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 左寄せ
         centerPanel.add(functionButtonsPanel);
         
@@ -42,6 +43,8 @@ public abstract class SetUpTopScreen extends SetUpJframe {
 
         // 中央パネル_下段（715*363px）
         employeeListPanel = new JPanel();
+        functionButtonsPanel.setPreferredSize(new Dimension(750, 30));
+        functionButtonsPanel.setMaximumSize(new Dimension(750, 30));
         employeeListPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 左寄せ
         centerPanel.add(employeeListPanel);
 

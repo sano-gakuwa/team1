@@ -62,18 +62,18 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
         upperPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0)); // 横並び
 
         // upperパネル_生年月日（185 + 15）
-        birthdDayPanel = createPanel(new Dimension(205, 60), 0, 0);
+        birthdDayPanel = createPanel(new Dimension(200, 60), 0, 0);
         birthdDayPanel.setLayout(new BorderLayout());
 
         upperPanel.add(birthdDayPanel);
 
         // upperパネル_入社年月（185 + 15）
-        joiningDatePanel = createPanel(new Dimension(205, 60), 0, 0);
+        joiningDatePanel = createPanel(new Dimension(200, 60), 0, 0);
         joiningDatePanel.setLayout(new BorderLayout());
         upperPanel.add(joiningDatePanel);
 
         // upperパネル_エンジニア歴（140 + 15）
-        engineerDatePanel = createPanel(new Dimension(125, 60), 0, 0);
+        engineerDatePanel = createPanel(new Dimension(140, 60), 0, 0);
         engineerDatePanel.setLayout(new BorderLayout());
         upperPanel.add(engineerDatePanel);
 
