@@ -1,4 +1,3 @@
-
 // 画面やレイアウトに関するクラスを読み込む（ウィンドウの大きさや部品配置を扱う）
 import java.awt.*;
 
@@ -47,18 +46,18 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private JTextField lastNameField, firstNameField;
 
     // 生年月日を選択する年・月・日コンボボックス
-    private JComboBox<Integer> birthYearCombo = new JComboBox<>();
-    private JComboBox<Integer> birthMonthCombo = new JComboBox<>();
-    private JComboBox<Integer> birthDayCombo = new JComboBox<>();
+    private JComboBox<String> birthYearCombo = new JComboBox<>();
+    private JComboBox<String> birthMonthCombo = new JComboBox<>();
+    private JComboBox<String> birthDayCombo = new JComboBox<>();
 
     // 入社年月日を選択する年・月・日コンボボックス
-    private JComboBox<Integer> joinYearCombo = new JComboBox<>();
-    private JComboBox<Integer> joinMonthCombo = new JComboBox<>();
-    private JComboBox<Integer> joinDayCombo = new JComboBox<>();
+    private JComboBox<String> joinYearCombo = new JComboBox<>();
+    private JComboBox<String> joinMonthCombo = new JComboBox<>();
+    private JComboBox<String> joinDayCombo = new JComboBox<>();
 
     // エンジニア歴（年・月）を選択するコンボボックス
-    private JComboBox<Integer> engYearCombo = new JComboBox<>();
-    private JComboBox<Integer> engMonthCombo = new JComboBox<>();
+    private JComboBox<String> engYearCombo = new JComboBox<>();
+    private JComboBox<String> engMonthCombo = new JComboBox<>();
 
     // 生年月日、入社年月日、エンジニア歴の表示用パネル
     private JPanel birthPanel = new JPanel();
@@ -170,6 +169,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupDateAndLanguageFields() {
         // 生年月日パネルに「生年月日」ラベルを北（上）に追加
         birthdDayPanel.add(new JLabel("生年月日"), BorderLayout.NORTH);
+
         // 生年月日の年・月・日コンボボックスをまとめたパネルを作成し追加
         birthPanel.add(dateSelector(birthYearCombo, birthMonthCombo, birthDayCombo));
         birthPanel.setBackground(Color.WHITE);
@@ -177,6 +177,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
         // 入社年月パネルに「入社年月」ラベルを上に追加
         joiningDatePanel.add(new JLabel("入社年月"), BorderLayout.NORTH);
+
         // 入社年月日のコンボボックスまとめパネルを追加
         joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo));
         joinPanel.setBackground(Color.WHITE);
@@ -184,6 +185,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
         // エンジニア歴パネルに「エンジニア歴」ラベルを上に追加
         engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
+
         // エンジニア歴の年・月コンボボックスまとめパネルを追加
         engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo));
         engPanel.setBackground(Color.WHITE);
@@ -342,9 +344,8 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         saveButton.setBounds(350, 0, 80, 30);
         bottomPanel.add(saveButton);
 
-        // 保存ボタン押下時の動作設定（長いので後述します）
+        // 保存ボタン押下時の動作設定
         saveButton.addActionListener(e -> {
-            // 以降の保存処理は次のブロックでコメント付きで説明します
             setUIEnabled(false); // ボタンや入力欄を全て無効にし操作不可にして重複操作防止
 
             // 上書き保存の確認ダイアログ表示
@@ -361,29 +362,22 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 return;
             }
 
-            // 以下、入力値のバリデーションチェックを複数行で実施
-            // （名前の必須チェック、文字数制限、禁止文字チェックなど）
+            // 以下、バリデーションチェック（詳細は元コードに準ずる）
 
-            // 姓名を取得し、空白除去
+            // 姓名取得、空文字チェックなど
             String lastName = lastNameField.getText().trim();
             String firstName = firstNameField.getText().trim();
-
-            // 姓または名が空ならエラーメッセージ表示し中断
             if (lastName.isEmpty() || firstName.isEmpty()) {
                 showValidationError("姓と名は必須です");
                 setUIEnabled(true);
                 return;
             }
-
-            // 15文字以上ならエラー
             if (lastName.codePointCount(0, lastName.length()) > 15 ||
                     firstName.codePointCount(0, firstName.length()) > 15) {
                 showValidationError("氏名（漢字）は15文字以内で入力してください");
                 setUIEnabled(true);
                 return;
             }
-
-            // 半角カナやアルファベット、禁止記号が含まれているかチェック
             if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
                     || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
                     || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
@@ -394,8 +388,6 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 setUIEnabled(true);
                 return;
             }
-
-            // 環境依存文字が含まれていないかチェック
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (lastName.contains(ch) || firstName.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
@@ -403,34 +395,26 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     return;
                 }
             }
-
-            // サロゲートペア文字（絵文字等）が含まれていないかチェック
             if (SURROGATE_PATTERN.matcher(lastName).find() || SURROGATE_PATTERN.matcher(firstName).find()) {
                 showValidationError("使用できない文字が含まれています");
                 setUIEnabled(true);
                 return;
             }
 
-            // フリガナの姓と名を取得
+            // フリガナチェック
             String rubyLastName = rubyLastNameField.getText().trim();
             String rubyFirstName = rubyFirstNameField.getText().trim();
-
-            // フリガナも必須チェック
             if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
                 showValidationError("フリガナは必須です");
                 setUIEnabled(true);
                 return;
             }
-
-            // フリガナ15文字以内の制限
             if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
                     rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
                 showValidationError("氏名（フリガナ）は15文字以内で入力してください");
                 setUIEnabled(true);
                 return;
             }
-
-            // フリガナに半角カナ、ひらがな、漢字、アルファベット、禁止記号が含まれていないかチェック
             if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*")
                     || rubyLastName.matches(".*[\\u3040-\\u309F].*")
                     || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*")
@@ -446,45 +430,51 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 return;
             }
 
-            // エンジニア歴の年と月を取得
-            int years = (int) engYearCombo.getSelectedItem();
-            int months = (int) engMonthCombo.getSelectedItem();
+            // エンジニア歴チェック
+String yearStr = engYearCombo.getSelectedItem().toString();
+String monthStr = engMonthCombo.getSelectedItem().toString();
 
-            // エンジニア歴が1ヶ月以上であることを確認
-            if (years == 0 && months == 0) {
-                showValidationError("エンジニア歴は1ヶ月以上で入力してください");
-                setUIEnabled(true);
-                return;
-            }
+int years = Integer.parseInt(yearStr.replace("年", ""));
+int months = Integer.parseInt(monthStr.replace("ヵ月", ""));
 
-            // 扱える言語欄の文字列を取得し、空白を「・」に置換
+// 年が0の場合は月は1以上でなければエラー
+if (years == 0 && months == 0) {
+    showValidationError("エンジニア歴の月は、年が0の場合は1〜11の範囲で入力してください");
+    setUIEnabled(true);
+    return;
+}
+
+// 年が0以上、月が0～11の範囲かチェック（年数は0～50くらいに制限してもよい）
+if (years < 0 || years > 50 || months < 0 || months > 11) {
+    showValidationError("エンジニア歴は年が0以上、月は0〜11の範囲で入力してください");
+    setUIEnabled(true);
+    return;
+}
+
+
+
+                
+            
+            
+            // 扱える言語
             String setAvailable = availableLanguageField.getText().trim();
             setAvailable = setAvailable.replaceAll("\\s+", "・");
             availableLanguageField.setText(setAvailable);
-
-            // 扱える言語の区切り文字形式を厳密にチェック
             if (!validateAvailableLanguageFormat(setAvailable)) {
                 showValidationError("扱える言語の区切り文字が不正です。正しく「・」で区切ってください。");
                 setUIEnabled(true);
                 return;
             }
-
-            // 100文字以内に制限
             if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
                 showValidationError("使える言語は100文字以内で入力してください");
                 setUIEnabled(true);
                 return;
             }
-
-            // 禁止文字が含まれていないかチェック
-            if (setAvailable.matches(
-                    ".*[!@#$%^&*()_+=|{}\\[\\]:;\"'<>?/\\\\Ａ-Ｚａ-ｚ①-⑩©®™😃💻！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
+            if (setAvailable.matches(".*[!@#$%^&*()_+=|{}\\[\\]:;\"'<>?/\\\\Ａ-Ｚａ-ｚ①-⑩©®™😃💻！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
                 showValidationError("使用できない文字が含まれています");
                 setUIEnabled(true);
                 return;
             }
-
-            // 環境依存文字のチェック
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (setAvailable.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
@@ -492,91 +482,72 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     return;
                 }
             }
-
-            // サロゲートペア文字チェック
             if (SURROGATE_PATTERN.matcher(setAvailable).find()) {
                 showValidationError("使用できない文字が含まれています");
                 setUIEnabled(true);
                 return;
             }
 
-            // 生年月日の年・月・日を取得
-            int year = (int) birthYearCombo.getSelectedItem();
-            int month = (int) birthMonthCombo.getSelectedItem();
-            int day = (int) birthDayCombo.getSelectedItem();
-
-            // 現在日と入力日をCalendarで比較するためにセットアップ
-            Calendar today = Calendar.getInstance();
-            Calendar inputDate = Calendar.getInstance();
-            inputDate.setLenient(false); // 厳密に日付チェックする設定
-
+            // 生年月日チェック
             try {
-                // 入力された年月日をセット
-                inputDate.set(year, month - 1, day); // 月は0始まり
-                inputDate.getTime(); // 日付の妥当性チェック用に呼び出し
-            } catch (IllegalArgumentException ex) {
-                // 無効な日付ならエラー表示
+                int year = Integer.parseInt(birthYearCombo.getSelectedItem().toString().replace("年", ""));
+                int month = Integer.parseInt(birthMonthCombo.getSelectedItem().toString().replace("月", ""));
+                int day = Integer.parseInt(birthDayCombo.getSelectedItem().toString().replace("日", ""));
+                Calendar today = Calendar.getInstance();
+                Calendar inputDate = Calendar.getInstance();
+                inputDate.setLenient(false);
+                inputDate.set(year, month - 1, day);
+                inputDate.getTime();
+                Calendar minDate = Calendar.getInstance();
+                minDate.set(1925, Calendar.JUNE, 1);
+                if (inputDate.before(minDate)) {
+                    showValidationError("生年月日は1925年6月1日以降で入力してください");
+                    setUIEnabled(true);
+                    return;
+                }
+                Calendar tomorrow = (Calendar) today.clone();
+                tomorrow.add(Calendar.DATE, 1);
+                if (!inputDate.before(tomorrow)) {
+                    showValidationError("生年月日は現在日付までで入力してください");
+                    setUIEnabled(true);
+                    return;
+                }
+            } catch (Exception ex) {
                 showValidationError("無効な日付が選択されています");
                 setUIEnabled(true);
                 return;
             }
 
-            // 生年月日の最小日付を設定（1925年6月1日）
-            Calendar minDate = Calendar.getInstance();
-            minDate.set(1925, Calendar.JUNE, 1);
-
-            // 生年月日が最小日付より前ならエラー
-            if (inputDate.before(minDate)) {
-                showValidationError("生年月日は1925年6月1日以降で入力してください");
+            // 入社年月チェック
+            try {
+                int joinYear = Integer.parseInt(joinYearCombo.getSelectedItem().toString().replace("年", ""));
+                int joinMonth = Integer.parseInt(joinMonthCombo.getSelectedItem().toString().replace("月", ""));
+                Calendar today = Calendar.getInstance();
+                int currentYear = today.get(Calendar.YEAR);
+                int currentMonth = today.get(Calendar.MONTH) + 1;
+                if (joinYear > currentYear || (joinYear == currentYear && joinMonth > currentMonth)) {
+                    showValidationError("入社年月は現在年月までで入力してください");
+                    setUIEnabled(true);
+                    return;
+                }
+            } catch (Exception ex) {
+                showValidationError("無効な入社年月が選択されています");
                 setUIEnabled(true);
                 return;
             }
 
-            // 明日の日付を取得
-            Calendar tomorrow = (Calendar) today.clone();
-            tomorrow.add(Calendar.DATE, 1);
-
-            // 生年月日が明日以降ならエラー（未来日不可）
-            if (!inputDate.before(tomorrow)) {
-                showValidationError("生年月日は現在日付までで入力してください");
-                setUIEnabled(true);
-                return;
-            }
-
-            // 入社年月の年と月を取得
-            int joinYear = (int) joinYearCombo.getSelectedItem();
-            int joinMonth = (int) joinMonthCombo.getSelectedItem();
-
-            // 現在年月を取得
-            Calendar currentDate = Calendar.getInstance();
-            int currentYear = currentDate.get(Calendar.YEAR);
-            int currentMonth = today.get(Calendar.MONTH) + 1;
-
-            // 入社年月が未来であればエラー
-            if (joinYear > currentYear || (joinYear == currentYear && joinMonth > currentMonth)) {
-                showValidationError("入社年月は現在年月までで入力してください");
-                setUIEnabled(true);
-                return;
-            }
-
-            // 経歴欄のテキストを取得
+            // 経歴チェック
             String career = careerArea.getText().trim();
-
-            // 禁止文字が含まれていないかチェック
             if (career.matches(".*[＠！＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
                 showValidationError("使用できない文字が含まれています");
                 setUIEnabled(true);
                 return;
             }
-
-            // 400文字以内のチェック
             if (career.codePointCount(0, career.length()) > 400) {
                 showValidationError("経歴は400文字以内で入力してください");
                 setUIEnabled(true);
                 return;
             }
-
-            // 環境依存文字のチェック
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (career.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
@@ -584,25 +555,19 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     return;
                 }
             }
-
-            // サロゲートペア文字チェック
             if (SURROGATE_PATTERN.matcher(career).find()) {
                 showValidationError("使用できない文字が含まれています");
                 setUIEnabled(true);
                 return;
             }
 
-            // 研修受講歴欄のテキストを取得
+            // 研修受講歴チェック
             String training = trainingArea.getText().trim();
-
-            // 400文字以内のチェック
             if (training.codePointCount(0, training.length()) > 400) {
                 showValidationError("研修受講歴は400文字以内で入力してください");
                 setUIEnabled(true);
                 return;
             }
-
-            // 環境依存文字チェック
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (training.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
@@ -610,25 +575,19 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     return;
                 }
             }
-
-            // サロゲートペア文字チェック
             if (SURROGATE_PATTERN.matcher(training).find()) {
                 showValidationError("使用できない文字が含まれています");
                 setUIEnabled(true);
                 return;
             }
 
-            // 備考欄のテキストを取得
+            // 備考欄チェック
             String remarks = remarksArea.getText().trim();
-
-            // 400文字以内のチェック
             if (remarks.codePointCount(0, remarks.length()) > 400) {
                 showValidationError("備考は400文字以内で入力してください");
                 setUIEnabled(true);
                 return;
             }
-
-            // 環境依存文字チェック
             for (String ch : ENV_DEPENDENT_CHARS) {
                 if (remarks.contains(ch)) {
                     showValidationError("使用できない文字が含まれています");
@@ -636,15 +595,13 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                     return;
                 }
             }
-
-            // サロゲートペア文字チェック
             if (SURROGATE_PATTERN.matcher(remarks).find()) {
                 showValidationError("使用できない文字が含まれています");
                 setUIEnabled(true);
                 return;
             }
 
-            // スキル評価項目のスコアを取得して範囲と刻みをチェック
+            // スキル評価値チェック
             double[] validScores = { 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0 };
             for (double score : new double[] {
                     parseScore(techCombo),
@@ -666,18 +623,20 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 }
             }
 
-            // 入力されたデータをEmployeeInformationオブジェクトにまとめる
-            EmployeeInformation editInfo = collectInputData();
+           // 入力されたデータをEmployeeInformationオブジェクトにまとめる
+EmployeeInformation editInfo = collectInputData();
 
-            // 入力に問題なければ更新処理を別スレッドで実行
-            if (editInfo != null) {
-                EmployeeInfoUpdate update = new EmployeeInfoUpdate();
-                update.update(editInfo);
-                Thread updateThread = new Thread(update);
-                updateThread.start();
-            }
+// nullチェック
 
- // ==== 保存完了後の「成功ダイアログ」の表示 ====
+
+    // バリデーションOKなので保存スレッドを開始
+    EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+    update.update(editInfo);
+    Thread updateThread = new Thread(update);
+    updateThread.start();
+
+
+            // ==== 保存完了後の「成功ダイアログ」の表示 ====
             JOptionPane optionPane = new JOptionPane(
                     "保存完了しました", // 表示メッセージ
                     JOptionPane.INFORMATION_MESSAGE,
@@ -699,6 +658,9 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 refreshUI(); // 画面をリセット
                 ViewTopScreen top = new ViewTopScreen(); // 一覧画面を新しく作成
                 top.View(); // 一覧画面を表示
+            } else {
+                // ダイアログ閉じた等の場合はUIを再度有効に
+                setUIEnabled(true);
             }
         });
     }
@@ -766,50 +728,39 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * @param dayBox   日選択用コンボボックス
      * @return 作成したパネルオブジェクト
      */
-    private JPanel dateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox, JComboBox<Integer> dayBox) {
-        // 現在の日付を取得
-        LocalDate now = LocalDate.now();
-        Integer[] nowInteger = { now.getYear(), now.getMonthValue(), now.getDayOfMonth() };
+private JPanel dateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox) {
+    // 現在の年
+    int currentYear = LocalDate.now().getYear();
 
-        // 年は現在の年から過去100年までを追加
-        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>();
-        for (int i = nowInteger[0] - 100; i <= nowInteger[0]; i++) {
-            yearModel.addElement(i);
-        }
-        yearBox.setModel(yearModel);
+    // 年を「〇〇年」で100年分追加
+    DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>();
+    for (int i = currentYear - 100; i <= currentYear; i++) {
+        yearModel.addElement(i + "年");
+    }
+    yearBox.setModel(yearModel);
 
-        // 月は1〜12を追加
-        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>();
-        for (int i = 1; i <= 12; i++) {
-            monthModel.addElement(i);
-        }
-        monthBox.setModel(monthModel);
+    // 月を「〇月」で追加（正しい設定：生年月日・入社年月は「1月」〜「12月」）
+    DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
+    for (int i = 1; i <= 12; i++) {
+        monthModel.addElement(i + "月");
+    }
+    monthBox.setModel(monthModel);
 
-        // 日は選択した年月により変動するため、1日をセットして月の最大日数を取得
-        int year = yearModel.getElementAt(0);
-        int month = monthModel.getElementAt(0);
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(year, month - 1, 1);
-        int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+    // 日は仮に31日まで表示
+    DefaultComboBoxModel<String> dayModel = new DefaultComboBoxModel<>();
+    for (int i = 1; i <= 31; i++) {
+        dayModel.addElement(i + "日");
+    }
+    dayBox.setModel(dayModel);
 
-        // 日は1〜最大日数まで追加
-        DefaultComboBoxModel<Integer> dayModel = new DefaultComboBoxModel<>();
-        for (int i = 1; i <= maxDay; i++) {
-            dayModel.addElement(i);
-        }
-        dayBox.setModel(dayModel);
-
-        // パネルに年・月・日コンボボックスとラベルを追加し、背景色を設定
+        // レイアウト設定
         JPanel panel = new JPanel();
         panel.setPreferredSize(new Dimension(205, 40));
         panel.setMaximumSize(new Dimension(205, 40));
         panel.setBackground(Color.LIGHT_GRAY);
         panel.add(yearBox);
-        panel.add(new JLabel("年"));
         panel.add(monthBox);
-        panel.add(new JLabel("月"));
         panel.add(dayBox);
-        panel.add(new JLabel("日"));
         return panel;
     }
 
@@ -820,31 +771,30 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * @param monthBox 月コンボボックス
      * @return 作成したパネルオブジェクト
      */
-    private JPanel engineerDateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox) {
+    private JPanel engineerDateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox) {
         JPanel panel = new JPanel();
         panel.setPreferredSize(new Dimension(155, 40));
         panel.setMaximumSize(new Dimension(140, 40));
         panel.setBackground(Color.LIGHT_GRAY);
 
         // 年は0〜49年までを追加
-        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>();
+        DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>();
         for (int i = 0; i < 50; i++) {
-            yearModel.addElement(i);
+            yearModel.addElement(i + "年");
         }
         yearBox.setModel(yearModel);
 
         // 月は0〜11ヶ月までを追加
-        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>();
-        for (int i = 0; i <= 11; i++) {
-            monthModel.addElement(i);
-        }
-        monthBox.setModel(monthModel);
+DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
+for (int i = 0; i <= 11; i++) {
+    monthModel.addElement(i + "ヵ月");  // 「ヵ月」に変更
+}
+monthBox.setModel(monthModel);
+
 
         // パネルに年・月コンボボックスとラベルを追加
         panel.add(yearBox);
-        panel.add(new JLabel("年"));
         panel.add(monthBox);
-        panel.add(new JLabel("月"));
         return panel;
     }
 
@@ -917,8 +867,12 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             employee.setJoiningDate(getDateFromComboBoxes(joinYearCombo, joinMonthCombo, joinDayCombo));
 
             // エンジニア歴は年と月を合算（単位は月）
-            int years = (int) engYearCombo.getSelectedItem();
-            int months = (int) engMonthCombo.getSelectedItem();
+            String yearStr = engYearCombo.getSelectedItem().toString();      // 例: "3年"
+            String monthStr = engMonthCombo.getSelectedItem().toString();    // 例: "1ヵ月"
+
+            int years = Integer.parseInt(yearStr.replace("年", ""));          // → 3
+            int months = Integer.parseInt(monthStr.replace("ヵ月", ""));      // → 1
+
             employee.setEngineerDate(years * 12 + months);
 
             // 扱える言語、経歴、研修、備考などテキスト入力欄の値をセット
@@ -956,13 +910,16 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * @param placeholder プレースホルダー文字列
      * @return 入力された文字列、もしくは空文字
      */
-    private String getFieldValue(JTextComponent field, String placeholder) {
-        String text = field.getText();
-        if (text == null || text.trim().isEmpty()) {
-            return "";
-        }
-        return text;
+private String getFieldValue(JTextComponent field, String placeholder) {
+    String text = field.getText();
+    // null や空白のみの場合は空文字として返す
+    if (text == null || text.trim().isEmpty()) {
+        return "";
     }
+    // プレースホルダーと一致していても、そのまま値として扱う
+    return text.trim();
+}
+
 
     /**
      * スキル評価のコンボボックスの選択値（文字列）をdoubleに変換する
@@ -983,15 +940,33 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * @param dayCombo   日のコンボボックス（nullの場合は1日固定）
      * @return 日付情報を持つDateオブジェクト
      */
-    private Date getDateFromComboBoxes(JComboBox<Integer> yearCombo, JComboBox<Integer> monthCombo,
-            JComboBox<Integer> dayCombo) {
-        int year = (int) yearCombo.getSelectedItem();
-        int month = (int) monthCombo.getSelectedItem() - 1; // Calendarは0起点のため調整
-        int day = (dayCombo != null) ? (int) dayCombo.getSelectedItem() : 1;
+    private Date getDateFromComboBoxes(JComboBox<String> yearCombo, JComboBox<String> monthCombo,
+            JComboBox<String> dayCombo) {
 
-        Calendar cal = Calendar.getInstance();
-        cal.set(year, month, day);
-        return cal.getTime();
+        // 年（"1990年" → 1990）を取得
+        int year = Integer.parseInt(yearCombo.getSelectedItem().toString().replace("年", ""));
+
+        // 月の選択値を取得
+        String monthStr = monthCombo.getSelectedItem().toString();
+
+        // "0月" が選ばれていたらエラーダイアログを表示して中断（nullを返す）
+        if (monthStr.equals("0月")) {
+            showErrorDialog("月の選択が不正です。1月〜12月の中から選択してください。");
+            return null;  // ← 必ず null を返す
+        }
+
+        // "〇月" → "〇" に変換して数値にし、Calendar用に -1
+        int month = Integer.parseInt(monthStr.replace("月", "")) - 1;
+
+        // 日（"15日" → 15）を取得。nullのときは1日を指定
+        int day = (dayCombo != null)
+            ? Integer.parseInt(dayCombo.getSelectedItem().toString().replace("日", ""))
+            : 1;
+
+        // Calendarで日付を構築
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day);
+        return calendar.getTime();  // 最終的な Date 型の返却
     }
 
     // ========================== 以下、ダイアログ表示関連メソッド ==============================
@@ -1050,19 +1025,20 @@ public class ViewEditScreen extends SetUpDetailsScreen {
 
         Calendar birthCal = Calendar.getInstance();
         birthCal.setTime(employeeInformation.getBirthday());
-        birthYearCombo.setSelectedItem(birthCal.get(Calendar.YEAR));
-        birthMonthCombo.setSelectedItem(birthCal.get(Calendar.MONTH) + 1);
-        birthDayCombo.setSelectedItem(birthCal.get(Calendar.DAY_OF_MONTH));
+        birthYearCombo.setSelectedItem(birthCal.get(Calendar.YEAR) + "年");
+        birthMonthCombo.setSelectedItem((birthCal.get(Calendar.MONTH) + 1) + "月");
+        birthDayCombo.setSelectedItem(birthCal.get(Calendar.DAY_OF_MONTH) + "日");
 
         Calendar joinCal = Calendar.getInstance();
         joinCal.setTime(employeeInformation.getJoiningDate());
-        joinYearCombo.setSelectedItem(joinCal.get(Calendar.YEAR));
-        joinMonthCombo.setSelectedItem(joinCal.get(Calendar.MONTH) + 1);
-        joinDayCombo.setSelectedItem(joinCal.get(Calendar.DAY_OF_MONTH));
+        joinYearCombo.setSelectedItem(joinCal.get(Calendar.YEAR) + "年");
+        joinMonthCombo.setSelectedItem((joinCal.get(Calendar.MONTH) + 1) + "月");
+        joinDayCombo.setSelectedItem(joinCal.get(Calendar.DAY_OF_MONTH) + "日");
 
-        int totalMonths = employeeInformation.getEngineerDate();
-        engYearCombo.setSelectedItem(totalMonths / 12);
-        engMonthCombo.setSelectedItem(totalMonths % 12);
+int totalMonths = employeeInformation.getEngineerDate();
+engYearCombo.setSelectedItem((totalMonths / 12) + "年");
+engMonthCombo.setSelectedItem((totalMonths % 12) + "ヵ月");  // 「ヵ月」に変更
+
     }
 
     /**
@@ -1091,5 +1067,14 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             }
         }
         return true;
+    }
+
+    /**
+     * エラーメッセージをモーダルダイアログで表示する共通メソッド
+     *
+     * @param message 表示したいメッセージ文字列
+     */
+    private void showErrorDialog(String message) {
+        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 }
