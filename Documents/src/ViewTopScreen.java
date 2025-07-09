@@ -49,16 +49,20 @@ public class ViewTopScreen extends SetUpTopScreen {
     private JLabel searchingLabel;
     private JButton cancelSearchButton;
     private JButton clearSearchResultButton;
+    private JPanel employeeListPanel;
 
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
         frame.setTitle("一覧画面");
-        engineerTable = new JTable();// 先にテーブルを初期化してから refreshTable を呼ぶ
-        tableEmployee = EmployeeManager.employeeList;// JTablに表示用に社員情報リストからコピー
-        employeeListOperator = new EmployeeListOperator(tableEmployee);//
-        setupViewTopScreen();// 一覧画面の初期化
-        refreshTable(); // 画面初期表示とデータ同期
+        engineerTable = new JTable();
+
+        // ★中身を必ずコピー
+        tableEmployee = new ArrayList<>(EmployeeManager.employeeList); 
+        employeeListOperator = new EmployeeListOperator(tableEmployee);
+
+        setupViewTopScreen();
+        refreshTable(); // ←ここで0件ではなく表示される
     }
 
     private void setupViewTopScreen() {
@@ -99,7 +103,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         JPanel centerWrapper = (JPanel) fullScreenPanel.getComponent(3);
         JPanel centerPanel = (JPanel) centerWrapper.getComponent(0);
         functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
-        JPanel employeeListPanel = (JPanel) centerPanel.getComponent(2);
+        employeeListPanel = (JPanel) centerPanel.getComponent(2); 
         centerPanel.setOpaque(false);// 背景透過
         // ボタン配置
         functionButtonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -363,6 +367,22 @@ public class ViewTopScreen extends SetUpTopScreen {
      * EmployeeManager.getInitialData() は、最新の従業員データを2次元配列で返すメソッドであると仮定
      */
     public void refreshTable() {
+        if (tableEmployee.isEmpty()) {
+            employeeListPanel.removeAll();
+            employeeListPanel.setLayout(new BorderLayout());
+            showNoDataLabel(employeeListPanel);
+            employeeListPanel.revalidate();
+            employeeListPanel.repaint();
+            pageLabel.setText("0 / 1");
+            return;
+        }
+        employeeListPanel.removeAll();
+        employeeListPanel.setLayout(new BorderLayout());
+        JScrollPane scrollPane = new JScrollPane(engineerTable);
+        employeeListPanel.add(scrollPane, BorderLayout.CENTER);
+
+employeeListPanel.revalidate();
+employeeListPanel.repaint();
         
 
         int totalEmployees = tableEmployee.size();// 下村作成部分(本番時利用コード)
