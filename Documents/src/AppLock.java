@@ -1,11 +1,13 @@
 import java.io.File;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.io.StringWriter;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
 import javax.swing.JOptionPane;
 
-public class AppLock {
+public class AppLock extends SystemLog{
     private static final String LOCK_FILE_NAME = "app.lock"; // 任意のロックファイル名
     private static FileLock lock;
     private static FileChannel channel;
@@ -14,7 +16,7 @@ public class AppLock {
         try {
             File lockFile = new File(LOCK_FILE_NAME); // 任意のロックファイル名
             if (lockFile.exists()) {
-                System.out.println("このアプリケーションはすでに起動しています。");
+                printErrorLog("このアプリケーションはすでに起動しています");
                 JOptionPane.showMessageDialog(null, "このアプリケーションはすでに起動しています。", "エラー", JOptionPane.ERROR_MESSAGE);
                 System.exit(0);
             }
@@ -23,10 +25,10 @@ public class AppLock {
             channel=randomAccessFile.getChannel();
             lock = channel.lock();
             randomAccessFile.close();
-            System.out.println("アプリケーションを起動しました。");
+            printInfoLog("アプリケーションのロックに成功");
 
         } catch (Exception e) {
-            System.err.println("多重起動チェック中にエラー: " + e.getMessage());
+            printExceptionLog(e,"多重起動チェック中にエラー");
             System.exit(0);
         } finally {
             try {
@@ -35,8 +37,25 @@ public class AppLock {
                 if (channel != null)
                     channel.close();
             } catch (Exception e) {
-                // ignore
+                printExceptionLog(e,"app.lockファイルの開放に失敗");
             }
         }
+    }
+    @Override
+    public void printExceptionLog(Exception e, String errorString) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
+        LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
+    }
+
+    @Override
+    public void printInfoLog(String infoString) {
+        LOGGER.info(infoString);
+    }
+
+    @Override
+    public void printErrorLog(String errString){
+        LOGGER.warning(errString);
     }
 }
