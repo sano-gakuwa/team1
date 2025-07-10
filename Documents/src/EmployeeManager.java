@@ -289,7 +289,7 @@ public class EmployeeManager extends SystemLog {
      * 要求仕様書通りの仕様になっているのか確認用
      * 
      * @param employee 新規追加しようとしている社員情報
-     * @return true or false
+     * @return 要求仕様書通りの仕様になっている場合はtrue、そうでない場合はfalse
      * @author 下村
      */
     public boolean validateEmployee(EmployeeInformation employee) {
@@ -461,7 +461,7 @@ public class EmployeeManager extends SystemLog {
      * 日付が未来の日付では無いか確認用
      * 
      * @param date 日付
-     * @return true or false
+     * @return 日付が未来の日付の場合はtrue、そうでない場合はfalse
      * @author 下村
      */
     private boolean validateNotFuture(Date date) {
@@ -478,7 +478,7 @@ public class EmployeeManager extends SystemLog {
      * 重複する社員IDが存在するかを検証
      *
      * @param employee 検証する社員情報
-     * @return 重複がある場合はalse、そうでない場合はftrue
+     * @return 重複がある場合はtrue、そうでない場合はfalse
      * @author nishiyama
      */
     public boolean validateOverlappingEmployee(EmployeeInformation employee) {
