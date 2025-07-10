@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+import javax.swing.JOptionPane;
+
 /**
  * 社員情報を登録・管理するためのマネージャークラス
  * 
@@ -47,7 +49,6 @@ public class EmployeeManager extends SystemLog {
      * @author 下村
      */
     public void setUp() {
-        
         printInfoLog("起動");
         setUpCSV();
         setFrameExit exit = new setFrameExit();
@@ -71,6 +72,8 @@ public class EmployeeManager extends SystemLog {
             // checkArrayList();
         } catch (Exception e) {
             printExceptionLog(e, "社員情報保存用CSVファイル読み込み失敗");
+            JOptionPane.showMessageDialog(null, "社員情報保存用CSVファイル読み込み失敗", "エラー", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }
     }
 

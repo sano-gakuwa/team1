@@ -7,6 +7,8 @@ import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import javax.swing.JOptionPane;
+
 public abstract class SystemLog {
     private final String LOG_FOLDER = "LOG";
     private final String LOG_FILEPATH = LOG_FOLDER + "/system_log_" + LocalDate.now() + ".txt";
@@ -31,6 +33,8 @@ public abstract class SystemLog {
             }
         } catch (Exception e) {
             printExceptionLog(e, "ログ設定で例外が発生しました");
+            JOptionPane.showMessageDialog(null, "ログ設定で例外が発生しました", "エラー", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
         }
     }
 
