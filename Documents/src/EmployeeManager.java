@@ -47,7 +47,7 @@ public class EmployeeManager extends SystemLog {
      * @author 下村
      */
     public void setUp() {
-        setUpLog();
+        
         printInfoLog("起動");
         setUpCSV();
         setFrameExit exit = new setFrameExit();

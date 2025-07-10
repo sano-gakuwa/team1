@@ -3,17 +3,16 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
 public class AppLock extends SystemLog{
     private static final String LOCK_FILE_NAME = "app.lock"; // 任意のロックファイル名
-    private static FileLock lock;
     private static FileChannel channel;
 
     public void tryAppLock() {
+        setUpLog();
         try {
             File lockFile = new File(LOCK_FILE_NAME); // 任意のロックファイル名
             if (lockFile.exists()) {
@@ -24,21 +23,17 @@ public class AppLock extends SystemLog{
             lockFile.deleteOnExit(); // JVM終了時に削除
             RandomAccessFile randomAccessFile=new RandomAccessFile(lockFile, "rw");
             channel=randomAccessFile.getChannel();
-            lock = channel.lock();
             randomAccessFile.close();
             printInfoLog("アプリケーションのロックに成功");
-
         } catch (Exception e) {
             printExceptionLog(e,"多重起動チェック中にエラー");
             System.exit(0);
         } finally {
             try {
-                if (lock != null)
-                    lock.release();
                 if (channel != null)
                     channel.close();
             } catch (Exception e) {
-                printExceptionLog(e,"app.lockファイルの開放に失敗");
+                printExceptionLog(e,"FileChannelが閉じれませんでした");
             }
         }
     }
