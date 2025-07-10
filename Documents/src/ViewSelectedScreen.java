@@ -65,7 +65,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         functionButtonsPanel.add(selectedLabel);
         bulkCancellationtButton.addActionListener(e -> {
             // ページ内一括解除
-            manager.LOGGER.info("ページ内一括解除ボタンが押されました");
+            manager.printInfoLog("ページ内一括解除ボタンが押されました");
             for (int row = 0; row < 10; row++) {
                 String select = (model.getValueAt(row, 0)).toString();
                 if (selected.contains(select) == true) {
@@ -80,7 +80,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         });
         bulkSelectButton.addActionListener(e -> {
             // ページ内一括選択
-            manager.LOGGER.info("ページ内一括選択ボタンが押されました");
+            manager.printInfoLog("ページ内一括選択ボタンが押されました");
             for (int row = 0; row < 10; row++) {
                 String select = (model.getValueAt(row, 0)).toString();
                 if (selected.contains(select) == false) {
@@ -91,7 +91,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         });
         createCsvButton.addActionListener(e -> {
             // CSV出力
-            manager.LOGGER.info("CSV出力ボタンが押されました");
+            manager.printInfoLog("CSV出力ボタンが押されました");
             CreateCsv createCsv = new CreateCsv();
             // CSV出力中のロックがかかっているか確認
             if (createCsv.validateCreateCsvLock()) {
@@ -103,7 +103,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         });
         deleteButton.addActionListener(e -> {
             // 削除
-            manager.LOGGER.info("削除ボタンが押されました");
+            manager.printInfoLog("削除ボタンが押されました");
             EmployeeInfoDeletion deletion = new EmployeeInfoDeletion();
             if (deletion.validateDeleteLock()) {
                 // 削除のロックがかかっている場合
@@ -154,7 +154,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 }
             };
         } else {
-            manager.LOGGER.warning("表作成失敗");
+            manager.printErrorLog("表作成失敗");
         }
 
         // ヘッダーソート状態マップ（0:ー, 1:↑, 2:↓）
@@ -302,16 +302,16 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                     String select = (model.getValueAt(row, 0)).toString();
                     if (select == "") {
                         // 空白行を選択
-                        manager.LOGGER.info("空白行を選択");
+                        manager.printInfoLog("空白行を選択");
                     } else if (selected.contains(select) == false) {
                         // 未選択の社員情報の行をクリック
                         selected.add(select);
-                        manager.LOGGER.info("社員ID:" + select + "を選択");
+                        manager.printInfoLog("社員ID:" + select + "を選択");
                         showselected();
                     } else if (selected.contains(select) == true) {
                         // 選択済みの社員情報の行をクリック
                         selected.remove(selected.indexOf(select));
-                        manager.LOGGER.info("社員ID:" + select + "を選択解除");
+                        manager.printInfoLog("社員ID:" + select + "を選択解除");
                         showselected();
                     }
                     if (selected.size() <= 0) {
@@ -338,7 +338,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         refreshUI();
         ViewTopScreen top = new ViewTopScreen();
         top.View(tableEmployee, currentPage);
-        manager.LOGGER.info("一覧画面へ遷移");
+        manager.printInfoLog("一覧画面へ遷移");
     }
 
     public void View(ArrayList<EmployeeInformation> tableEmployee, ArrayList<String> selected, int currentPage) {
@@ -467,16 +467,16 @@ public class ViewSelectedScreen extends SetUpTopScreen {
                 label,
                 null);
         if (selectButton == 0) {
-            manager.LOGGER.info("CSV出力を開始");
+            manager.printInfoLog("CSV出力を開始");
             CreateCsv createCsv = new CreateCsv();
             createCsv.createCsv(directory, selected);
             Thread createCsvThread = new Thread(createCsv);
             createCsvThread.start();
             viewTopScreen();
         } else if (selectButton == 1) {
-            manager.LOGGER.info("CSV出力をキャンセル");
+            manager.printInfoLog("CSV出力をキャンセル");
         } else if (selectButton == 2) {
-            manager.LOGGER.info("CSV出力先を変更");
+            manager.printInfoLog("CSV出力先を変更");
             selectFolder();
         }
     }

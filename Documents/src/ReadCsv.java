@@ -43,10 +43,10 @@ public class ReadCsv implements Runnable {
     // CSV読み込み処理
     @Override
     public void run() {
-        MANAGER.LOGGER.info("CSV読み込み処理を開始します");
+        MANAGER.printInfoLog("CSV読み込み処理を開始します");
         // ロックを取得
         readCsvLock.lock();
-        MANAGER.LOGGER.info("CSV読み込み処理をロックしました");
+        MANAGER.printInfoLog("CSV読み込み処理をロックしました");
 
         ArrayList<EmployeeInformation> newEmployeeList = new ArrayList<EmployeeInformation>();
         try {
@@ -142,7 +142,7 @@ public class ReadCsv implements Runnable {
                 try {
                     if (originalFileLock != null && originalFileLock.isValid()) {
                         originalFileLock.release(); // エラーでもロック解除
-                        MANAGER.LOGGER.info("社員情報保存CSVファイルのロックを解除しました");
+                        MANAGER.printInfoLog("社員情報保存CSVファイルのロックを解除しました");
                     }
                 } catch (Exception ex) {
                     MANAGER.printExceptionLog(ex, "社員情報保存CSVファイルのロック解除に失敗しました");
@@ -161,7 +161,7 @@ public class ReadCsv implements Runnable {
                     }
                     backupFile.renameTo(originalFile);
                 }
-                MANAGER.LOGGER.info("社員情報保存CSVファイルを削除処理前に戻しました");
+                MANAGER.printInfoLog("社員情報保存CSVファイルを削除処理前に戻しました");
                 showErrorDialog("削除後の社員情報リストの保存に失敗しました");
                 return;
             }
@@ -172,7 +172,7 @@ public class ReadCsv implements Runnable {
                 EmployeeManager.employeeList.addAll(newEmployeeList);
             }
             String message = "CSV読み込み成功";
-            MANAGER.LOGGER.info(message);
+            MANAGER.printInfoLog(message);
             showDialog(message);
         } catch (Exception e) {
             String message = "指定されたCSVファイルの読み込みが出来ませんでした";

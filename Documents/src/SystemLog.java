@@ -11,7 +11,7 @@ public abstract class SystemLog {
     private final String LOG_FOLDER = "LOG";
     private final String LOG_FILEPATH = LOG_FOLDER + "/system_log_" + LocalDate.now() + ".txt";
     private final File SYSTEM_LOG = new File(LOG_FILEPATH);
-    protected final Logger LOGGER = Logger.getLogger("SystemLog");;
+    private final Logger LOGGER = Logger.getLogger("SystemLog");;
 
     /**
      * ログファイルの読み込み。
@@ -67,6 +67,10 @@ public abstract class SystemLog {
         } catch (Exception e) {
             printExceptionLog(e, "ログファイルの新規作成で例外が発生しました");
         }
+    }
+
+    protected Logger getLogger(){
+        return this.LOGGER;
     }
 
     /**

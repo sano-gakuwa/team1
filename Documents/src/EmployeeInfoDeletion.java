@@ -34,7 +34,7 @@ public class EmployeeInfoDeletion implements Runnable {
 
     public void run() {
         deletionLock.lock();
-        MANAGER.LOGGER.info("社員情報削除の開始");
+        MANAGER.printInfoLog("社員情報削除の開始");
         // 削除処理
         try {
             // 社員情報リストから選択した社員情報を削除
@@ -55,7 +55,7 @@ public class EmployeeInfoDeletion implements Runnable {
                     // employeeListにbackupEmployeeListをコピー
                     EmployeeManager.employeeList.clear();
                     EmployeeManager.employeeList = backupEmployeeList;
-                    MANAGER.LOGGER.info("社員情報リストを削除処理前に戻しました");
+                    MANAGER.printInfoLog("社員情報リストを削除処理前に戻しました");
                     showErrorDialog("選択された社員情報の削除に失敗しました");
                     return;
                 }
@@ -89,20 +89,20 @@ public class EmployeeInfoDeletion implements Runnable {
                 try {
                     if (lock != null && lock.isValid()) {
                         lock.release(); // エラーでもロック解除
-                        MANAGER.LOGGER.info("社員情報保存CSVファイルロック解除成功");
+                        MANAGER.printInfoLog("社員情報保存CSVファイルロック解除成功");
                     }
                 } catch (IOException ex) {
-                    MANAGER.LOGGER.info("社員情報保存CSVファイルのロック解除失敗");
+                    MANAGER.printInfoLog("社員情報保存CSVファイルのロック解除失敗");
                 }
             } catch (Exception e) {
                 // 追記中エラー時のロールバック処理を追加
                 try {
                     if (lock != null && lock.isValid()) {
                         lock.release(); // エラーでもロック解除
-                        MANAGER.LOGGER.info("社員情報保存CSVファイルロック解除成功");
+                        MANAGER.printInfoLog("社員情報保存CSVファイルロック解除成功");
                     }
                 } catch (IOException ex) {
-                    MANAGER.LOGGER.info("社員情報保存CSVファイルロック解除失敗");
+                    MANAGER.printInfoLog("社員情報保存CSVファイルロック解除失敗");
                 }
                 MANAGER.printExceptionLog(e, "削除後の社員情報リストの保存に失敗しました");
                 if (originalFile.exists() && backupFile.exists()) {
@@ -116,7 +116,7 @@ public class EmployeeInfoDeletion implements Runnable {
                     }
                     backupFile.renameTo(originalFile);
                 }
-                MANAGER.LOGGER.info("社員情報保存CSVファイルを削除処理前に戻しました");
+                MANAGER.printInfoLog("社員情報保存CSVファイルを削除処理前に戻しました");
                 showErrorDialog("削除後の社員情報リストの保存に失敗しました");
                 return;
             }
@@ -128,7 +128,7 @@ public class EmployeeInfoDeletion implements Runnable {
             return;
         }
         deletionLock.unlock();
-        MANAGER.LOGGER.info("社員情報削除の完了");
+        MANAGER.printInfoLog("社員情報削除の完了");
     }
 
     /**

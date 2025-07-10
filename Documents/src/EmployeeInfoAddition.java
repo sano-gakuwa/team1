@@ -32,13 +32,13 @@ public class EmployeeInfoAddition implements Runnable {
 
     public void run() {
         additionLock.lock(); // ロックを取得
-        MANAGER.LOGGER.info("社員情報追加の開始");
+        MANAGER.printInfoLog("社員情報追加の開始");
         // バックアップファイル作成
         File originalFile = EmployeeManager.EMPLOYEE_CSV;
         File backupFile = new File("employee_data_backup.csv");
         try {
             Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            MANAGER.LOGGER.info("CSVバックアップ作成成功");
+            MANAGER.printInfoLog("CSVバックアップ作成成功");
         } catch (IOException e) {
             MANAGER.printExceptionLog(e, "CSVバックアップ作成失敗");
             return;
@@ -54,16 +54,16 @@ public class EmployeeInfoAddition implements Runnable {
                     new OutputStreamWriter(fileOutputStream, "Shift-JIS")));
             // 追加情報を記述
             pw.println(MANAGER.convertToCSV(newEmployee));
-            MANAGER.LOGGER.info("CSVファイルに社員情報を追記成功（社員ID: " + newEmployee.getEmployeeID() + "）");
+            MANAGER.printInfoLog("CSVファイルに社員情報を追記成功（社員ID: " + newEmployee.getEmployeeID() + "）");
             pw.close();
-            MANAGER.LOGGER.info("ファイルロック解除成功");
+            MANAGER.printInfoLog("ファイルロック解除成功");
         } catch (IOException e) {
             MANAGER.printExceptionLog(e, "CSVファイル新規追加失敗しました");
             // 追記中エラー時のロールバック処理を追加
             try {
                 if (lock != null && lock.isValid()) {
                     lock.release(); // エラーでもロック解除
-                    MANAGER.LOGGER.info("ファイルロック解除成功");
+                    MANAGER.printInfoLog("ファイルロック解除成功");
                 }
             } catch (IOException ex) {
                 MANAGER.printExceptionLog(e, "ファイルロック解除失敗");
@@ -83,18 +83,18 @@ public class EmployeeInfoAddition implements Runnable {
             try {
                 if (backupFile.exists()) {
                     if (backupFile.delete()) {
-                        MANAGER.LOGGER.info("バックアップファイル削除成功");
+                        MANAGER.printInfoLog("バックアップファイル削除成功");
                     } else {
-                        MANAGER.LOGGER.warning("バックアップファイル削除失敗");
+                        MANAGER.printErrorLog("バックアップファイル削除失敗");
                     }
                 }
                 if (lock != null && lock.isValid()) {
                     lock.release();
-                    MANAGER.LOGGER.info("ファイルロック解除成功");
+                    MANAGER.printInfoLog("ファイルロック解除成功");
                 }
                 if (fileOutputStream != null) {
                     fileOutputStream.close();
-                    MANAGER.LOGGER.info("ファイル出力ストリームクローズ成功");
+                    MANAGER.printInfoLog("ファイル出力ストリームクローズ成功");
                 }
             } catch (IOException e) {
                 MANAGER.printExceptionLog(e, "finally句での後処理に失敗");
@@ -103,12 +103,12 @@ public class EmployeeInfoAddition implements Runnable {
         // 社員情報リストに新規データを追加
         try {
             EmployeeManager.employeeList.add(newEmployee);
-            MANAGER.LOGGER.info("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
+            MANAGER.printInfoLog("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
         } catch (Exception e) {
             MANAGER.printExceptionLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
         }
         additionLock.unlock(); // ロックを解放
-        MANAGER.LOGGER.info("社員情報追加の終了");
+        MANAGER.printInfoLog("社員情報追加の終了");
     }
 
     

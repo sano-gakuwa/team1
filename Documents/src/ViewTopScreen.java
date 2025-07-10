@@ -222,7 +222,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             ((JTextField) topPanel.getComponent(7)).setText("");
             ((JTextField) topPanel.getComponent(9)).setText("");
             clearSearchResultButton.setVisible(false); // ボタン非表示に戻す
-            MANAGER.LOGGER.info("検索結果クリア：全件表示に戻しました");
+            MANAGER.printInfoLog("検索結果クリア：全件表示に戻しました");
         });
         // テーブル構築
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
@@ -502,7 +502,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                     String selectID = "";// 詳細ボタンを押された行の社員ID
                     if (model.getValueAt(row, 0) != null) {
                         selectID = (model.getValueAt(row, 0)).toString();
-                        MANAGER.LOGGER.info("社員番号が" + selectID + "の詳細ボタンが押されました");
+                        MANAGER.printInfoLog("社員番号が" + selectID + "の詳細ボタンが押されました");
                     }
                     if (selectID != "") {
                         EmployeeInformation selectedEmployee = null;// 詳細ボタンを押された行の社員情報
@@ -519,7 +519,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                             MANAGER.printExceptionLog(ex, "社員情報の取得に失敗");
                             return;
                         }
-                        MANAGER.LOGGER.info("社員番号が" + selectID + "の社員情報を表示");
+                        MANAGER.printInfoLog("社員番号が" + selectID + "の社員情報を表示");
                         // ここに詳細画面表示メソッド実装よろしく！！
                         // 詳細画面を開く処理
                         refreshUI();
@@ -653,15 +653,15 @@ public class ViewTopScreen extends SetUpTopScreen {
                 label,
                 null);
         if (selectButton == 0) {
-            MANAGER.LOGGER.info("CSV読み込みを開始");
+            MANAGER.printInfoLog("CSV読み込みを開始");
             ReadCsv readCsv = new ReadCsv();
             readCsv.readCsv(selectedFile);
             Thread readCsvThread = new Thread(readCsv);
             readCsvThread.start();
         } else if (selectButton == 1) {
-            MANAGER.LOGGER.info("CSV読み込みをキャンセル");
+            MANAGER.printInfoLog("CSV読み込みをキャンセル");
         } else if (selectButton == 2) {
-            MANAGER.LOGGER.info("読み込むCSVを変更");
+            MANAGER.printInfoLog("読み込むCSVを変更");
             selectFile();
         }
     }

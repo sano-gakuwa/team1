@@ -52,7 +52,7 @@ public class EmployeeListOperator {
             String availableLanguagesQuery,
             SearchCallback callback) {
                 if (isSearching) {
-                    MANAGER.LOGGER.info("検索中に検索ボタンが押されました");
+                    MANAGER.printInfoLog("検索中に検索ボタンが押されました");
                     callback.onSearchFinished(false, null, "検索中です。");
                     return;
                 }
@@ -63,7 +63,7 @@ public class EmployeeListOperator {
                         isEmpty(engineerDateQuery) &&
                         isEmpty(availableLanguagesQuery);
                 if (allEmpty) {
-                    MANAGER.LOGGER.info("検索条件が入力されていません。検索処理は実行されませんでした。");
+                    MANAGER.printInfoLog("検索条件が入力されていません。検索処理は実行されませんでした。");
                     callback.onSearchFinished(false, null, "検索条件が入力されていません。");
                     return;
                 }

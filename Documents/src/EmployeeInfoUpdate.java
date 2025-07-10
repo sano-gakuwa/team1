@@ -54,7 +54,7 @@ public class EmployeeInfoUpdate implements Runnable {
             showErrorDialog("指定された社員情報が見つかりません");
             return;
         }
-        MANAGER.LOGGER.info("社員情報更新の開始");
+        MANAGER.printInfoLog("社員情報更新の開始");
         // --- CSVファイル更新処理（安全性のためバックアップ＋排他ロックを使用） ---
         File originalFile = EmployeeManager.EMPLOYEE_CSV; // 元のCSVファイル
         File backupFile = new File("CSV/employee_data_backup.csv"); // バックアップファイル
@@ -85,7 +85,7 @@ public class EmployeeInfoUpdate implements Runnable {
             }
 
             pw.close();
-            MANAGER.LOGGER.info("社員情報更新成功（社員ID: " + updatedEmployee.getEmployeeID() + "）");
+            MANAGER.printInfoLog("社員情報更新成功（社員ID: " + updatedEmployee.getEmployeeID() + "）");
 
         } catch (IOException e) {
             // --- 書き込みエラー時：ロールバック処理（元に戻す） ---
@@ -111,7 +111,7 @@ public class EmployeeInfoUpdate implements Runnable {
             }
         }
         updateLock.unlock(); // ロック解除
-        MANAGER.LOGGER.info("社員情報更新完了");
+        MANAGER.printInfoLog("社員情報更新完了");
     }
 
     /**

@@ -4,6 +4,7 @@ import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
@@ -43,19 +44,22 @@ public class AppLock extends SystemLog{
     }
     @Override
     public void printExceptionLog(Exception e, String errorString) {
+        Logger logger=getLogger();
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
-        LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
+        logger.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
 
     @Override
     public void printInfoLog(String infoString) {
-        LOGGER.info(infoString);
+        Logger logger=getLogger();
+        logger.info(infoString);
     }
 
     @Override
     public void printErrorLog(String errString){
-        LOGGER.warning(errString);
+        Logger logger=getLogger();
+        logger.warning(errString);
     }
 }

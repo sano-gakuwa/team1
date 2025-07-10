@@ -18,6 +18,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 /**
  * 社員情報を登録・管理するためのマネージャークラス
@@ -64,7 +65,7 @@ public class EmployeeManager extends SystemLog {
         try {
             Files.createDirectories(Paths.get(CSV_FOLDER));
             if (verificationEmployeeData()) {
-                LOGGER.info("社員情報保存用CSVファイル読み込み成功");
+                printInfoLog("社員情報保存用CSVファイル読み込み成功");
             }
             employeeLoading();
             // checkArrayList();
@@ -87,7 +88,7 @@ public class EmployeeManager extends SystemLog {
                 }
             } else {
                 makeEmployeeData();
-                LOGGER.info("社員情報保存用CSVファイル作成");
+                printInfoLog("社員情報保存用CSVファイル作成");
                 return true;
             }
         } catch (Exception e) {
@@ -161,20 +162,23 @@ public class EmployeeManager extends SystemLog {
 
     @Override
     public void printExceptionLog(Exception e, String errorString) {
+        Logger logger=getLogger();
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
-        LOGGER.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
+        logger.severe(String.format("%s\n%s", errorString, stringWriter.toString()));
     }
 
     @Override
     public void printInfoLog(String infoString) {
-        LOGGER.info(infoString);
+        Logger logger=getLogger();
+        logger.info(infoString);
     }
 
     @Override
     public void printErrorLog(String errString){
-        LOGGER.warning(errString);
+        Logger logger=getLogger();
+        logger.warning(errString);
     }
 
     
@@ -256,23 +260,23 @@ public class EmployeeManager extends SystemLog {
     public boolean validateNotNull(EmployeeInformation employee) {
         boolean validate = true;
         if (employee.getEmployeeID() == null || employee.getEmployeeID().isEmpty()) {
-            LOGGER.warning("社員ID欄が空欄です");
+            printErrorLog("社員ID欄が空欄です");
             validate = false;
         }
         if (employee.getLastName() == null || employee.getLastName().isEmpty()) {
-            LOGGER.warning("名字欄が空欄です");
+            printErrorLog("名字欄が空欄です");
             validate = false;
         }
         if (employee.getFirstname() == null || employee.getFirstname().isEmpty()) {
-            LOGGER.warning("名前欄が空欄です");
+            printErrorLog("名前欄が空欄です");
             validate = false;
         }
         if (employee.getRubyLastName() == null || employee.getRubyLastName().isEmpty()) {
-            LOGGER.warning("名字のフリガナ欄が空欄です");
+            printErrorLog("名字のフリガナ欄が空欄です");
             validate = false;
         }
         if (employee.getRubyFirstname() == null || employee.getRubyFirstname().isEmpty()) {
-            LOGGER.warning("名前のフリガナ欄が空欄です");
+            printErrorLog("名前のフリガナ欄が空欄です");
             validate = false;
         }
         return validate;

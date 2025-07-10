@@ -49,7 +49,7 @@ public class setFrameExit extends SetUpJframe {
             frame.dispose();
                 while (0<threadsManager.usingThread()) {
                     try {
-                        manager.LOGGER.info("mainスレッド1秒停止");
+                        manager.printInfoLog("mainスレッド1秒停止");
                         Thread.sleep(1000);
                     } catch (Exception e) {
                         manager.printExceptionLog(e,"mainスレッド1秒停止失敗");

@@ -38,7 +38,7 @@ public class EmployeeUpdater extends Thread {
                 if (existing.getEmployeeID().equals(newEmployee.getEmployeeID())) {
                     SwingUtilities.invokeLater(() -> {
                         callScreen.showValidationError("社員IDが既に存在します。別のIDを入力してください。");
-                        MANAGER.LOGGER.warning(() -> ("重複する社員IDが存在（ID: " + newEmployee.getEmployeeID() + "）"));
+                        MANAGER.printErrorLog("重複する社員IDが存在（ID: " + newEmployee.getEmployeeID() + "）");
                     });
                     return;
                 }
@@ -64,12 +64,12 @@ public class EmployeeUpdater extends Thread {
 
             // backup削除
             if (!backupFile.delete()) {
-                MANAGER.LOGGER.warning("バックアップファイル削除に失敗"); // ここはerrorログの方が良い
+                MANAGER.printErrorLog("バックアップファイル削除に失敗"); // ここはerrorログの方が良い
             }
 
             // リストに追加
             EmployeeManager.employeeList.add(newEmployee);
-            MANAGER.LOGGER.info(() -> ("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）"));
+            MANAGER.printInfoLog("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
 
             // 成功通知＆画面更新
             SwingUtilities.invokeLater(() -> {
@@ -107,7 +107,7 @@ public class EmployeeUpdater extends Thread {
             lock = channel.lock();
 
             pw.println(convertToCSV(newEmployee));
-            MANAGER.LOGGER.info(() -> ("CSVファイルに社員情報を追記成功（ID: " + newEmployee.getEmployeeID() + "）"));
+            MANAGER.printInfoLog("CSVファイルに社員情報を追記成功（ID: " + newEmployee.getEmployeeID() + "）");
             
             return true;
 
@@ -119,7 +119,7 @@ public class EmployeeUpdater extends Thread {
             try {
                 if (lock != null && lock.isValid()) {
                     lock.release();
-                    MANAGER.LOGGER.info("CSVファイルロック解除成功");
+                    MANAGER.printInfoLog("CSVファイルロック解除成功");
                 }
             } catch (IOException ex) {
                 MANAGER.printExceptionLog(ex, "ファイルストリームやロックの後処理で例外発生");
@@ -162,7 +162,7 @@ public class EmployeeUpdater extends Thread {
      */
     private boolean checkNotBlank(String value, String message) {
         if (value == null || value.isEmpty()) {
-            MANAGER.LOGGER.warning(message);
+            MANAGER.printErrorLog(message);
             return false;
         }
         return true;
@@ -178,7 +178,7 @@ public class EmployeeUpdater extends Thread {
      */
     private boolean checkNotNull(Object value, String message) {
         if (value == null) {
-            MANAGER.LOGGER.warning(message);
+            MANAGER.printErrorLog(message);
             return false;
         }
         return true;
@@ -301,7 +301,7 @@ public class EmployeeUpdater extends Thread {
         try {
             writeCSV(originalFile);
             Files.deleteIfExists(backupFile.toPath());
-            MANAGER.LOGGER.info(() -> "社員情報更新成功（社員ID: " + updatedEmployee.getEmployeeID() + "）");
+            MANAGER.printInfoLog("社員情報更新成功（社員ID: " + updatedEmployee.getEmployeeID() + "）");
         } catch (Exception e) {
             rollbackCsv(originalFile, backupFile, e);
             showErrorDialog("社員情報の保存に失敗しました");
@@ -324,13 +324,13 @@ public class EmployeeUpdater extends Thread {
             synchronized (EmployeeManager.employeeList) {
                 EmployeeManager.employeeList.removeIf(emp -> selected.contains(emp.getEmployeeID()));
             }
-            MANAGER.LOGGER.info("選択された社員情報の削除に成功しました");
+            MANAGER.printInfoLog("選択された社員情報の削除に成功しました");
             return true;
         } catch (Exception e) {
             MANAGER.printExceptionLog(e, "選択された社員情報の削除に失敗しました");
             EmployeeManager.employeeList.clear();
             EmployeeManager.employeeList.addAll(backup);
-            MANAGER.LOGGER.info("社員情報リストを削除処理前に戻しました");
+            MANAGER.printInfoLog("社員情報リストを削除処理前に戻しました");
             showErrorDialog("選択された社員情報の削除に失敗しました");
             return false;
         }
@@ -350,7 +350,7 @@ public class EmployeeUpdater extends Thread {
     private boolean backupCsv(File original, File backup) {
         try {
             Files.copy(original.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            MANAGER.LOGGER.info("バックアップファイルの作成に成功しました");
+            MANAGER.printInfoLog("バックアップファイルの作成に成功しました");
             return true;
         } catch (IOException e) {
             MANAGER.printExceptionLog(e, "バックアップファイルの作成に失敗しました");
@@ -382,7 +382,7 @@ public class EmployeeUpdater extends Thread {
                     pw.println(convertToCSV(emp));
                 }
             }
-            MANAGER.LOGGER.info("CSVファイルの書き出しに成功しました");
+            MANAGER.printInfoLog("CSVファイルの書き出しに成功しました");
 
         } catch (IOException e) {
             throw new Exception("CSV書き出し中にエラー", e);
@@ -390,7 +390,7 @@ public class EmployeeUpdater extends Thread {
             try {
                 if (lock != null && lock.isValid()) {
                     lock.release();
-                    MANAGER.LOGGER.info("CSVファイルのロック解除成功");
+                    MANAGER.printInfoLog("CSVファイルのロック解除成功");
                 }
             } catch (IOException e) {
                 MANAGER.printExceptionLog(e, "CSVファイルのロック解除に失敗しました");
@@ -416,7 +416,7 @@ public class EmployeeUpdater extends Thread {
             if (!backup.renameTo(original)) {
                 throw new IOException("バックアップからの復元に失敗");
             }
-            MANAGER.LOGGER.info("CSVファイルをバックアップから復元しました");
+            MANAGER.printInfoLog("CSVファイルをバックアップから復元しました");
         } catch (IOException ex) {
             MANAGER.printExceptionLog(ex, "CSVファイルの復元に失敗しました");
             showErrorDialog("CSVファイルの復元に失敗しました");

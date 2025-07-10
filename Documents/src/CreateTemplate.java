@@ -25,7 +25,7 @@ public class CreateTemplate implements Runnable{
 
     @Override
     public void run() {
-        MANAGER.LOGGER.info("テンプレートファイル作成開始");
+        MANAGER.printInfoLog("テンプレートファイル作成開始");
         createTemplateLock.lock(); // ロックを取得
         // 固定ファイル名で保存先ファイルを作成
         File file = new File(selectedDir, "employee_template.csv");
@@ -58,6 +58,6 @@ public class CreateTemplate implements Runnable{
             }
         }
         createTemplateLock.unlock();
-        MANAGER.LOGGER.info("テンプレートファイル作成完了");
+        MANAGER.printInfoLog("テンプレートファイル作成完了");
     }
 }
