@@ -7,8 +7,8 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class setFrameExit extends SetUpJframe {
-    private ThreadsManager threadsManager=new ThreadsManager();
-    private EmployeeManager manager=new EmployeeManager();
+    private ThreadsManager threadsManager = new ThreadsManager();
+    private EmployeeManager manager = new EmployeeManager();
 
     setFrameExit() {
     }
@@ -47,15 +47,18 @@ public class setFrameExit extends SetUpJframe {
                 JOptionPane.QUESTION_MESSAGE);
         if (result == JOptionPane.YES_OPTION) {
             frame.dispose();
-                while (0<threadsManager.usingThread()) {
-                    try {
-                        manager.printInfoLog("mainスレッド1秒停止");
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                        manager.printExceptionLog(e,"mainスレッド1秒停止失敗");
-                    }
+            manager.printInfoLog("画面を閉じました");
+            while (0 < threadsManager.usingThread()) {
+                manager.printInfoLog("使用中のスレッド:"+threadsManager.usingThread());
+                try {
+                    manager.printInfoLog("mainスレッド1秒停止");
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    manager.printExceptionLog(e, "mainスレッド1秒停止失敗");
                 }
-                System.exit(0);
+            }
+            manager.printInfoLog("終了");
+            System.exit(0);
         }
     }
 }
