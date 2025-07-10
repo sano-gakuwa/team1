@@ -290,7 +290,7 @@ public class EmployeeInformation {
      * @return フォーマットされた日付文字列、または null の場合は空文字列
      * @author nishiyama
      */
-    public static String formatDate(Date date) {
+    public String formatDate(Date date) {
         if (date == null)
             return "";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");

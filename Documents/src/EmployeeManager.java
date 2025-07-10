@@ -155,7 +155,7 @@ public class EmployeeManager extends SystemLog {
                 }
             } catch (Exception e) {
                 printExceptionLog(e, "社員情報保存用CSVファイルから情報の読み込みが出来ませんでした");
-            }finally{
+            } finally {
                 scanner.close();
             }
         } catch (Exception e) {
@@ -165,7 +165,7 @@ public class EmployeeManager extends SystemLog {
 
     @Override
     public void printExceptionLog(Exception e, String errorString) {
-        Logger logger=getLogger();
+        Logger logger = getLogger();
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         e.printStackTrace(printWriter);
@@ -174,19 +174,19 @@ public class EmployeeManager extends SystemLog {
 
     @Override
     public void printInfoLog(String infoString) {
-        Logger logger=getLogger();
+        Logger logger = getLogger();
         logger.info(infoString);
     }
 
     @Override
-    public void printErrorLog(String errString){
-        Logger logger=getLogger();
+    public void printErrorLog(String errString) {
+        Logger logger = getLogger();
         logger.warning(errString);
     }
 
-    
     /**
      * 文字列を社員情報型に変換
+     * 
      * @param loadEmployeeDate 読み込まれた社員情報の文字列
      * @return 社員情報型
      * @author simomura
@@ -236,8 +236,8 @@ public class EmployeeManager extends SystemLog {
         csvBuilder.append(employee.getFirstname()).append(",");
         csvBuilder.append(employee.getRubyLastName()).append(",");
         csvBuilder.append(employee.getRubyFirstname()).append(",");
-        csvBuilder.append(EmployeeInformation.formatDate(employee.getBirthday())).append(",");
-        csvBuilder.append(EmployeeInformation.formatDate(employee.getJoiningDate())).append(",");
+        csvBuilder.append(employee.formatDate(employee.getBirthday())).append(",");
+        csvBuilder.append(employee.formatDate(employee.getJoiningDate())).append(",");
         csvBuilder.append(employee.getEngineerDate()).append(",");
         csvBuilder.append(employee.getAvailableLanguages()).append(",");
         csvBuilder.append(employee.getCareerDate()).append(",");
@@ -247,7 +247,7 @@ public class EmployeeManager extends SystemLog {
         csvBuilder.append(employee.getCommunicationPoint()).append(",");
         csvBuilder.append(employee.getLeadershipPoint()).append(",");
         csvBuilder.append(employee.getRemarks()).append(",");
-        csvBuilder.append(EmployeeInformation.formatDate(employee.getUpdatedDay())).append(",");
+        csvBuilder.append(employee.formatDate(employee.getUpdatedDay())).append(",");
         // カンマ区切りで連結した文字列を返す
         csvTypeString = csvBuilder.toString();
         return csvTypeString;
@@ -295,48 +295,164 @@ public class EmployeeManager extends SystemLog {
     public boolean validateEmployee(EmployeeInformation employee) {
         boolean validate = true;
         try {
-            if (employee.getEmployeeID().length() != 7) {
-                printErrorLog("エラー:社員IDが7桁ではありません");
-                validate = false;
-            }
-            if (employee.getLastName().length() > 15) {
-                printErrorLog("エラー:姓が15文字より多いです");
-                validate = false;
-            }
-            if (employee.getFirstname().length() > 15) {
-                printErrorLog("エラー:名が15文字より多いです");
-                validate = false;
-            }
-            if (employee.getRubyLastName().length() > 15) {
-                printErrorLog("エラー:姓の読みが15文字より多いです");
-                validate = false;
-            }
-            if (employee.getRubyFirstname().length() > 15) {
-                printErrorLog("エラー:名の読みがが15文字より多いです");
-                validate = false;
-            }
-            if (validateNotFuture(employee.getBirthday())) {
-                printErrorLog("エラー:誕生日が未来の日付です");
-                validate = false;
-            }
-            if (validateNotFuture(employee.getJoiningDate())) {
-                printErrorLog("エラー:入社日が未来の日付です");
-                validate = false;
-            }
-            if(employee.getEngineerDate()<0){
-                printErrorLog("エラー:エンジニア歴がマイナスです");
-                validate = false;
-            }
-            if(employee.getEngineerDate()>=600){
-                printErrorLog("エラー:エンジニア歴が50年以上です");
-                validate = false;
-            }
-            if (employee.getEngineerDate() >= 600) {
-                printErrorLog("エラー:");
-                validate = false;
-            }
+            validateEmployeeID(employee, validate);
+            validateName(employee, validate);
+            validateirthday(employee, validate);
+            validateJoiningDate(employee, validate);
+            validateEngineerDate(employee, validate);
+            validateCareerDate(employee, validate);
+            validateTrainingDate(employee, validate);
+            validateSkillPoint(employee, validate);
+            validateCommunicationPoint(employee, validate);
+            validateAttitudePoint(employee, validate);
+            validateLeadershipPoint(employee, validate);
+            validateRemarks(employee, validate);
         } catch (Exception e) {
             printExceptionLog(e, "形式エラー");
+        }
+        return validate;
+    }
+
+    private boolean validateEmployeeID(EmployeeInformation employee, boolean validate) {
+        if (employee.getEmployeeID().length() != 7) {
+            printErrorLog("エラー:社員IDが7桁ではありません");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateName(EmployeeInformation employee, boolean validate) {
+        if (employee.getLastName().length() > 15) {
+            printErrorLog("エラー:姓が15文字より多いです");
+            validate = false;
+        }
+        if (employee.getFirstname().length() > 15) {
+            printErrorLog("エラー:名が15文字より多いです");
+            validate = false;
+        }
+        if (employee.getRubyLastName().length() > 15) {
+            printErrorLog("エラー:姓の読みが15文字より多いです");
+            validate = false;
+        }
+        if (employee.getRubyFirstname().length() > 15) {
+            printErrorLog("エラー:名の読みがが15文字より多いです");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateirthday(EmployeeInformation employee, boolean validate) {
+        if (validateNotFuture(employee.getBirthday())) {
+            printErrorLog("エラー:誕生日が未来の日付です");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateJoiningDate(EmployeeInformation employee, boolean validate) {
+        if (validateNotFuture(employee.getJoiningDate())) {
+            printErrorLog("エラー:入社日が未来の日付です");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateEngineerDate(EmployeeInformation employee, boolean validate) {
+        if (employee.getEngineerDate() < 0) {
+            printErrorLog("エラー:エンジニア歴がマイナスです");
+            validate = false;
+        }
+        if (employee.getEngineerDate() >= 600) {
+            printErrorLog("エラー:エンジニア歴が50年以上です");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateRemarks(EmployeeInformation employee, boolean validate) {
+        if (employee.getRemarks().length() > 400) {
+            printErrorLog("エラー:経歴が400文字より多いです");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateTrainingDate(EmployeeInformation employee, boolean validate) {
+        if (employee.getTrainingDate().length() > 400) {
+            printErrorLog("エラー:受講歴が400文字より多いです");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateSkillPoint(EmployeeInformation employee, boolean validate) {
+        if (employee.getSkillPoint() % 0.5 != 0) {
+            printErrorLog("エラー:技術力の項目が0.5刻みではありません");
+            validate = false;
+        }
+        if (employee.getSkillPoint() > 5) {
+            printErrorLog("エラー:技術力の項目が5より大きいです");
+            validate = false;
+        }
+        if (employee.getSkillPoint() < 1) {
+            printErrorLog("エラー:技術力の項目が1より小さいです");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateCommunicationPoint(EmployeeInformation employee, boolean validate) {
+        if (employee.getCommunicationPoint() % 0.5 != 0) {
+            printErrorLog("エラー:コミュニケーション能力の項目が0.5刻みではありません");
+            validate = false;
+        }
+        if (employee.getCommunicationPoint() > 5) {
+            printErrorLog("エラー:コミュニケーション能力の項目が5より大きいです");
+            validate = false;
+        }
+        if (employee.getCommunicationPoint() < 1) {
+            printErrorLog("エラー:コミュニケーション能力の項目が1より小さいです");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateAttitudePoint(EmployeeInformation employee, boolean validate) {
+        if (employee.getAttitudePoint() % 0.5 != 0) {
+            printErrorLog("エラー:受講態度の項目が0.5刻みではありません");
+            validate = false;
+        }
+        if (employee.getAttitudePoint() > 5) {
+            printErrorLog("エラー:受講態度の項目が5より大きいです");
+            validate = false;
+        }
+        if (employee.getAttitudePoint() < 1) {
+            printErrorLog("エラー:受講態度の項目が1より小さいです");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateLeadershipPoint(EmployeeInformation employee, boolean validate) {
+        if (employee.getLeadershipPoint() % 0.5 != 0) {
+            printErrorLog("エラー:リーダーシップの項目が0.5刻みではありません");
+            validate = false;
+        }
+        if (employee.getLeadershipPoint() > 5) {
+            printErrorLog("エラー:リーダーシップの項目が5より大きいです");
+            validate = false;
+        }
+        if (employee.getLeadershipPoint() < 1) {
+            printErrorLog("エラー:リーダーシップの項目が1より小さいです");
+            validate = false;
+        }
+        return validate;
+    }
+
+    private boolean validateCareerDate(EmployeeInformation employee, boolean validate) {
+        if (employee.getCareerDate().length() > 400) {
+            printErrorLog("エラー:備考が400文字より多いです");
+            validate = false;
         }
         return validate;
     }

@@ -191,25 +191,25 @@ public class EmployeeUpdater extends Thread {
      * @return CSV形式の文字列
      * @author nishiyama
      */
-    private String convertToCSV(EmployeeInformation e) {
+    private String convertToCSV(EmployeeInformation employee) {
         return String.join(",",
-                e.getEmployeeID(),
-                e.getLastName(),
-                e.getFirstname(),
-                e.getRubyLastName(),
-                e.getRubyFirstname(),
-                EmployeeInformation.formatDate(e.getBirthday()),
-                EmployeeInformation.formatDate(e.getJoiningDate()),
-                String.valueOf(e.getEngineerDate()),
-                e.getAvailableLanguages(),
-                e.getCareerDate(),
-                e.getTrainingDate(),
-                String.valueOf(e.getSkillPoint()),
-                String.valueOf(e.getAttitudePoint()),
-                String.valueOf(e.getCommunicationPoint()),
-                String.valueOf(e.getLeadershipPoint()),
-                e.getRemarks(),
-                EmployeeInformation.formatDate(e.getUpdatedDay())
+                employee.getEmployeeID(),
+                employee.getLastName(),
+                employee.getFirstname(),
+                employee.getRubyLastName(),
+                employee.getRubyFirstname(),
+                employee.formatDate(employee.getBirthday()),
+                employee.formatDate(employee.getJoiningDate()),
+                String.valueOf(employee.getEngineerDate()),
+                employee.getAvailableLanguages(),
+                employee.getCareerDate(),
+                employee.getTrainingDate(),
+                String.valueOf(employee.getSkillPoint()),
+                String.valueOf(employee.getAttitudePoint()),
+                String.valueOf(employee.getCommunicationPoint()),
+                String.valueOf(employee.getLeadershipPoint()),
+                employee.getRemarks(),
+                employee.formatDate(employee.getUpdatedDay())
         );
     }
 
