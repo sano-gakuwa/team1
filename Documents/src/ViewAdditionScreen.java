@@ -544,16 +544,16 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * 
      * @param panel Jpanelに配置されたJcomboBox
      *              0番目: 年の JComboBox
-     *              2番目: 月の JComboBox
-     *              4番目（存在する場合）: 日の JComboBox
+     *              1番目: 月の JComboBox
+     *              2番目（存在する場合）: 日の JComboBox
      * @return Date: 選択された年月日を表す java.util.Date オブジェクト
      * @author nishiyama
      */
     private Date getDateFromSelector(JPanel panel) {
         JPanel datePanel = (JPanel) panel.getComponent(0);
         JComboBox<?> yearBox = (JComboBox<?>) datePanel.getComponent(0);
-        JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(2);
-        JComboBox<?> dayBox=(JComboBox<?>) datePanel.getComponent(4);
+        JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(1);
+        JComboBox<?> dayBox=(JComboBox<?>) datePanel.getComponent(2);
         // 年、月、日を取得
         String yearsString=(String)yearBox.getSelectedItem();
         yearsString=yearsString.replace("年","");
@@ -575,19 +575,19 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * 
      * @param panel Jpanelに配置されたJcomboBox
      *              0番目: 年の JComboBox
-     *              2番目: 月の JComboBox
+     *              1番目: 月の JComboBox
      * @return int: 総月数（年×12 + 月）
      * @author nishiyama
      */
     private int getYearMonthFromSelector(JPanel panel) {
         JPanel datePanel = (JPanel) panel.getComponent(0);
         JComboBox<?> yearBox = (JComboBox<?>) datePanel.getComponent(0);
-        JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(2);
+        JComboBox<?> monthBox = (JComboBox<?>) datePanel.getComponent(1);
         String yearsString=(String)yearBox.getSelectedItem();
         yearsString=yearsString.replace("年","");
         int year = Integer.parseInt(yearsString);
         String mounthString=(String)monthBox.getSelectedItem();
-        mounthString=mounthString.replace("月","");
+        mounthString=mounthString.replace("ヵ月","");
         int month = Integer.parseInt(mounthString);
         return year * 12 + month;
     }
