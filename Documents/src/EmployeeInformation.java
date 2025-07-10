@@ -2,42 +2,59 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 /**
  * 社員情報型
- * @param employeeID 社員ID
- * @param lastName 姓
- * @param firstname 名
- * @param rubyLastName 姓(ルビ)
- * @param rubyFirstname 名(ルビ)
- * @param birthday 誕生日
- * @param joiningDate 入社日
- * @param engineerDate エンジニア歴
- * @param availableLanguages 扱える言語
- * @param careerDate 経歴
- * @param trainingDate 研修受講歴
- * @param skillPoint 技術力
- * @param communicationPoint コミュニケーション能力
- * @param attitudePoint 受講態度
- * @param leadershipPoint リーダーシップ
- * @param remarks 備考
- * @param updatedDay 更新日
+ * @param employeeID 社員ID:String
+ * @param lastName 姓名の姓:String
+ * @param firstname 姓名の名:String
+ * @param rubyLastName 姓名の姓(読み・ルビ):String
+ * @param rubyFirstname 姓名の名(読み・ルビ):String
+ * @param birthday 誕生日:Date
+ * @param joiningDate 入社日:Date
+ * @param engineerDate エンジニア歴:int
+ * @param availableLanguages 扱える言語:String
+ * @param careerDate 経歴:String
+ * @param trainingDate 研修受講歴:String
+ * @param skillPoint 技術力:Double
+ * @param communicationPoint コミュニケーション能力:Double
+ * @param attitudePoint 受講態度:Double
+ * @param leadershipPoint リーダーシップ:Double
+ * @param remarks 備考:String
+ * @param updatedDay 更新日:Date
  * @author 下村
  */
 public class EmployeeInformation {
+    /**社員ID */
     private String employeeID;
+    /**姓名の姓 */
     private String lastName;
+    /**姓名の名 */
     private String firstname;
+    /**姓名の姓(読み・ルビ) */
     private String rubyLastName;
+    /**姓名の名(読み・ルビ) */
     private String rubyFirstname;
+    /**誕生日 */
     private Date birthday;
+    /**入社日 */
     private Date joiningDate;
+    /**エンジニア歴 */
     private int engineerDate;
+    /**扱える言語 */
     private String availableLanguages;
+    /**経歴 */
     private String careerDate;
+    /**研修受講歴 */
     private String trainingDate;
+    /**技術力 */
     private Double skillPoint;
-    private Double attitudePoint;
+    /**コミュニケーション能力 */
     private Double communicationPoint;
+    /**受講態度 */
+    private Double attitudePoint;
+    /**リーダーシップ */
     private Double leadershipPoint;
+    /**備考 */
     private String remarks;
+    /**更新日 */
     private Date updatedDay;
 
     public EmployeeInformation() {}
@@ -290,7 +307,7 @@ public class EmployeeInformation {
      * @return フォーマットされた日付文字列、または null の場合は空文字列
      * @author nishiyama
      */
-    public String formatDate(Date date) {
+    protected String formatDate(Date date) {
         if (date == null)
             return "";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");
