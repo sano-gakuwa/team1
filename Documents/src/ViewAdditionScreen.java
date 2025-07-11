@@ -237,14 +237,17 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             EmployeeInformation info = collectInputData();
             if (!MANAGER.validateNotNull(info)) {
                 showErrorDialog("必須項目が入力されていません");
+                showErrorMessageOnPanel("必須項目が入力されていません");
                 return;
             }
             if(!MANAGER.validateEmployee(info)){
                 showErrorDialog("社員情報の内容に誤りがあります");
+                showErrorMessageOnPanel("社員情報の内容に誤りがあります");
                 return;
             }
             if (!MANAGER.validateOverlappingEmployee(info)) {
                 showErrorDialog("重複する社員IDが存在します");
+                showErrorMessageOnPanel("重複する社員IDが存在します");
                 return;
             }
             addition.addition(info);
@@ -345,11 +348,8 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         panel.setBackground(Color.LIGHT_GRAY);
         yearBox.setSize(1,1);
         panel.add(yearBox);
-        // panel.add(new JLabel("年"));
         panel.add(monthBox);
-        // panel.add(new JLabel("月"));
         panel.add(dayBox);
-        // panel.add(new JLabel("日"));
         return panel;
     }
 
@@ -385,9 +385,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         }
         monthBox = new JComboBox<>(monthModel);
         panel.add(yearBox);
-        // panel.add(new JLabel("年"));
         panel.add(monthBox);
-        // panel.add(new JLabel("月"));
         return panel;
     }
 
@@ -521,7 +519,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             return employee;
         } catch (Exception e) {
             MANAGER.printExceptionLog(e, "データ取得中にエラーが発生しました");
-            showValidationError("データ取得中にエラーが発生しました");
+            showErrorDialog("データ取得中にエラーが発生しました");
             return null;
         }
     }
@@ -606,40 +604,22 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     // ダイアログ関係-------------------------------------------------------
     /**
      * エラーメッセージを保存ボタン上部に表示。
-     * 
      * @param message 表示するエラーメッセージ
      * @author nishiyama
      */
     public void showErrorMessageOnPanel(String message) {
         errorPanel.removeAll();
         JLabel errorLabel = new JLabel(message);
-        errorLabel.setForeground(Color.RED);
+        errorLabel.setBounds(0,0,750, 26);
         errorLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 12));
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setHorizontalAlignment(JLabel.CENTER);
         errorPanel.add(errorLabel);
-    }
-
-    /**
-     * 新規追加成功時に表示されるダイアログ
-     * 
-     * @param message ダイアログに表示される新規追加処理完了メッセージ
-     */
-    public void showSuccessDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    /**
-     * 新規追加成功失敗時に表示されるダイアログ
-     * 
-     * @param message 表示されるエラーメッセージ
-     * @author nishiyama
-     */
-    public void showValidationError(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+        errorPanel.repaint();
     }
 
     /**
      * エラー表示用に用意したダイアログに文言表示させる
-     *
      * @param message 表示するエラーメッセージ
      * @author nishiyama
      */
