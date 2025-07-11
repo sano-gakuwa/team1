@@ -179,6 +179,8 @@ public class ReadCsv implements Runnable {
             MANAGER.printExceptionLog(e, message);
             JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
             return;
+        }finally{
+            readCsvLock.unlock();
         }
     }
 
