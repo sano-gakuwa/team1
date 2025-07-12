@@ -1,3 +1,4 @@
+
 // 画面やレイアウトに関するクラスを読み込む（ウィンドウの大きさや部品配置を扱う）
 import java.awt.*;
 
@@ -10,9 +11,6 @@ import java.time.LocalDate;
 // 日付やリスト、マップなど便利なクラスをまとめて読み込み
 import java.util.*;
 
-// 正規表現（パターンマッチング）を使うためのクラス
-import java.util.regex.Pattern;
-
 // SwingのGUI部品をまとめて読み込み（ボタンやテキストフィールドなど）
 import javax.swing.*;
 
@@ -24,16 +22,6 @@ import javax.swing.text.JTextComponent;
  * SetUpDetailsScreenを継承し、既存情報の読み込み・編集・保存処理を提供する
  */
 public class ViewEditScreen extends SetUpDetailsScreen {
-
-    // 環境依存文字（特定環境で正しく表示されない可能性のある文字）のリスト
-    private static final String[] ENV_DEPENDENT_CHARS = {
-            "髙", "﨑", "𠮷", "辻", "①", "②", "③", "㊤", "㈱", "㈲", "℡",
-            "㎜", "㌔", "🈂", "🅰", "🅱", "©", "®", "™", "😃", "💻"
-    };
-
-    // サロゲートペア文字（絵文字などの特殊文字）を判定する正規表現パターン
-    private static final Pattern SURROGATE_PATTERN = Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]");
-
     // --- UI部品の宣言 ---
 
     // 社員IDを表示・入力するテキストフィールド（編集不可に設定）
@@ -77,19 +65,16 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private JButton saveButton, backButton;
 
     // 社員情報の管理クラスのインスタンス（CSVの読み書きなどを担当）
+
     private final EmployeeManager MANAGER = new EmployeeManager();
+
+    public ViewEditScreen() {
+        MANAGER.printInfoLog("ViewEditScreen 初期化完了");
+        frame.setTitle("エンジニア情報 編集画面");
+    }
 
     // 現在表示・編集中の社員情報オブジェクト
     private EmployeeInformation employeeInformation;
-
-    /**
-     * コンストラクタ
-     * 画面タイトルを設定し、画面の準備を行う
-     */
-    public ViewEditScreen() {
-        // 画面のタイトルバーに表示される文字をセット
-        frame.setTitle("エンジニア情報 編集画面");
-    }
 
     /**
      * 画面の各部品（UI）をまとめて初期化するメソッド
@@ -362,280 +347,27 @@ public class ViewEditScreen extends SetUpDetailsScreen {
                 return;
             }
 
-            // 以下、バリデーションチェック（詳細は元コードに準ずる）
+            EmployeeInformation info = collectInputData();
 
-            // 姓名取得、空文字チェックなど
-            String lastName = lastNameField.getText().trim();
-            String firstName = firstNameField.getText().trim();
-            if (lastName.isEmpty() || firstName.isEmpty()) {
-                showValidationError("姓と名は必須です");
+            if (!MANAGER.validateNotNull(info)) {
+                showErrorDialog("必須項目が入力されていません");
                 setUIEnabled(true);
                 return;
             }
-            if (lastName.codePointCount(0, lastName.length()) > 15 ||
-                    firstName.codePointCount(0, firstName.length()) > 15) {
-                showValidationError("氏名（漢字）は15文字以内で入力してください");
-                setUIEnabled(true);
-                return;
-            }
-            if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
-                    || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
-                    || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
-                    || firstName.matches(".*[\\uFF61-\\uFF9F].*")
-                    || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
-                    || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-            for (String ch : ENV_DEPENDENT_CHARS) {
-                if (lastName.contains(ch) || firstName.contains(ch)) {
-                    showValidationError("使用できない文字が含まれています");
-                    setUIEnabled(true);
-                    return;
-                }
-            }
-            if (SURROGATE_PATTERN.matcher(lastName).find() || SURROGATE_PATTERN.matcher(firstName).find()) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
+            if (!MANAGER.validateEmployee(info)) {
+                showErrorDialog("社員情報の内容に誤りがあります");
                 return;
             }
 
-            // フリガナチェック
-            String rubyLastName = rubyLastNameField.getText().trim();
-            String rubyFirstName = rubyFirstNameField.getText().trim();
-            if (rubyLastName.isEmpty() || rubyFirstName.isEmpty()) {
-                showValidationError("フリガナは必須です");
-                setUIEnabled(true);
-                return;
-            }
-            if (rubyLastName.codePointCount(0, rubyLastName.length()) > 15 ||
-                    rubyFirstName.codePointCount(0, rubyFirstName.length()) > 15) {
-                showValidationError("氏名（フリガナ）は15文字以内で入力してください");
-                setUIEnabled(true);
-                return;
-            }
-            if (rubyLastName.matches(".*[\\uFF61-\\uFF9F].*")
-                    || rubyLastName.matches(".*[\\u3040-\\u309F].*")
-                    || rubyLastName.matches(".*[\\u4E00-\\u9FFF].*")
-                    || rubyLastName.matches(".*[A-Za-z].*")
-                    || rubyLastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
-                    || rubyFirstName.matches(".*[\\uFF61-\\uFF9F].*")
-                    || rubyFirstName.matches(".*[\\u3040-\\u309F].*")
-                    || rubyFirstName.matches(".*[\\u4E00-\\u9FFF].*")
-                    || rubyFirstName.matches(".*[A-Za-z].*")
-                    || rubyFirstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-
-            // エンジニア歴チェック
-String yearStr = engYearCombo.getSelectedItem().toString();
-String monthStr = engMonthCombo.getSelectedItem().toString();
-
-int years = Integer.parseInt(yearStr.replace("年", ""));
-int months = Integer.parseInt(monthStr.replace("ヵ月", ""));
-
-// 年が0の場合は月は1以上でなければエラー
-if (years == 0 && months == 0) {
-    showValidationError("エンジニア歴の月は、年が0の場合は1〜11の範囲で入力してください");
-    setUIEnabled(true);
-    return;
-}
-
-// 年が0以上、月が0～11の範囲かチェック（年数は0～50くらいに制限してもよい）
-if (years < 0 || years > 50 || months < 0 || months > 11) {
-    showValidationError("エンジニア歴は年が0以上、月は0〜11の範囲で入力してください");
-    setUIEnabled(true);
-    return;
-}
+            // 保存処理を呼び出し
+            EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+            update.update(info);
+            Thread updateThread = new Thread(update,"スレッド");
+            updateThread.start();
 
 
 
-                
             
-            
-            // 扱える言語
-            String setAvailable = availableLanguageField.getText().trim();
-            setAvailable = setAvailable.replaceAll("\\s+", "・");
-            availableLanguageField.setText(setAvailable);
-            if (!validateAvailableLanguageFormat(setAvailable)) {
-                showValidationError("扱える言語の区切り文字が不正です。正しく「・」で区切ってください。");
-                setUIEnabled(true);
-                return;
-            }
-            if (setAvailable.codePointCount(0, setAvailable.length()) > 100) {
-                showValidationError("使える言語は100文字以内で入力してください");
-                setUIEnabled(true);
-                return;
-            }
-            if (setAvailable.matches(".*[!@#$%^&*()_+=|{}\\[\\]:;\"'<>?/\\\\Ａ-Ｚａ-ｚ①-⑩©®™😃💻！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-            for (String ch : ENV_DEPENDENT_CHARS) {
-                if (setAvailable.contains(ch)) {
-                    showValidationError("使用できない文字が含まれています");
-                    setUIEnabled(true);
-                    return;
-                }
-            }
-            if (SURROGATE_PATTERN.matcher(setAvailable).find()) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-
-            // 生年月日チェック
-            try {
-                int year = Integer.parseInt(birthYearCombo.getSelectedItem().toString().replace("年", ""));
-                int month = Integer.parseInt(birthMonthCombo.getSelectedItem().toString().replace("月", ""));
-                int day = Integer.parseInt(birthDayCombo.getSelectedItem().toString().replace("日", ""));
-                Calendar today = Calendar.getInstance();
-                Calendar inputDate = Calendar.getInstance();
-                inputDate.setLenient(false);
-                inputDate.set(year, month - 1, day);
-                inputDate.getTime();
-                Calendar minDate = Calendar.getInstance();
-                minDate.set(1925, Calendar.JUNE, 1);
-                if (inputDate.before(minDate)) {
-                    showValidationError("生年月日は1925年6月1日以降で入力してください");
-                    setUIEnabled(true);
-                    return;
-                }
-                Calendar tomorrow = (Calendar) today.clone();
-                tomorrow.add(Calendar.DATE, 1);
-                if (!inputDate.before(tomorrow)) {
-                    showValidationError("生年月日は現在日付までで入力してください");
-                    setUIEnabled(true);
-                    return;
-                }
-            } catch (Exception ex) {
-                showValidationError("無効な日付が選択されています");
-                setUIEnabled(true);
-                return;
-            }
-
-            // 入社年月チェック
-            try {
-                int joinYear = Integer.parseInt(joinYearCombo.getSelectedItem().toString().replace("年", ""));
-                int joinMonth = Integer.parseInt(joinMonthCombo.getSelectedItem().toString().replace("月", ""));
-                Calendar today = Calendar.getInstance();
-                int currentYear = today.get(Calendar.YEAR);
-                int currentMonth = today.get(Calendar.MONTH) + 1;
-                if (joinYear > currentYear || (joinYear == currentYear && joinMonth > currentMonth)) {
-                    showValidationError("入社年月は現在年月までで入力してください");
-                    setUIEnabled(true);
-                    return;
-                }
-            } catch (Exception ex) {
-                showValidationError("無効な入社年月が選択されています");
-                setUIEnabled(true);
-                return;
-            }
-
-            // 経歴チェック
-            String career = careerArea.getText().trim();
-            if (career.matches(".*[＠！＃＄％＾＆＊（）＿＋＝￥｛｝［］：“”’＜＞？／\\\\].*")) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-            if (career.codePointCount(0, career.length()) > 400) {
-                showValidationError("経歴は400文字以内で入力してください");
-                setUIEnabled(true);
-                return;
-            }
-            for (String ch : ENV_DEPENDENT_CHARS) {
-                if (career.contains(ch)) {
-                    showValidationError("使用できない文字が含まれています");
-                    setUIEnabled(true);
-                    return;
-                }
-            }
-            if (SURROGATE_PATTERN.matcher(career).find()) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-
-            // 研修受講歴チェック
-            String training = trainingArea.getText().trim();
-            if (training.codePointCount(0, training.length()) > 400) {
-                showValidationError("研修受講歴は400文字以内で入力してください");
-                setUIEnabled(true);
-                return;
-            }
-            for (String ch : ENV_DEPENDENT_CHARS) {
-                if (training.contains(ch)) {
-                    showValidationError("使用できない文字が含まれています");
-                    setUIEnabled(true);
-                    return;
-                }
-            }
-            if (SURROGATE_PATTERN.matcher(training).find()) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-
-            // 備考欄チェック
-            String remarks = remarksArea.getText().trim();
-            if (remarks.codePointCount(0, remarks.length()) > 400) {
-                showValidationError("備考は400文字以内で入力してください");
-                setUIEnabled(true);
-                return;
-            }
-            for (String ch : ENV_DEPENDENT_CHARS) {
-                if (remarks.contains(ch)) {
-                    showValidationError("使用できない文字が含まれています");
-                    setUIEnabled(true);
-                    return;
-                }
-            }
-            if (SURROGATE_PATTERN.matcher(remarks).find()) {
-                showValidationError("使用できない文字が含まれています");
-                setUIEnabled(true);
-                return;
-            }
-
-            // スキル評価値チェック
-            double[] validScores = { 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0 };
-            for (double score : new double[] {
-                    parseScore(techCombo),
-                    parseScore(commCombo),
-                    parseScore(attitudeCombo),
-                    parseScore(leaderCombo)
-            }) {
-                boolean valid = false;
-                for (double v : validScores) {
-                    if (score == v) {
-                        valid = true;
-                        break;
-                    }
-                }
-                if (!valid) {
-                    showValidationError("評価項目の値は1.0〜5.0の0.5刻みで選択してください");
-                    setUIEnabled(true);
-                    return;
-                }
-            }
-
-           // 入力されたデータをEmployeeInformationオブジェクトにまとめる
-EmployeeInformation editInfo = collectInputData();
-
-// nullチェック
-
-
-    // バリデーションOKなので保存スレッドを開始
-    EmployeeInfoUpdate update = new EmployeeInfoUpdate();
-    update.update(editInfo);
-    Thread updateThread = new Thread(update);
-    updateThread.start();
-
-
             // ==== 保存完了後の「成功ダイアログ」の表示 ====
             JOptionPane optionPane = new JOptionPane(
                     "保存完了しました", // 表示メッセージ
@@ -728,30 +460,30 @@ EmployeeInformation editInfo = collectInputData();
      * @param dayBox   日選択用コンボボックス
      * @return 作成したパネルオブジェクト
      */
-private JPanel dateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox) {
-    // 現在の年
-    int currentYear = LocalDate.now().getYear();
+    private JPanel dateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox) {
+        // 現在の年
+        int currentYear = LocalDate.now().getYear();
 
-    // 年を「〇〇年」で100年分追加
-    DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>();
-    for (int i = currentYear - 100; i <= currentYear; i++) {
-        yearModel.addElement(i + "年");
-    }
-    yearBox.setModel(yearModel);
+        // 年を「〇〇年」で100年分追加
+        DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>();
+        for (int i = currentYear - 100; i <= currentYear; i++) {
+            yearModel.addElement(i + "年");
+        }
+        yearBox.setModel(yearModel);
 
-    // 月を「〇月」で追加（正しい設定：生年月日・入社年月は「1月」〜「12月」）
-    DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
-    for (int i = 1; i <= 12; i++) {
-        monthModel.addElement(i + "月");
-    }
-    monthBox.setModel(monthModel);
+        // 月を「〇月」で追加（正しい設定：生年月日・入社年月は「1月」〜「12月」）
+        DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
+        for (int i = 1; i <= 12; i++) {
+            monthModel.addElement(i + "月");
+        }
+        monthBox.setModel(monthModel);
 
-    // 日は仮に31日まで表示
-    DefaultComboBoxModel<String> dayModel = new DefaultComboBoxModel<>();
-    for (int i = 1; i <= 31; i++) {
-        dayModel.addElement(i + "日");
-    }
-    dayBox.setModel(dayModel);
+        // 日は仮に31日まで表示
+        DefaultComboBoxModel<String> dayModel = new DefaultComboBoxModel<>();
+        for (int i = 1; i <= 31; i++) {
+            dayModel.addElement(i + "日");
+        }
+        dayBox.setModel(dayModel);
 
         // レイアウト設定
         JPanel panel = new JPanel();
@@ -785,12 +517,11 @@ private JPanel dateSelector(JComboBox<String> yearBox, JComboBox<String> monthBo
         yearBox.setModel(yearModel);
 
         // 月は0〜11ヶ月までを追加
-DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
-for (int i = 0; i <= 11; i++) {
-    monthModel.addElement(i + "ヵ月");  // 「ヵ月」に変更
-}
-monthBox.setModel(monthModel);
-
+        DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
+        for (int i = 0; i <= 11; i++) {
+            monthModel.addElement(i + "ヵ月"); // 「ヵ月」に変更
+        }
+        monthBox.setModel(monthModel);
 
         // パネルに年・月コンボボックスとラベルを追加
         panel.add(yearBox);
@@ -867,11 +598,11 @@ monthBox.setModel(monthModel);
             employee.setJoiningDate(getDateFromComboBoxes(joinYearCombo, joinMonthCombo, joinDayCombo));
 
             // エンジニア歴は年と月を合算（単位は月）
-            String yearStr = engYearCombo.getSelectedItem().toString();      // 例: "3年"
-            String monthStr = engMonthCombo.getSelectedItem().toString();    // 例: "1ヵ月"
+            String yearStr = engYearCombo.getSelectedItem().toString(); // 例: "3年"
+            String monthStr = engMonthCombo.getSelectedItem().toString(); // 例: "1ヵ月"
 
-            int years = Integer.parseInt(yearStr.replace("年", ""));          // → 3
-            int months = Integer.parseInt(monthStr.replace("ヵ月", ""));      // → 1
+            int years = Integer.parseInt(yearStr.replace("年", "")); // → 3
+            int months = Integer.parseInt(monthStr.replace("ヵ月", "")); // → 1
 
             employee.setEngineerDate(years * 12 + months);
 
@@ -910,16 +641,15 @@ monthBox.setModel(monthModel);
      * @param placeholder プレースホルダー文字列
      * @return 入力された文字列、もしくは空文字
      */
-private String getFieldValue(JTextComponent field, String placeholder) {
-    String text = field.getText();
-    // null や空白のみの場合は空文字として返す
-    if (text == null || text.trim().isEmpty()) {
-        return "";
+    private String getFieldValue(JTextComponent field, String placeholder) {
+        String text = field.getText();
+        // null や空白のみの場合は空文字として返す
+        if (text == null || text.trim().isEmpty()) {
+            return "";
+        }
+        // プレースホルダーと一致していても、そのまま値として扱う
+        return text.trim();
     }
-    // プレースホルダーと一致していても、そのまま値として扱う
-    return text.trim();
-}
-
 
     /**
      * スキル評価のコンボボックスの選択値（文字列）をdoubleに変換する
@@ -952,7 +682,7 @@ private String getFieldValue(JTextComponent field, String placeholder) {
         // "0月" が選ばれていたらエラーダイアログを表示して中断（nullを返す）
         if (monthStr.equals("0月")) {
             showErrorDialog("月の選択が不正です。1月〜12月の中から選択してください。");
-            return null;  // ← 必ず null を返す
+            return null; // ← 必ず null を返す
         }
 
         // "〇月" → "〇" に変換して数値にし、Calendar用に -1
@@ -960,13 +690,13 @@ private String getFieldValue(JTextComponent field, String placeholder) {
 
         // 日（"15日" → 15）を取得。nullのときは1日を指定
         int day = (dayCombo != null)
-            ? Integer.parseInt(dayCombo.getSelectedItem().toString().replace("日", ""))
-            : 1;
+                ? Integer.parseInt(dayCombo.getSelectedItem().toString().replace("日", ""))
+                : 1;
 
         // Calendarで日付を構築
         Calendar calendar = Calendar.getInstance();
         calendar.set(year, month, day);
-        return calendar.getTime();  // 最終的な Date 型の返却
+        return calendar.getTime(); // 最終的な Date 型の返却
     }
 
     // ========================== 以下、ダイアログ表示関連メソッド ==============================
@@ -1035,38 +765,10 @@ private String getFieldValue(JTextComponent field, String placeholder) {
         joinMonthCombo.setSelectedItem((joinCal.get(Calendar.MONTH) + 1) + "月");
         joinDayCombo.setSelectedItem(joinCal.get(Calendar.DAY_OF_MONTH) + "日");
 
-int totalMonths = employeeInformation.getEngineerDate();
-engYearCombo.setSelectedItem((totalMonths / 12) + "年");
-engMonthCombo.setSelectedItem((totalMonths % 12) + "ヵ月");  // 「ヵ月」に変更
+        int totalMonths = employeeInformation.getEngineerDate();
+        engYearCombo.setSelectedItem((totalMonths / 12) + "年");
+        engMonthCombo.setSelectedItem((totalMonths % 12) + "ヵ月"); // 「ヵ月」に変更
 
-    }
-
-    /**
-     * 扱える言語欄の入力フォーマットを厳密にチェックするメソッド
-     * ・全角中黒（・）で区切られているか
-     * ・連続した区切り文字がないか
-     * ・区切り文字の前後に空文字がないか
-     * 
-     * @param text 入力文字列
-     * @return フォーマットが正しいならtrue、そうでなければfalse
-     */
-    private boolean validateAvailableLanguageFormat(String text) {
-        if (text.isEmpty()) {
-            return true; // 空文字は許可
-        }
-        if (text.startsWith("・") || text.endsWith("・")) {
-            return false; // 先頭または末尾に区切り文字があるのは不可
-        }
-        if (text.contains("・・")) {
-            return false; // 連続した区切り文字は不可
-        }
-        String[] parts = text.split("・", -1);
-        for (String part : parts) {
-            if (part.trim().isEmpty()) {
-                return false; // 区切り文字の間が空文字は不可
-            }
-        }
-        return true;
     }
 
     /**
