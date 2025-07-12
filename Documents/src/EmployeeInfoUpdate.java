@@ -13,6 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.JOptionPane;
 
 public class EmployeeInfoUpdate implements Runnable {
+    private ThreadsManager threadsManager = new ThreadsManager(); 
     private EmployeeInformation updatedEmployee;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private static ReentrantLock updateLock = new ReentrantLock();
@@ -31,6 +32,7 @@ public class EmployeeInfoUpdate implements Runnable {
     }
 
     public void run() {
+        threadsManager.startUsing(Thread.currentThread());
         updateLock.lock(); // ロックを取得
         // --- 入力内容のチェック（必須項目が空ならエラーダイアログ表示） ---
         if (!MANAGER.validateNotNull(updatedEmployee)) {
@@ -110,6 +112,7 @@ public class EmployeeInfoUpdate implements Runnable {
                 MANAGER.printExceptionLog(e, "リソースの解放に失敗しました");
             }
         }
+        threadsManager.endUsing(Thread.currentThread());
         updateLock.unlock(); // ロック解除
         MANAGER.printInfoLog("社員情報更新完了");
     }
