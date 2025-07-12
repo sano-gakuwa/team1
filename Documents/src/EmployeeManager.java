@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
@@ -307,6 +308,7 @@ public class EmployeeManager extends SystemLog {
             validateAttitudePoint(employee, validate);
             validateLeadershipPoint(employee, validate);
             validateRemarks(employee, validate);
+            validateNameForbiddenChars(employee, validate);
         } catch (Exception e) {
             printExceptionLog(e, "形式エラー");
         }
@@ -320,6 +322,20 @@ public class EmployeeManager extends SystemLog {
         }
         return validate;
     }
+
+    /**
+ * サロゲートペア（機種依存文字）を含むかを判定するメソッド
+ * 
+ * 例：「髙」「①」「🈂」「💻」「𠮷」などの機種依存文字が含まれていれば true を返します。
+ * 
+ * @param input チェック対象の文字列（姓、名、フリガナなど）
+ * @return サロゲートペアが含まれていれば true、含まれていなければ false
+ */
+public boolean containsSurrogatePair(String input) {
+    if (input == null) return false; // nullは機種依存文字ではないためfalse
+    return Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]").matcher(input).find();
+}
+
 
     private boolean validateName(EmployeeInformation employee, boolean validate) {
         if (employee.getLastName().length() > 15) {
@@ -341,6 +357,8 @@ public class EmployeeManager extends SystemLog {
         return validate;
     }
 
+
+
     private boolean validateirthday(EmployeeInformation employee, boolean validate) {
         if (validateNotFuture(employee.getBirthday())) {
             printErrorLog("エラー:誕生日が未来の日付です");
@@ -356,6 +374,22 @@ public class EmployeeManager extends SystemLog {
         }
         return validate;
     }
+
+    private boolean validateNameForbiddenChars(EmployeeInformation employee, boolean validate) {
+    String lastName = employee.getLastName();
+    String firstName = employee.getFirstname();
+
+    if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
+        || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
+        || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
+        || firstName.matches(".*[\\uFF61-\\uFF9F].*")
+        || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
+        || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
+        printErrorLog("エラー:氏名に使用できない文字が含まれています");
+        validate = false;
+    }
+    return validate;
+}
 
     private boolean validateEngineerDate(EmployeeInformation employee, boolean validate) {
         if (employee.getEngineerDate() < 0) {
