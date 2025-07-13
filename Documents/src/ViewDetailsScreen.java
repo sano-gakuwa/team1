@@ -1,6 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.FocusAdapter;
@@ -9,7 +10,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -30,18 +30,18 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
     private JTextField rubyLastNameField, rubyFirstNameField;
     private JTextField lastNameField, firstNameField;
     // 生年月日
-    private JComboBox<Integer> birthYearCombo = new JComboBox<>();
-    private JComboBox<Integer> birthMonthCombo = new JComboBox<>();
-    private JComboBox<Integer> birthDayCombo = new JComboBox<>();
+    private JComboBox<String> birthYearCombo = new JComboBox<>(); // String型に変更
+    private JComboBox<String> birthMonthCombo = new JComboBox<>(); // String型に変更
+    private JComboBox<String> birthDayCombo = new JComboBox<>(); // String型に変更
 
     // 入社年月日
-    private JComboBox<Integer> joinYearCombo = new JComboBox<>();
-    private JComboBox<Integer> joinMonthCombo = new JComboBox<>();
-    private JComboBox<Integer> joinDayCombo = new JComboBox<>();
+    private JComboBox<String> joinYearCombo = new JComboBox<>(); // String型に変更
+    private JComboBox<String> joinMonthCombo = new JComboBox<>(); // String型に変更
+    private JComboBox<String> joinDayCombo = new JComboBox<>(); // String型に変更
 
     // エンジニア歴
-    private JComboBox<Integer> engYearCombo = new JComboBox<>();
-    private JComboBox<Integer> engMonthCombo = new JComboBox<>();
+    private JComboBox<String> engYearCombo = new JComboBox<>(); // String型に変更
+    private JComboBox<String> engMonthCombo = new JComboBox<>(); // String型に変更
     private JPanel birthPanel = new JPanel();
     private JPanel joinPanel = new JPanel();
     private JPanel engPanel = new JPanel();
@@ -115,16 +115,19 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
     private void setupDateAndLanguageFields() {
         // 生年月日
         birthdDayPanel.add(new JLabel("生年月日"), BorderLayout.NORTH);
+        // `dateSelector`メソッドの引数を`JComboBox<String>`型に合わせる
         birthPanel.add(dateSelector(birthYearCombo, birthMonthCombo, birthDayCombo, employeeInformation.getBirthday()));
         birthPanel.setBackground(Color.WHITE);
         birthdDayPanel.add(birthPanel, BorderLayout.SOUTH);
         // 入社年月日
         joiningDatePanel.add(new JLabel("入社年月"), BorderLayout.NORTH);
+        // `dateSelector`メソッドの引数を`JComboBox<String>`型に合わせる
         joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo, employeeInformation.getJoiningDate()));
         joinPanel.setBackground(Color.WHITE);
         joiningDatePanel.add(joinPanel, BorderLayout.SOUTH);
         // エンジニア歴
         engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
+        // `engineerDateSelector`メソッドの引数を`JComboBox<String>`型に合わせる
         engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo, employeeInformation.getEngineerDate()));
         engPanel.setBackground(Color.WHITE);
         engineerDatePanel.add(engPanel, BorderLayout.SOUTH);
@@ -157,12 +160,12 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         skillsPanel.add(createLabel("スキル", 0, 0), BorderLayout.NORTH);
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         skillPanel.setBackground(Color.LIGHT_GRAY);
-    
+     
         techCombo = createScoreCombo(info.getSkillPoint());
         commCombo = createScoreCombo(info.getCommunicationPoint());
         attitudeCombo = createScoreCombo(info.getAttitudePoint());
         leaderCombo = createScoreCombo(info.getLeadershipPoint());
-    
+     
         skillPanel.add(new JLabel("技術力"));
         skillPanel.add(techCombo);
         skillPanel.add(new JLabel("コミュニケーション能力"));
@@ -171,7 +174,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         skillPanel.add(attitudeCombo);
         skillPanel.add(new JLabel("リーダーシップ"));
         skillPanel.add(leaderCombo);
-    
+     
         skillPanel.setBounds(0, 10, 360, 10);
         skillsPanel.add(skillPanel, BorderLayout.CENTER);
     }
@@ -245,74 +248,80 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
 
     /**
      * 年月（必要に応じて日）を選択するためのセレクターパネルを作成。
-     * 
-     * @param yearBox  年の JComboBox の参照を格納する配列（長さ1の配列）
-     * @param monthBox 月の JComboBox の参照を格納する配列（長さ1の配列）
-     * @param dayBox   日の JComboBox の参照を格納する配列（長さ1の配列、includeDay=true 時のみ使用）
+     * * @param yearBox  年の JComboBox の参照
+     * @param monthBox 月の JComboBox の参照
+     * @param dayBox   日の JComboBox の参照
      * @return 年月（＋日）選択用の JPanel コンポネント
      * @author nishiyama
      */
-    private JPanel dateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox, JComboBox<Integer> dayBox,
+    private JPanel dateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox,
             Date date) {
         LocalDate localDate = LocalDate.ofInstant(date.toInstant(), ZoneId.systemDefault());
-        //
+         
         JPanel panel = new JPanel();
-        Dimension size = new Dimension(205, 40);
+        Dimension size = new Dimension(210, 40);
         int wrapperWidth = size.width;
         int wrapperHeight = size.height;
         panel.setPreferredSize(new Dimension(wrapperWidth, wrapperHeight));
         panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
         panel.setBackground(Color.LIGHT_GRAY);
-        //
-        Integer[] yearInteger = {};
-        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
-        yearModel.addElement(Integer.valueOf(localDate.getYear()));
-        yearBox = new JComboBox<>(yearModel);
-        //
-        Integer[] monthInteger = {};
-        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
-        monthModel.addElement(Integer.valueOf(localDate.getMonthValue()));
-        monthBox = new JComboBox<>(monthModel);
-        //
-        Integer[] dayInteger = {};
-        DefaultComboBoxModel<Integer> dayModel = new DefaultComboBoxModel<>(dayInteger);
-        dayModel.addElement(Integer.valueOf(localDate.getDayOfMonth()));
-        dayBox = new JComboBox<>(dayModel);
+         
+        // 年のコンボボックスに「年」を追加
+        // DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>();
+        // yearModel.addElement(localDate.getYear() + "年"); // 数字に「年」を結合
+        // yearBox.setModel(yearModel);
+
+
+        // 年のコンボボックス
+        yearBox.removeAllItems(); // 既存のアイテムをクリア
+        yearBox.addItem(localDate.getYear() + "年"); // 数字に「年」を結合
+        yearBox.setSelectedItem(localDate.getYear() + "年"); // 選択状態に設定
+
+        // 月のコンボボックスに「月」を追加
+        monthBox.removeAllItems();
+        monthBox.addItem(localDate.getMonthValue() + "月"); // 数字に「月」を結合
+        monthBox.setSelectedItem(localDate.getMonthValue() + "月");
+
+        // 日のコンボボックスに「日」を追加
+        dayBox.removeAllItems();
+        dayBox.addItem(localDate.getDayOfMonth() + "日"); // 数字に「日」を結合
+        dayBox.setSelectedItem(localDate.getDayOfMonth() + "日");
+
         panel.add(yearBox);
-        panel.add(new JLabel("年"));
+        // panel.add(new JLabel("年")); // 単位がコンボボックス内に入るので、このラベルは不要になる
         panel.add(monthBox);
-        panel.add(new JLabel("月"));
+        // panel.add(new JLabel("月")); // 単位がコンボボックス内に入るので、このラベルは不要になる
         panel.add(dayBox);
-        panel.add(new JLabel("日"));
+        // panel.add(new JLabel("日")); // 単位がコンボボックス内に入るので、このラベルは不要になる
         return panel;
     }
 
-    private JPanel engineerDateSelector(JComboBox<Integer> yearBox, JComboBox<Integer> monthBox, int date) {
-        Integer year;
-        Integer month;
-        year = date / 12;
-        month = date % 12;
+    private JPanel engineerDateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox, int date) { // String型に変更
+        Integer year = date / 12;
+        Integer month = date % 12;
         JPanel panel = new JPanel();
-        Dimension size = new Dimension(140, 40);
+        panel.setLayout(new FlowLayout());
+        Dimension size = new Dimension(200, 40);
         int wrapperWidth = size.width + 15;
         int wrapperHeight = size.height;
         panel.setPreferredSize(new Dimension(wrapperWidth, size.height));
         panel.setMaximumSize(new Dimension(size.width, wrapperHeight));
-        Integer[] yearInteger = {};
-        DefaultComboBoxModel<Integer> yearModel = new DefaultComboBoxModel<>(yearInteger);
-
         panel.setBackground(Color.LIGHT_GRAY);
-        yearModel.addElement(year);
-        yearBox = new JComboBox<>(yearModel);
-        //
-        Integer[] monthInteger = {};
-        DefaultComboBoxModel<Integer> monthModel = new DefaultComboBoxModel<>(monthInteger);
-        monthModel.addElement(month);
-        monthBox = new JComboBox<>(monthModel);
+         
+        // 年のコンボボックスに「年」を追加
+        yearBox.removeAllItems();
+        yearBox.addItem(year + "年"); // 数字に「年」を結合
+        yearBox.setSelectedItem(year + "年");
+
+        // 月のコンボボックスに「月」を追加
+        monthBox.removeAllItems();
+        monthBox.addItem(month + "ヵ月"); // 数字に「カ月」を結合
+        monthBox.setSelectedItem(month + "ヵ月");
+
         panel.add(yearBox);
-        panel.add(new JLabel("年"));
+        // panel.add(new JLabel("年")); // 単位がコンボボックス内に入るので、このラベルは不要になる
         panel.add(monthBox);
-        panel.add(new JLabel("月"));
+        // panel.add(new JLabel("月")); // 単位がコンボボックス内に入るので、このラベルは不要になる
         return panel;
     }
 
@@ -335,8 +344,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
      * プレースホルダー付きの JTextArea を作成。
      * ユーザーがフィールドにフォーカスすると、プレースホルダーが消え入力可能。
      * フォーカスが外れ、入力が空の場合は再びプレースホルダーが表示される。
-     * 
-     * @param placeholder 初期表示されるプレースホルダーテキスト
+     * * @param placeholder 初期表示されるプレースホルダーテキスト
      * @return プレースホルダー付きの JTextArea オブジェクト
      * @author nishiyama
      */
@@ -439,3 +447,6 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         makeTextComponentReadOnly(remarksArea);
     }
 }
+
+
+
