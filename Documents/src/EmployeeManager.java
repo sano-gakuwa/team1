@@ -403,7 +403,7 @@ public class EmployeeManager extends SystemLog {
      */
     public boolean validateEngineerDate(EmployeeInformation employee, boolean validate) {
         int months = employee.getEngineerDate();
-        if (months < 1) {
+        if (months < 0) {
             printErrorLog("エラー:エンジニア歴が0ヶ月以下です");
             validate = false;
         }
