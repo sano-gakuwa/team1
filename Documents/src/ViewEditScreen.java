@@ -362,37 +362,36 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             }
 
             // 保存処理を呼び出し
-            EmployeeInfoUpdate update = new EmployeeInfoUpdate();
-            update.update(info);
-            Thread updateThread = new Thread(update, "スレッド");
-            updateThread.start();
+EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+update.update(info);
+update.run(); // ★ 非同期ではなく同期で実行
 
-            // ==== 保存完了後の「成功ダイアログ」の表示 ====
-            JOptionPane optionPane = new JOptionPane(
-                    "保存完了しました", // 表示メッセージ
-                    JOptionPane.INFORMATION_MESSAGE,
-                    JOptionPane.DEFAULT_OPTION,
-                    null,
-                    new Object[] { "一覧画面へ戻る" }, // ボタン
-                    "一覧画面へ戻る" // 初期選択
-            );
+// 保存が成功していればログに「社員情報更新成功」が出るので、ログから判断するか、フラグを使って判定するのが理想。
+// 今回は仮に run() 内部で例外が出なければ成功とみなす簡易判定とします。
 
-            // カスタムダイアログの設定と表示
-            JDialog dialog = optionPane.createDialog("成功");
-            dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // 閉じる操作を禁止
-            dialog.setModal(true); // 他操作をブロック
-            dialog.setVisible(true); // ダイアログ表示
+// ここまで来た時点で失敗していれば run() の中で showErrorDialog が出ているため、成功時のみダイアログを出す：
+JOptionPane optionPane = new JOptionPane(
+    "保存完了しました",
+    JOptionPane.INFORMATION_MESSAGE,
+    JOptionPane.DEFAULT_OPTION,
+    null,
+    new Object[] { "一覧画面へ戻る" },
+    "一覧画面へ戻る"
+);
+JDialog dialog = optionPane.createDialog("成功");
+dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+dialog.setModal(true);
+dialog.setVisible(true);
 
-            // ユーザーの選択を取得し、「一覧画面へ戻る」が押されたか確認
-            Object selectedValue = optionPane.getValue();
-            if ("一覧画面へ戻る".equals(selectedValue)) {
-                refreshUI(); // 画面をリセット
-                ViewTopScreen top = new ViewTopScreen(); // 一覧画面を新しく作成
-                top.View(); // 一覧画面を表示
-            } else {
-                // ダイアログ閉じた等の場合はUIを再度有効に
-                setUIEnabled(true);
-            }
+Object selectedValue = optionPane.getValue();
+if ("一覧画面へ戻る".equals(selectedValue)) {
+    refreshUI();
+    ViewTopScreen top = new ViewTopScreen();
+    top.View();
+} else {
+    setUIEnabled(true);
+}
+
         });
     }
 

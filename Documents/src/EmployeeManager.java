@@ -529,9 +529,10 @@ public class EmployeeManager extends SystemLog {
     /**
      * 記号や全角英字、半角カナを含むかどうか
      */
-    public boolean containsForbiddenChars(String input) {
-        return input.matches(".*[\\uFF61-\\uFF9FＡ-Ｚａ-ｚ！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*");
-    }
+public boolean containsForbiddenChars(String input) {
+    if (input == null) return false;
+    return input.matches(".*[!@#$%^&*()_+={}\\[\\]:;\"'<>,.?/\\\\|\\uFF61-\\uFF9FＡ-Ｚａ-ｚ！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：；“”’＜＞？／\\\\].*");
+}
 
     /**
      * 日付が未来の日付では無いか確認用
