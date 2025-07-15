@@ -54,27 +54,27 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
 
     // 社員ID
     private void setupEmployeeId() {
-        employeeIdField = placeholderTextField("01234xx");
+        employeeIdField = placeholderTextField("例)01234xx");
         employeeIdField.setBounds(15, 5, 130, 30);
         idPanel.add(employeeIdField);
     }
 
     // 氏名（フリガナ + 氏名）
     private void setupNameFields() {
-        rubyLastNameField = placeholderTextField("ヤマダ");
+        rubyLastNameField = placeholderTextField("例)ヤマダ");
         rubyLastNameField.setBounds(15, 15, 195, 30);
         namePanel.add(rubyLastNameField);
 
-        rubyFirstNameField = placeholderTextField("タロウ");
+        rubyFirstNameField = placeholderTextField("例)タロウ");
         rubyFirstNameField.setBounds(215, 15, 195, 30);
         namePanel.add(rubyFirstNameField);
 
-        lastNameField = placeholderTextField("山田");
+        lastNameField = placeholderTextField("例)山田");
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
         lastNameField.setBounds(15, 55, 195, 40);
         namePanel.add(lastNameField);
 
-        firstNameField = placeholderTextField("太郎");
+        firstNameField = placeholderTextField("例)太郎");
         firstNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
         firstNameField.setBounds(215, 55, 195, 40);
         namePanel.add(firstNameField);
@@ -124,7 +124,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         availableLanguageFieldPanel.setBounds(0, 15, 190, 40);
         availableLanguageFieldPanel.setBackground(Color.LIGHT_GRAY);
         availableLanguageFieldPanel.setLayout(null);
-        availableLanguageField = placeholderTextField("html・CSS");
+        availableLanguageField = placeholderTextField("例)html・CSS");
         availableLanguageField.setBounds(5, 5, 180, 30);
         availableLanguageFieldPanel.add(availableLanguageField);
         availableLanguagesPanel.add(availableLanguageFieldPanel);
@@ -140,7 +140,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         careerPanel.add(createLabel("経歴", 0, 0), BorderLayout.NORTH);
         careerArea = new JTextArea(5, 30);
         careerArea.setLineWrap(true);
-        placeholderTextArea("経歴", careerArea);
+        placeholderTextArea("例)XXXXXXX", careerArea);
         JScrollPane careerScroll = new JScrollPane(careerArea);
         careerPanel.add(careerScroll, BorderLayout.CENTER);
     }
@@ -179,7 +179,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         trainingRecordsPanel.add(createLabel("研修受講歴", 0, 0), BorderLayout.NORTH);
         trainingArea = new JTextArea(5, 30);
         trainingArea.setLineWrap(true);
-        placeholderTextArea("2000年4月1日株式会社XXXX入社", trainingArea);
+        placeholderTextArea("例)2000年4月1日株式会社XXXX入社", trainingArea);
         JScrollPane trainingScroll = new JScrollPane(trainingArea);
         trainingRecordsPanel.add(trainingScroll, BorderLayout.CENTER);
     }
@@ -190,10 +190,10 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      * @author 下村
      */
     private void setupRemarks() {
-        remarksPanel.add(createLabel("備考", 440, 340), BorderLayout.NORTH);
+        remarksPanel.add(createLabel("例)備考", 440, 340), BorderLayout.NORTH);
         remarksArea = new JTextArea(5, 30);
         remarksArea.setLineWrap(true);
-        placeholderTextArea("特になし", remarksArea);
+        placeholderTextArea("例)特になし", remarksArea);
         JScrollPane remarksScroll = new JScrollPane(remarksArea);
         remarksPanel.add(remarksScroll, BorderLayout.CENTER);
     }
@@ -499,22 +499,22 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             // 各フィールドから値を取得
             // 社員ID、氏名、フリガナ、誕生日、入社年月、エンジニア歴、扱える言語、経歴、研修受講歴、スキルスコア
             // 、受講態度、コミュニケーション能力、リーダーシップ、備考
-            employee.setEmployeeID(getFieldValue(employeeIdField, "01234xx"));
-            employee.setlastName(getFieldValue(lastNameField, "山田"));
-            employee.setFirstname(getFieldValue(firstNameField, "太郎"));
-            employee.setRubyLastName(getFieldValue(rubyLastNameField, "ヤマダ"));
-            employee.setRubyFirstname(getFieldValue(rubyFirstNameField, "タロウ"));
+            employee.setEmployeeID(getFieldValue(employeeIdField, "例)01234xx"));
+            employee.setlastName(getFieldValue(lastNameField, "例)山田"));
+            employee.setFirstname(getFieldValue(firstNameField, "例)太郎"));
+            employee.setRubyLastName(getFieldValue(rubyLastNameField, "例)ヤマダ"));
+            employee.setRubyFirstname(getFieldValue(rubyFirstNameField, "例)タロウ"));
             employee.setBirthday(getDateFromSelector(birthPanel));
             employee.setJoiningDate(getDateFromSelector(joinPanel));
             employee.setEngineerDate(getYearMonthFromSelector(engPanel)); // 月数換算
-            employee.setAvailableLanguages(getFieldValue(availableLanguageField, "html・CSS"));
-            employee.setCareerDate(getFieldValue(careerArea, "XXXXXXX"));
-            employee.setTrainingDate(getFieldValue(trainingArea, "2000年4月1日株式会社XXXX入社"));
+            employee.setAvailableLanguages(getFieldValue(availableLanguageField, "例)html・CSS"));
+            employee.setCareerDate(getFieldValue(careerArea, "例)XXXXXXX"));
+            employee.setTrainingDate(getFieldValue(trainingArea, "例)2000年4月1日株式会社XXXX入社"));
             employee.setSkillPoint(parseScore(techCombo));
             employee.setAttitudePoint(parseScore(attitudeCombo));
             employee.setCommunicationPoint(parseScore(commCombo));
             employee.setLeadershipPoint(parseScore(leaderCombo));
-            employee.setRemarks(getFieldValue(remarksArea, "特になし"));
+            employee.setRemarks(getFieldValue(remarksArea, "例)特になし"));
             employee.setUpdatedDay(new Date());
             return employee;
         } catch (Exception e) {
@@ -534,7 +534,13 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
      */
     private String getFieldValue(JTextComponent field, String placeholder) {
         String text = field.getText();
-        return text.equals(placeholder) ? "" : text;
+        String retunText;
+        if (text.equals(placeholder)) {
+            retunText="";
+        }else{
+            retunText=text;
+        }
+        return retunText;
     }
 
     /**
