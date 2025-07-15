@@ -296,26 +296,25 @@ public class EmployeeManager extends SystemLog {
     public boolean validateEmployee(EmployeeInformation employee) {
         boolean validate = true;
         try {
-            validateEmployeeID(employee, validate);
-            validateName(employee, validate);
-            validateirthday(employee, validate);
-            validateJoiningDate(employee, validate);
-            validateEngineerDate(employee, validate);
-            validateCareerDate(employee, validate);
-            validateTrainingDate(employee, validate);
-            validateSkillPoint(employee, validate);
-            validateCommunicationPoint(employee, validate);
-            validateAttitudePoint(employee, validate);
-            validateLeadershipPoint(employee, validate);
-            validateRemarks(employee, validate);
-            validateNameForbiddenChars(employee, validate);
+            validate = validateEmployeeID(employee, validate);
+            validate = validateName(employee, validate);
+            validate = validateRuby(employee, validate);
+            validate = validateBirthday(employee, validate);
+            validate = validateJoiningDate(employee, validate);
+            validate = validateEngineerDate(employee, validate);
+            validate = validateLanguages(employee, validate);
+            validate = validateCareer(employee, validate);
+            validate = validateTraining(employee, validate);
+            validate = validateAllScores(employee, validate);
+            validate = validateRemarks(employee, validate);
+
         } catch (Exception e) {
             printExceptionLog(e, "形式エラー");
         }
         return validate;
     }
 
-    private boolean validateEmployeeID(EmployeeInformation employee, boolean validate) {
+    public boolean validateEmployeeID(EmployeeInformation employee, boolean validate) {
         if (employee.getEmployeeID().length() != 7) {
             printErrorLog("エラー:社員IDが7桁ではありません");
             validate = false;
@@ -324,171 +323,214 @@ public class EmployeeManager extends SystemLog {
     }
 
     /**
- * サロゲートペア（機種依存文字）を含むかを判定するメソッド
- * 
- * 例：「髙」「①」「🈂」「💻」「𠮷」などの機種依存文字が含まれていれば true を返します。
- * 
- * @param input チェック対象の文字列（姓、名、フリガナなど）
- * @return サロゲートペアが含まれていれば true、含まれていなければ false
- */
-public boolean containsSurrogatePair(String input) {
-    if (input == null) return false; // nullは機種依存文字ではないためfalse
-    return Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]").matcher(input).find();
-}
+     * 氏名（姓・名）の必須、文字数、形式、記号、サロゲートペアのチェック
+     */
+    public boolean validateName(EmployeeInformation employee, boolean validate) {
+        String lastName = employee.getLastName();
+        String firstName = employee.getFirstname();
 
+        if (lastName.length() > 15) {
+            printErrorLog("エラー:姓が15文字を超えています");
+            validate = false;
+        }
+        if (firstName.length() > 15) {
+            printErrorLog("エラー:名が15文字を超えています");
+            validate = false;
+        }
+        if (containsForbiddenChars(lastName) || containsForbiddenChars(firstName)) {
+            printErrorLog("エラー:氏名に使用できない文字が含まれています");
+            validate = false;
+        }
+        if (containsSurrogatePair(lastName) || containsSurrogatePair(firstName)) {
+            printErrorLog("エラー:氏名に環境依存文字が含まれています");
+            validate = false;
+        }
 
-    private boolean validateName(EmployeeInformation employee, boolean validate) {
-        if (employee.getLastName().length() > 15) {
-            printErrorLog("エラー:姓が15文字より多いです");
-            validate = false;
-        }
-        if (employee.getFirstname().length() > 15) {
-            printErrorLog("エラー:名が15文字より多いです");
-            validate = false;
-        }
-        if (employee.getRubyLastName().length() > 15) {
-            printErrorLog("エラー:姓の読みが15文字より多いです");
-            validate = false;
-        }
-        if (employee.getRubyFirstname().length() > 15) {
-            printErrorLog("エラー:名の読みがが15文字より多いです");
-            validate = false;
-        }
         return validate;
     }
 
+    /**
+     * フリガナ（姓・名）の文字数、文字種、記号、サロゲートペアのチェック
+     */
+    public boolean validateRuby(EmployeeInformation employee, boolean validate) {
+        String rubyLastName = employee.getRubyLastName();
+        String rubyFirstName = employee.getRubyFirstname();
 
+        if (rubyLastName.length() > 15) {
+            printErrorLog("エラー:姓のフリガナが15文字を超えています");
+            validate = false;
+        }
+        if (rubyFirstName.length() > 15) {
+            printErrorLog("エラー:名のフリガナが15文字を超えています");
+            validate = false;
+        }
+        if (!rubyLastName.matches("^[ァ-ヴー]+$") || !rubyFirstName.matches("^[ァ-ヴー]+$")) {
+            printErrorLog("エラー:フリガナに使用できない文字が含まれています（全角カタカナのみ）");
+            validate = false;
+        }
+        if (containsSurrogatePair(rubyLastName) || containsSurrogatePair(rubyFirstName)) {
+            printErrorLog("エラー:フリガナに環境依存文字が含まれています");
+            validate = false;
+        }
 
-    private boolean validateirthday(EmployeeInformation employee, boolean validate) {
+        return validate;
+    }
+
+    /**
+     * 生年月日の未来日チェック
+     */
+    public boolean validateBirthday(EmployeeInformation employee, boolean validate) {
         if (validateNotFuture(employee.getBirthday())) {
-            printErrorLog("エラー:誕生日が未来の日付です");
+            printErrorLog("エラー:生年月日が未来日です");
             validate = false;
         }
         return validate;
     }
 
-    private boolean validateJoiningDate(EmployeeInformation employee, boolean validate) {
+    /**
+     * 入社年月の未来日チェック
+     */
+    public boolean validateJoiningDate(EmployeeInformation employee, boolean validate) {
         if (validateNotFuture(employee.getJoiningDate())) {
-            printErrorLog("エラー:入社日が未来の日付です");
+            printErrorLog("エラー:入社年月が未来日です");
             validate = false;
         }
         return validate;
     }
 
-    private boolean validateNameForbiddenChars(EmployeeInformation employee, boolean validate) {
-    String lastName = employee.getLastName();
-    String firstName = employee.getFirstname();
-
-    if (lastName.matches(".*[\\uFF61-\\uFF9F].*")
-        || lastName.matches(".*[Ａ-Ｚａ-ｚ].*")
-        || lastName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")
-        || firstName.matches(".*[\\uFF61-\\uFF9F].*")
-        || firstName.matches(".*[Ａ-Ｚａ-ｚ].*")
-        || firstName.matches(".*[！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*")) {
-        printErrorLog("エラー:氏名に使用できない文字が含まれています");
-        validate = false;
-    }
-    return validate;
-}
-
-    private boolean validateEngineerDate(EmployeeInformation employee, boolean validate) {
-        if (employee.getEngineerDate() < 0) {
-            printErrorLog("エラー:エンジニア歴がマイナスです");
+    /**
+     * エンジニア歴の上限・下限チェック（月数）
+     */
+    public boolean validateEngineerDate(EmployeeInformation employee, boolean validate) {
+        int months = employee.getEngineerDate();
+        if (months < 1) {
+            printErrorLog("エラー:エンジニア歴が0ヶ月以下です");
             validate = false;
         }
-        if (employee.getEngineerDate() >= 600) {
-            printErrorLog("エラー:エンジニア歴が50年以上です");
+        if (months > 50 * 12) {
+            printErrorLog("エラー:エンジニア歴が50年を超えています");
             validate = false;
         }
         return validate;
     }
 
-    private boolean validateRemarks(EmployeeInformation employee, boolean validate) {
-        if (employee.getRemarks().length() > 400) {
-            printErrorLog("エラー:経歴が400文字より多いです");
+    /**
+     * 扱える言語：文字数、区切り形式、サロゲートペアチェック
+     */
+    public boolean validateLanguages(EmployeeInformation employee, boolean validate) {
+        String langs = employee.getAvailableLanguages();
+        if (langs.length() > 100) {
+            printErrorLog("エラー:扱える言語が100文字を超えています");
+            validate = false;
+        }
+        if (langs.contains(" ")) {
+            printErrorLog("エラー:言語は空白ではなく中黒（・）で区切ってください");
+            validate = false;
+        }
+        if (containsSurrogatePair(langs)) {
+            printErrorLog("エラー:扱える言語に環境依存文字が含まれています");
             validate = false;
         }
         return validate;
     }
 
-    private boolean validateTrainingDate(EmployeeInformation employee, boolean validate) {
-        if (employee.getTrainingDate().length() > 400) {
-            printErrorLog("エラー:受講歴が400文字より多いです");
+    /**
+     * 経歴：文字数、記号、サロゲートペアチェック
+     */
+    public boolean validateCareer(EmployeeInformation employee, boolean validate) {
+        String career = employee.getCareerDate();
+        if (career.length() > 400) {
+            printErrorLog("エラー:経歴が400文字を超えています");
+            validate = false;
+        }
+        if (containsForbiddenChars(career)) {
+            printErrorLog("エラー:経歴に使用できない記号が含まれています");
+            validate = false;
+        }
+        if (containsSurrogatePair(career)) {
+            printErrorLog("エラー:経歴に環境依存文字が含まれています");
             validate = false;
         }
         return validate;
     }
 
-    private boolean validateSkillPoint(EmployeeInformation employee, boolean validate) {
-        if (employee.getSkillPoint() % 0.5 != 0) {
-            printErrorLog("エラー:技術力の項目が0.5刻みではありません");
+    /**
+     * 研修：文字数、記号、サロゲートペアチェック
+     */
+    public boolean validateTraining(EmployeeInformation employee, boolean validate) {
+        String training = employee.getTrainingDate();
+        if (training.length() > 400) {
+            printErrorLog("エラー:研修歴が400文字を超えています");
             validate = false;
         }
-        if (employee.getSkillPoint() > 5) {
-            printErrorLog("エラー:技術力の項目が5より大きいです");
+        if (containsForbiddenChars(training)) {
+            printErrorLog("エラー:研修歴に使用できない記号が含まれています");
             validate = false;
         }
-        if (employee.getSkillPoint() < 1) {
-            printErrorLog("エラー:技術力の項目が1より小さいです");
-            validate = false;
-        }
-        return validate;
-    }
-
-    private boolean validateCommunicationPoint(EmployeeInformation employee, boolean validate) {
-        if (employee.getCommunicationPoint() % 0.5 != 0) {
-            printErrorLog("エラー:コミュニケーション能力の項目が0.5刻みではありません");
-            validate = false;
-        }
-        if (employee.getCommunicationPoint() > 5) {
-            printErrorLog("エラー:コミュニケーション能力の項目が5より大きいです");
-            validate = false;
-        }
-        if (employee.getCommunicationPoint() < 1) {
-            printErrorLog("エラー:コミュニケーション能力の項目が1より小さいです");
+        if (containsSurrogatePair(training)) {
+            printErrorLog("エラー:研修歴に環境依存文字が含まれています");
             validate = false;
         }
         return validate;
     }
 
-    private boolean validateAttitudePoint(EmployeeInformation employee, boolean validate) {
-        if (employee.getAttitudePoint() % 0.5 != 0) {
-            printErrorLog("エラー:受講態度の項目が0.5刻みではありません");
+    /**
+     * 備考：文字数、記号、サロゲートペアチェック
+     */
+    public boolean validateRemarks(EmployeeInformation employee, boolean validate) {
+        String remarks = employee.getRemarks();
+        if (remarks.length() > 400) {
+            printErrorLog("エラー:備考が400文字を超えています");
             validate = false;
         }
-        if (employee.getAttitudePoint() > 5) {
-            printErrorLog("エラー:受講態度の項目が5より大きいです");
+        if (containsForbiddenChars(remarks)) {
+            printErrorLog("エラー:備考に使用できない記号が含まれています");
             validate = false;
         }
-        if (employee.getAttitudePoint() < 1) {
-            printErrorLog("エラー:受講態度の項目が1より小さいです");
-            validate = false;
-        }
-        return validate;
-    }
-
-    private boolean validateLeadershipPoint(EmployeeInformation employee, boolean validate) {
-        if (employee.getLeadershipPoint() % 0.5 != 0) {
-            printErrorLog("エラー:リーダーシップの項目が0.5刻みではありません");
-            validate = false;
-        }
-        if (employee.getLeadershipPoint() > 5) {
-            printErrorLog("エラー:リーダーシップの項目が5より大きいです");
-            validate = false;
-        }
-        if (employee.getLeadershipPoint() < 1) {
-            printErrorLog("エラー:リーダーシップの項目が1より小さいです");
+        if (containsSurrogatePair(remarks)) {
+            printErrorLog("エラー:備考に環境依存文字が含まれています");
             validate = false;
         }
         return validate;
     }
 
-    private boolean validateCareerDate(EmployeeInformation employee, boolean validate) {
-        if (employee.getCareerDate().length() > 400) {
-            printErrorLog("エラー:備考が400文字より多いです");
+    /**
+     * 評価項目：1〜5の0.5刻みであることを確認（共通）
+     */
+    public boolean validateScore(double score, String itemName, boolean validate) {
+        if (score < 1 || score > 5) {
+            printErrorLog("エラー:" + itemName + "が1〜5の範囲外です");
+            validate = false;
+        }
+        if (score % 0.5 != 0) {
+            printErrorLog("エラー:" + itemName + "は0.5刻みで入力してください");
             validate = false;
         }
         return validate;
+    }
+
+    public boolean validateAllScores(EmployeeInformation employee, boolean validate) {
+        validate = validateScore(employee.getSkillPoint(), "技術力", validate);
+        validate = validateScore(employee.getAttitudePoint(), "受講態度", validate);
+        validate = validateScore(employee.getCommunicationPoint(), "コミュニケーション能力", validate);
+        validate = validateScore(employee.getLeadershipPoint(), "リーダーシップ", validate);
+        return validate;
+    }
+
+    /**
+     * サロゲートペアを含むかどうかの共通チェック
+     */
+    public boolean containsSurrogatePair(String input) {
+        if (input == null)
+            return false;
+        return Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]").matcher(input).find();
+    }
+
+    /**
+     * 記号や全角英字、半角カナを含むかどうか
+     */
+    public boolean containsForbiddenChars(String input) {
+        return input.matches(".*[\\uFF61-\\uFF9FＡ-Ｚａ-ｚ！＠＃＄％＾＆＊（）＿＋＝￥|｛｝［］：；“”’＜＞？／\\\\].*");
     }
 
     /**
@@ -498,7 +540,7 @@ public boolean containsSurrogatePair(String input) {
      * @return 日付が未来の日付の場合はtrue、そうでない場合はfalse
      * @author 下村
      */
-    private boolean validateNotFuture(Date date) {
+    public boolean validateNotFuture(Date date) {
         LocalDate today = LocalDate.now();
         LocalDate targetDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         boolean isFuture = targetDate.isAfter(today);
