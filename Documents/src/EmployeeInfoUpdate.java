@@ -11,12 +11,14 @@ import java.nio.file.StandardCopyOption;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class EmployeeInfoUpdate implements Runnable {
     private ThreadsManager threadsManager = new ThreadsManager(); 
     private EmployeeInformation updatedEmployee;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private static ReentrantLock updateLock = new ReentrantLock();
+    private boolean success = false; // 保存成功フラグ
 
     /**
      * 社員情報削除のロックを取得
@@ -25,6 +27,11 @@ public class EmployeeInfoUpdate implements Runnable {
      */
     public boolean validateUpdateLock() {
         return updateLock.isLocked();
+    }
+
+    // 成功状態を外部から参照するためのメソッド
+    public boolean isSuccess() {
+        return success;
     }
 
     public void update(EmployeeInformation updatedEmployee) {
@@ -56,7 +63,9 @@ public class EmployeeInfoUpdate implements Runnable {
             showErrorDialog("指定された社員情報が見つかりません");
             return;
         }
+
         MANAGER.printInfoLog("社員情報更新の開始");
+
         // --- CSVファイル更新処理（安全性のためバックアップ＋排他ロックを使用） ---
         File originalFile = EmployeeManager.EMPLOYEE_CSV; // 元のCSVファイル
         File backupFile = new File("CSV/employee_data_backup.csv"); // バックアップファイル
@@ -87,6 +96,7 @@ public class EmployeeInfoUpdate implements Runnable {
             }
 
             pw.close();
+            success = true; // ← 保存成功フラグを立てる
             MANAGER.printInfoLog("社員情報更新成功（社員ID: " + updatedEmployee.getEmployeeID() + "）");
 
         } catch (IOException e) {
@@ -112,6 +122,7 @@ public class EmployeeInfoUpdate implements Runnable {
                 MANAGER.printExceptionLog(e, "リソースの解放に失敗しました");
             }
         }
+
         threadsManager.endUsing(Thread.currentThread());
         updateLock.unlock(); // ロック解除
         MANAGER.printInfoLog("社員情報更新完了");
@@ -124,6 +135,12 @@ public class EmployeeInfoUpdate implements Runnable {
      * @author nishiyama
      */
     private void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+        if (message == null || message.trim().isEmpty()) {
+            message = "エラーが発生しました";
+        }
+        final String finalMessage = message;
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(null, finalMessage, "エラー", JOptionPane.ERROR_MESSAGE);
+        });
     }
 }

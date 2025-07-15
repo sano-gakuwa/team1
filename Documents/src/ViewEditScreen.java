@@ -362,33 +362,45 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             }
 
             // 保存処理を呼び出し
+// 保存処理を呼び出し（非同期スレッドで実行し、終了待ち）
 EmployeeInfoUpdate update = new EmployeeInfoUpdate();
 update.update(info);
-update.run(); // ★ 非同期ではなく同期で実行
+Thread thread = new Thread(update);
+thread.start();
 
-// 保存が成功していればログに「社員情報更新成功」が出るので、ログから判断するか、フラグを使って判定するのが理想。
-// 今回は仮に run() 内部で例外が出なければ成功とみなす簡易判定とします。
+try {
+    thread.join(); // 保存処理が完了するまで待機
 
-// ここまで来た時点で失敗していれば run() の中で showErrorDialog が出ているため、成功時のみダイアログを出す：
-JOptionPane optionPane = new JOptionPane(
-    "保存完了しました",
-    JOptionPane.INFORMATION_MESSAGE,
-    JOptionPane.DEFAULT_OPTION,
-    null,
-    new Object[] { "一覧画面へ戻る" },
-    "一覧画面へ戻る"
-);
-JDialog dialog = optionPane.createDialog("成功");
-dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-dialog.setModal(true);
-dialog.setVisible(true);
+    // 保存成功時のみ完了ダイアログと画面遷移を行う
+    if (update.isSuccess()) {
+        JOptionPane optionPane = new JOptionPane(
+            "保存完了しました",
+            JOptionPane.INFORMATION_MESSAGE,
+            JOptionPane.DEFAULT_OPTION,
+            null,
+            new Object[] { "一覧画面へ戻る" },
+            "一覧画面へ戻る"
+        );
+        JDialog dialog = optionPane.createDialog("成功");
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.setModal(true);
+        dialog.setVisible(true);
 
-Object selectedValue = optionPane.getValue();
-if ("一覧画面へ戻る".equals(selectedValue)) {
-    refreshUI();
-    ViewTopScreen top = new ViewTopScreen();
-    top.View();
-} else {
+        Object selectedValue = optionPane.getValue();
+        if ("一覧画面へ戻る".equals(selectedValue)) {
+            refreshUI();
+            ViewTopScreen top = new ViewTopScreen();
+            top.View();
+        } else {
+            setUIEnabled(true);
+        }
+    } else {
+        // エラーは EmployeeInfoUpdate 内で showErrorDialog 済み
+        setUIEnabled(true);
+    }
+} catch (InterruptedException ex) {
+    ex.printStackTrace();
+    showErrorDialog("保存処理が中断されました");
     setUIEnabled(true);
 }
 
