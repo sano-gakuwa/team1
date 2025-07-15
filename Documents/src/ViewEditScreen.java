@@ -348,26 +348,25 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             }
 
             EmployeeInformation info = collectInputData();
-
             if (!MANAGER.validateNotNull(info)) {
                 showErrorDialog("必須項目が入力されていません");
+                showErrorMessageOnPanel("必須項目が入力されていません");
                 setUIEnabled(true);
                 return;
             }
             if (!MANAGER.validateEmployee(info)) {
                 showErrorDialog("社員情報の内容に誤りがあります");
+                showErrorMessageOnPanel("社員情報の内容に誤りがあります");
+                setUIEnabled(true);
                 return;
             }
 
             // 保存処理を呼び出し
             EmployeeInfoUpdate update = new EmployeeInfoUpdate();
             update.update(info);
-            Thread updateThread = new Thread(update,"スレッド");
+            Thread updateThread = new Thread(update, "スレッド");
             updateThread.start();
 
-
-
-            
             // ==== 保存完了後の「成功ダイアログ」の表示 ====
             JOptionPane optionPane = new JOptionPane(
                     "保存完了しました", // 表示メッセージ
@@ -607,7 +606,9 @@ public class ViewEditScreen extends SetUpDetailsScreen {
             employee.setEngineerDate(years * 12 + months);
 
             // 扱える言語、経歴、研修、備考などテキスト入力欄の値をセット
-            employee.setAvailableLanguages(getFieldValue(availableLanguageField, "html・CSS"));
+            String langs = getFieldValue(availableLanguageField, "html・CSS");
+            langs = langs.replaceAll("[\\s　]+", "・");
+            employee.setAvailableLanguages(langs);
             employee.setCareerDate(getFieldValue(careerArea, "XXXXXXX"));
 
             // スキル評価はコンボボックスの選択値を数値変換してセット
@@ -707,11 +708,17 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * @param message 表示したいエラーメッセージ文字列
      */
     public void showErrorMessageOnPanel(String message) {
-        errorPanel.removeAll(); // パネルの既存メッセージをクリア
+        errorPanel.removeAll(); // 既存のエラー表示を削除
+
         JLabel errorLabel = new JLabel(message);
-        errorLabel.setForeground(Color.RED); // 赤文字に設定
+        errorLabel.setBounds(0, 0, 750, 26); // サイズと位置を明示的に指定（←重要）
         errorLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 12));
+        errorLabel.setForeground(Color.RED); // 赤文字
+        errorLabel.setHorizontalAlignment(JLabel.CENTER); // 中央揃え
+
         errorPanel.add(errorLabel); // パネルに追加
+        errorPanel.revalidate(); // 再レイアウト
+        errorPanel.repaint(); // 再描画
     }
 
     /**
