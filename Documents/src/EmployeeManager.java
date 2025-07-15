@@ -192,7 +192,7 @@ public class EmployeeManager extends SystemLog {
      * @return 社員情報型
      * @author simomura
      */
-    private EmployeeInformation convertEmployeeInformation(ArrayList<String> loadEmployeeDate) {
+    public EmployeeInformation convertEmployeeInformation(ArrayList<String> loadEmployeeDate) {
         EmployeeInformation employee = new EmployeeInformation();
         try {
             employee.setEmployeeID(loadEmployeeDate.get(0));

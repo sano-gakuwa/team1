@@ -10,7 +10,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -61,29 +60,10 @@ public class ReadCsv implements Runnable {
                 // 次に読み込むべき行が無くなるまでループ
                 while (scanner.hasNext()) {
                     // 1行分のデータをカンマ区切りで分割
-                    String[] loadEmployeeData = scanner.nextLine().split(",");
-                    ArrayList<String> loadEmployeeDate = new ArrayList<String>(Arrays.asList(loadEmployeeData));
-                    // 日付のフォーマットを指定
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
-                    // 読み込んだデータをEmployeeInformationオブジェクトに変換
-                    EmployeeInformation employee = new EmployeeInformation();
-                    employee.setEmployeeID(loadEmployeeDate.get(0));
-                    employee.setlastName(loadEmployeeDate.get(1));
-                    employee.setFirstname(loadEmployeeDate.get(2));
-                    employee.setRubyLastName(loadEmployeeDate.get(3));
-                    employee.setRubyFirstname(loadEmployeeDate.get(4));
-                    employee.setBirthday(dateFormat.parse(loadEmployeeDate.get(5)));
-                    employee.setJoiningDate(dateFormat.parse(loadEmployeeDate.get(6)));
-                    employee.setEngineerDate(Integer.parseInt(loadEmployeeDate.get(7)));
-                    employee.setAvailableLanguages(loadEmployeeDate.get(8));
-                    employee.setCareerDate(loadEmployeeDate.get(9));
-                    employee.setTrainingDate(loadEmployeeDate.get(10));
-                    employee.setSkillPoint(Double.parseDouble(loadEmployeeDate.get(11)));
-                    employee.setAttitudePoint(Double.parseDouble(loadEmployeeDate.get(12)));
-                    employee.setCommunicationPoint(Double.parseDouble(loadEmployeeDate.get(13)));
-                    employee.setLeadershipPoint(Double.parseDouble(loadEmployeeDate.get(14)));
-                    employee.setRemarks(loadEmployeeDate.get(15));
-                    employee.setUpdatedDay(dateFormat.parse(loadEmployeeDate.get(16)));
+                    ArrayList<String> loadEmployeeDate;
+                    loadEmployeeDate = new ArrayList<String>(Arrays.asList(scanner.next().split(",")));
+                    // 読み込んだ社員情報を社員情報型に変換
+                    EmployeeInformation employee = MANAGER.convertEmployeeInformation(loadEmployeeDate);
                     // 読み込んだデータがnullでないか確認
                     if (!MANAGER.validateNotNull(employee)) {
                         showErrorDialog("必須項目が入力されていません");
@@ -127,43 +107,37 @@ public class ReadCsv implements Runnable {
             FileOutputStream fileOutputStream = new FileOutputStream(originalFile, true);
             FileChannel originalFilechannel = fileOutputStream.getChannel();
             // CSVファイルの排他ロック（同時書き込み防止）
-            try (FileLock originalFileLock = originalFilechannel.lock()) {
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, "Shift-JIS");
-                BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-                try (PrintWriter printWriter = new PrintWriter(bufferedWriter)) {
-                    // 読み込んだ社員情報リストの内容を社員情報保存CSVに保存
+            FileLock originalFileLock = null;
+            try {
+                originalFileLock = originalFilechannel.lock(); // ロック取得
+
+                try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, "Shift-JIS");
+                        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+                        PrintWriter printWriter = new PrintWriter(bufferedWriter)) {
+
                     for (EmployeeInformation employee : newEmployeeList) {
                         printWriter.println(MANAGER.convertToCSV(employee));
                     }
+
                 } catch (Exception e) {
-                    MANAGER.printExceptionLog(e, "社員情報リストの内容を社員情報保存CSVに保存失敗");
+                    MANAGER.printExceptionLog(e, "社員情報保存CSVへの書き込み中に失敗");
                     return;
                 }
+
+            } catch (Exception e) {
+                MANAGER.printExceptionLog(e, "CSVファイルロックまたは書き込みに失敗");
+                return;
+            } finally {
                 try {
                     if (originalFileLock != null && originalFileLock.isValid()) {
-                        originalFileLock.release(); // エラーでもロック解除
-                        MANAGER.printInfoLog("社員情報保存CSVファイルのロックを解除しました");
+                        originalFileLock.release(); // ロックを明示的に解除
                     }
-                } catch (Exception ex) {
-                    MANAGER.printExceptionLog(ex, "社員情報保存CSVファイルのロック解除に失敗しました");
-                }
-            } catch (Exception e) {
-                // 追記中エラー時のロールバック処理を追加
-                MANAGER.printExceptionLog(e, "削除後の社員情報リストの保存に失敗しました");
-                if (originalFile.exists() && backupFile.exists()) {
-                    try {
-                        Files.deleteIfExists(originalFile.toPath());
-                    } catch (Exception ex) {
-                        // オリジナルの社員情報保存CSVファイルが削除に失敗した場合
-                        MANAGER.printExceptionLog(ex, "オリジナルの社員情報保存CSVファイルが削除できませんでした");
-                        showErrorDialog("オリジナルの社員情報保存CSVファイルが削除できませんでした");
-                        return;
+                    if (originalFilechannel.isOpen()) {
+                        originalFilechannel.close(); // 明示的にチャンネルを閉じる
                     }
-                    backupFile.renameTo(originalFile);
+                } catch (Exception e) {
+                    MANAGER.printExceptionLog(e, "CSVチャンネルまたはロックの解放に失敗");
                 }
-                MANAGER.printInfoLog("社員情報保存CSVファイルを削除処理前に戻しました");
-                showErrorDialog("削除後の社員情報リストの保存に失敗しました");
-                return;
             }
             Files.deleteIfExists(backupFile.toPath());
             // -------------------------------------------------------
@@ -179,7 +153,7 @@ public class ReadCsv implements Runnable {
             MANAGER.printExceptionLog(e, message);
             JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
             return;
-        }finally{
+        } finally {
             readCsvLock.unlock();
         }
     }
