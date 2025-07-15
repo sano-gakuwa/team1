@@ -15,7 +15,6 @@ import javax.swing.JOptionPane;
 public class EmployeeInfoAddition implements Runnable {
     private EmployeeInformation newEmployee;
     private final EmployeeManager MANAGER = new EmployeeManager();
-    private final ThreadsManager THREAD_MANAGER=new ThreadsManager();
     private static ReentrantLock additionLock = new ReentrantLock();
 
     /**
@@ -34,19 +33,6 @@ public class EmployeeInfoAddition implements Runnable {
     public void run() {
         additionLock.lock(); // ロックを取得
         MANAGER.printInfoLog("社員情報追加の開始");
-        THREAD_MANAGER.startUsing(Thread.currentThread());
-        try {
-            addEmployee();
-        } catch (Exception e) {
-            MANAGER.printInfoLog("社員情報追加に失敗");
-        } finally {
-            additionLock.unlock(); // ロックを解放
-            THREAD_MANAGER.endUsing(Thread.currentThread());
-            MANAGER.printInfoLog("社員情報追加の終了");
-        }
-    }
-
-    private void addEmployee(){
         // バックアップファイル作成
         File originalFile = EmployeeManager.EMPLOYEE_CSV;
         File backupFile = new File("employee_data_backup.csv");
@@ -117,27 +103,17 @@ public class EmployeeInfoAddition implements Runnable {
         // 社員情報リストに新規データを追加
         try {
             EmployeeManager.employeeList.add(newEmployee);
-            String message = "社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）";
-            MANAGER.printInfoLog(message);
-            showDialog(message);
+            MANAGER.printInfoLog("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
         } catch (Exception e) {
-            String message = "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）";
-            MANAGER.printExceptionLog(e, message);
-            showValidationError(message);
+            MANAGER.printExceptionLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
         }
+        additionLock.unlock(); // ロックを解放
+        MANAGER.printInfoLog("社員情報追加の終了");
     }
+
+    
 
     public void showValidationError(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-    }
-
-    /**
-     * 成功表示用に用意したダイアログに文言表示させる
-     *
-     * @param message 表示するエラーメッセージ
-     * @author nishiyama
-     */
-    private void showDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
     }
 }
