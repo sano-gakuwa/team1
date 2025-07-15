@@ -18,7 +18,7 @@ public class EmployeeInfoDeletion implements Runnable {
     private ArrayList<String> selected;
     private ArrayList<EmployeeInformation> backupEmployeeList;
     private final EmployeeManager MANAGER = new EmployeeManager();
-    private ThreadsManager threadsManager=new ThreadsManager();
+    private final ThreadsManager THREAD_MANAGER = new ThreadsManager();
     private static ReentrantLock deletionLock = new ReentrantLock();
 
     /**
@@ -37,7 +37,7 @@ public class EmployeeInfoDeletion implements Runnable {
     public void run() {
         deletionLock.lock();
         MANAGER.printInfoLog("社員情報削除の開始");
-        threadsManager.startUsing(Thread.currentThread());
+        THREAD_MANAGER.startUsing(Thread.currentThread());
         // 削除処理
         try {
             // 社員情報リストから選択した社員情報を削除
@@ -66,7 +66,7 @@ public class EmployeeInfoDeletion implements Runnable {
             return;
         }finally{
             deletionLock.unlock();
-            threadsManager.endUsing(Thread.currentThread());
+            THREAD_MANAGER.endUsing(Thread.currentThread());
         }
         MANAGER.printInfoLog("社員情報削除の完了");
     }

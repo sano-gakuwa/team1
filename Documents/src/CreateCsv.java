@@ -18,7 +18,7 @@ public class CreateCsv implements Runnable {
     private String directory;
     private ArrayList<String> selected;
     private final EmployeeManager MANAGER = new EmployeeManager();
-    private ThreadsManager threadsManager=new ThreadsManager();
+    private final ThreadsManager THREAD_MANAGER = new ThreadsManager();
     private static ReentrantLock createCsvLock = new ReentrantLock();
 
     /**
@@ -46,11 +46,11 @@ public class CreateCsv implements Runnable {
     // CSV出力処理
     @Override
     public void run() {
-        MANAGER.printInfoLog("CSV出力処理を開始します");
-        threadsManager.startUsing(Thread.currentThread());
+        MANAGER.printInfoLog("CSV出力処理を開始");
+        THREAD_MANAGER.startUsing(Thread.currentThread());
         // ロックを取得
         createCsvLock.lock();
-        MANAGER.printInfoLog("CSV出力処理をロックしました");
+        MANAGER.printInfoLog("CSV出力処理をロック");
         Path filePath = createCsvPath(directory);
         // 今から出力しようとしているファイル
         File makeCsvFile = makeCsvFile(filePath);
@@ -61,14 +61,14 @@ public class CreateCsv implements Runnable {
                 Files.createFile(filePath);
             } catch (Exception e) {
                 // ファイル新規作成で例外が発生
-                MANAGER.printExceptionLog(e, "ファイル新規作成で例外が発生しました");
-                showErrorDialog("ファイル新規作成で例外が発生しました");
+                MANAGER.printExceptionLog(e, "ファイル新規作成で例外が発生");
+                showErrorDialog("ファイル新規作成で例外が発生");
                 return;
             }
-            MANAGER.printInfoLog("CSV出力先のファイルを作成しました: " + makeCsvFile.getAbsolutePath());
+            MANAGER.printInfoLog("CSV出力先のファイルを作成: " + makeCsvFile.getAbsolutePath());
             // 社員情報リストをロックしてCSV出力処理を行う
             synchronized (EmployeeManager.employeeList) {
-                MANAGER.printInfoLog("社員情報リストをロックしました");
+                MANAGER.printInfoLog("社員情報リストをロック");
                 // PrintWriterクラスのオブジェクトを生成する
                 FileOutputStream fileOutputStream = new FileOutputStream(makeCsvFile);
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, "Shift-JIS");
@@ -87,15 +87,17 @@ public class CreateCsv implements Runnable {
                 }
                 printWriter.close();
             }
+            // 成功ダイアログを表示
+            showDialog("CSVファイルを出力: " + makeCsvFile.getAbsolutePath());
         } catch (Exception e) {
             // CSV出力時に例外発生
             MANAGER.printExceptionLog(e, "CSV出力時に例外発生");
-            showErrorDialog("CSV出力時に例外が発生しました");
+            showErrorDialog("CSV出力時に例外が発生");
             try {
                 // 出力しようとしたファイルを削除
                 Files.deleteIfExists(makeCsvFile.toPath());
                 // 削除に成功したことをログに記録
-                MANAGER.printInfoLog("出力しようとしたファイルを削除しました: " + makeCsvFile.getAbsolutePath());
+                MANAGER.printInfoLog("出力しようとしたファイルを削除: " + makeCsvFile.getAbsolutePath());
             } catch (Exception ex) {
                 // 出力しようとしたファイルの削除に失敗
                 MANAGER.printExceptionLog(ex, "出力しようとしたファイルの削除に失敗");
@@ -103,12 +105,10 @@ public class CreateCsv implements Runnable {
         } finally {
             // CSV出力処理が完了したのでロックを解除
             createCsvLock.unlock();
-            threadsManager.endUsing(Thread.currentThread());
+            THREAD_MANAGER.endUsing(Thread.currentThread());
         }
         // CSV出力処理が成功したことをログに記録
-        MANAGER.printInfoLog("CSV出力処理が完了しました");
-        // 成功ダイアログを表示
-        showDialog("CSVファイルを出力しました: " + makeCsvFile.getAbsolutePath());
+        MANAGER.printInfoLog("CSV出力処理が完了");
     }
 
     /**
@@ -150,7 +150,7 @@ public class CreateCsv implements Runnable {
                 filePath = createCsvPath(directory);
             }
         } catch (Exception e) {
-            MANAGER.printExceptionLog(e, "スレッドの一時停止に失敗しました");
+            MANAGER.printExceptionLog(e, "スレッドの一時停止に失敗");
         }
         return new File(filePath.toString());
     }
