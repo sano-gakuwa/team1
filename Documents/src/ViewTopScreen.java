@@ -154,6 +154,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         addEmployeeButton.addActionListener(e -> {
             refreshUI();
             ViewAdditionScreen addition = new ViewAdditionScreen();
+            MANAGER.printInfoLog("追加画面表示");
             addition.view();
         });
 
@@ -695,19 +696,23 @@ public class ViewTopScreen extends SetUpTopScreen {
     // 検索中オーバーレイ表示メソッド
     private void showSearchOverlay() {
         searchOverlayPanel.setVisible(true);
+        MANAGER.printInfoLog("検索中画面活性");
         searchOverlayPanel.repaint();
+        MANAGER.printInfoLog("検索中画面表示");
     }
 
     // 検索中オーバーレイ非表示メソッド
     private void hideSearchOverlay() {
         searchOverlayPanel.setVisible(false);
-        System.out.println("hideSearchOverlay called");  // 出力されるべき
+        MANAGER.printInfoLog("検索中画面非活性");
         if (clearSearchResultButton != null) {
             clearSearchResultButton.setVisible(true);
+            MANAGER.printInfoLog("検索クリアボタン活性");
             functionButtonsPanel.revalidate();  
-            functionButtonsPanel.repaint();   
+            functionButtonsPanel.repaint();
+            MANAGER.printInfoLog("検索中画面非表示");
         } else {
-            System.out.println("clearSearchResultButton is null");
+            MANAGER.printErrorLog("検索クリアボタン未定義");
         }
     }
     // 入力文字数制限用フィルター（最大100文字）
