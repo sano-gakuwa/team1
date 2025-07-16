@@ -15,6 +15,7 @@ import javax.swing.JOptionPane;
 public class EmployeeInfoAddition implements Runnable {
     private EmployeeInformation newEmployee;
     private final EmployeeManager MANAGER = new EmployeeManager();
+    private final ThreadsManager THREAD_MANAGER = new ThreadsManager();
     private static ReentrantLock additionLock = new ReentrantLock();
 
     /**
@@ -31,8 +32,28 @@ public class EmployeeInfoAddition implements Runnable {
     }
 
     public void run() {
-        additionLock.lock(); // ロックを取得
         MANAGER.printInfoLog("社員情報追加の開始");
+        THREAD_MANAGER.startUsing(Thread.currentThread());
+        additionLock.lock(); // ロックを取得
+        
+        try {
+            csvAddition();
+            listAddition();
+            if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
+                showEndDialog("社員情報の追加機能終了");
+            }
+        } catch (Exception e) {
+            if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
+                showValidationError("社員情報の追加に失敗しました。");
+            }
+        } finally {
+            additionLock.unlock(); // ロックを解放
+            THREAD_MANAGER.endUsing(Thread.currentThread());
+            MANAGER.printInfoLog("社員情報追加の終了");
+        }
+    }
+
+    private void csvAddition() {
         // バックアップファイル作成
         File originalFile = EmployeeManager.EMPLOYEE_CSV;
         File backupFile = new File("employee_data_backup.csv");
@@ -100,6 +121,9 @@ public class EmployeeInfoAddition implements Runnable {
                 MANAGER.printExceptionLog(e, "finally句での後処理に失敗");
             }
         }
+    }
+
+    private void listAddition() {
         // 社員情報リストに新規データを追加
         try {
             EmployeeManager.employeeList.add(newEmployee);
@@ -107,13 +131,13 @@ public class EmployeeInfoAddition implements Runnable {
         } catch (Exception e) {
             MANAGER.printExceptionLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
         }
-        additionLock.unlock(); // ロックを解放
-        MANAGER.printInfoLog("社員情報追加の終了");
     }
-
-    
 
     public void showValidationError(String message) {
         JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showEndDialog(String message) {
+        JOptionPane.showMessageDialog(null, message, "完了通知", JOptionPane.INFORMATION_MESSAGE);
     }
 }

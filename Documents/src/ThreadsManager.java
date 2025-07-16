@@ -1,12 +1,10 @@
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class ThreadsManager extends SystemLog{
-    private final List<Thread> USING_THREAD = Collections.synchronizedList(new ArrayList<>());
+    private static ArrayList<Thread> usingThread = new ArrayList<>();
 
     public ThreadsManager() {
     }
@@ -14,7 +12,7 @@ public class ThreadsManager extends SystemLog{
     public void startUsing(Thread thread) {
         if (thread != null) {
             printInfoLog(thread.getName() + "が開始しました");
-            USING_THREAD.add(thread);
+            usingThread.add(thread);
         }
 
     }
@@ -22,14 +20,14 @@ public class ThreadsManager extends SystemLog{
     public void endUsing(Thread thread) {
         if (thread != null) {
             printInfoLog(thread.getName() + "が終了しました");
-            USING_THREAD.remove(thread);
+            usingThread.remove(thread);
         }
 
     }
 
     public int usingThread() {
-        synchronized (USING_THREAD) {
-            return (int) USING_THREAD.stream().filter(Thread::isAlive).count();
+        synchronized (usingThread) {
+            return usingThread.size();
         }
     }
     @Override
