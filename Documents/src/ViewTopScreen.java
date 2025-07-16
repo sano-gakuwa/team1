@@ -373,8 +373,8 @@ public class ViewTopScreen extends SetUpTopScreen {
                     hideSearchOverlay();
                     if (success) {
                         currentPage = 1;
+                        employeeListOperator.setEmployeeList(EmployeeManager.employeeList);
                         tableEmployee = new ArrayList<>(results);
-                        employeeListOperator.setEmployeeList(tableEmployee);
                         refreshTable();
                     } else {
                         JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
