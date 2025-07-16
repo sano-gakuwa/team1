@@ -398,7 +398,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             showNoDataLabel(employeeListPanel);
             employeeListPanel.revalidate();
             employeeListPanel.repaint();
-            pageLabel.setText("0 / 1");
+            pageLabel.setText("0 / 0");
             return;
         }
         employeeListPanel.removeAll();
