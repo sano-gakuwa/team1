@@ -18,7 +18,7 @@ public class CreateCsv implements Runnable {
     private String directory;
     private ArrayList<String> selected;
     private final EmployeeManager MANAGER = new EmployeeManager();
-    private ThreadsManager threadsManager=new ThreadsManager();
+    private ThreadsManager threadsManager = new ThreadsManager();
     private static ReentrantLock createCsvLock = new ReentrantLock();
 
     /**
@@ -62,7 +62,9 @@ public class CreateCsv implements Runnable {
             } catch (Exception e) {
                 // ファイル新規作成で例外が発生
                 MANAGER.printExceptionLog(e, "ファイル新規作成で例外が発生しました");
-                showErrorDialog("ファイル新規作成で例外が発生しました");
+                if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
+                    showErrorDialog("ファイル新規作成で例外が発生しました");
+                }
                 return;
             }
             MANAGER.printInfoLog("CSV出力先のファイルを作成しました: " + makeCsvFile.getAbsolutePath());
@@ -90,7 +92,9 @@ public class CreateCsv implements Runnable {
         } catch (Exception e) {
             // CSV出力時に例外発生
             MANAGER.printExceptionLog(e, "CSV出力時に例外発生");
-            showErrorDialog("CSV出力時に例外が発生しました");
+            if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
+                showErrorDialog("CSV出力時に例外が発生しました");
+            }
             try {
                 // 出力しようとしたファイルを削除
                 Files.deleteIfExists(makeCsvFile.toPath());
@@ -108,7 +112,9 @@ public class CreateCsv implements Runnable {
         // CSV出力処理が成功したことをログに記録
         MANAGER.printInfoLog("CSV出力処理が完了しました");
         // 成功ダイアログを表示
-        showDialog("CSVファイルを出力しました: " + makeCsvFile.getAbsolutePath());
+        if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
+            showDialog("CSVファイルを出力しました: " + makeCsvFile.getAbsolutePath());
+        }
     }
 
     /**

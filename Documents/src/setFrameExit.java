@@ -6,11 +6,11 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
-public class setFrameExit extends SetUpJframe {
+public class SetFrameExit extends SetUpJframe {
     private ThreadsManager threadsManager = new ThreadsManager();
     private EmployeeManager manager = new EmployeeManager();
 
-    setFrameExit() {
+    SetFrameExit() {
     }
 
     public void setExit() {
