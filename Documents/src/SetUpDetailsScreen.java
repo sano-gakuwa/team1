@@ -3,21 +3,21 @@ import javax.swing.*;
 
 public abstract class SetUpDetailsScreen extends SetUpJframe {
 
-    JPanel topPanel;// 上段パネル（750*135px）
+    JPanel topPanel;// 上段パネル
     JPanel idPanel;
     JPanel namePanel;
-    JPanel upperPanel;// upperパネル（750*60px）
+    JPanel upperPanel;// upperパネル
     JPanel birthdDayPanel;
     JPanel joiningDatePanel;
     JPanel engineerDatePanel;
     JPanel availableLanguagesPanel;
-    JPanel middlePanel;// middleパネル（750*245px）
-    JPanel careerPanel;// 1段目 経歴（375*120px）
-    JPanel skillsPanel;// 1段目 スキル（265*120px）
-    JPanel trainingRecordsPanel;// 2段目 研修受講歴（375*105px）
-    JPanel remarksPanel;// 2段目 備考（340*105px）
-    JPanel errorPanel;// エラーパネル（750*26px）
-    JPanel bottomPanel;// 下段パネル（715*34px）
+    JPanel middlePanel;// middleパネル
+    JPanel careerPanel;// 1段目 経歴
+    JPanel skillsPanel;// 1段目 スキル
+    JPanel trainingRecordsPanel;// 2段目 研修受講歴
+    JPanel remarksPanel;// 2段目 備考
+    JPanel errorPanel;// エラーパネル
+    JPanel bottomPanel;// 下段パネル
     // 各パネルの間隔
     int verticalGap = 20;
     int horizontalGap = 35;
