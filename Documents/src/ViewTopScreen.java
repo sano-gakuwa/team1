@@ -254,7 +254,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                         column);
                 label.setHorizontalAlignment(SwingConstants.CENTER);
                 // 「詳細」列（index = 5）はソート記載なし
-                if (column == 5) {
+                if (column >= 4) {
                     label.setText(value.toString());
                 } else {
                     String base = value.toString();
@@ -382,7 +382,6 @@ public class ViewTopScreen extends SetUpTopScreen {
                         });
                     }
                 });
-
     }
 
     /*

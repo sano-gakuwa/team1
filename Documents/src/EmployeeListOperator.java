@@ -300,7 +300,6 @@ public class EmployeeListOperator {
         NAME,
         AGE,
         ENGINEER_DATE,
-        AVAILABLE_LANGUAGES
     }
     // ソート実行
 
