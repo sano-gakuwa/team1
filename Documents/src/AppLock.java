@@ -5,11 +5,11 @@ import java.io.StringWriter;
 import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 
-import javax.swing.JOptionPane;
 
 public class AppLock extends SystemLog{
     private static final String LOCK_FILE_NAME = "app.lock"; // 任意のロックファイル名
     private static FileChannel channel;
+    private ViewDialog dialog = new ViewDialog();
 
     public void tryAppLock() {
         setUpLog();
@@ -17,8 +17,7 @@ public class AppLock extends SystemLog{
             File lockFile = new File(LOCK_FILE_NAME); // 任意のロックファイル名
             if (lockFile.exists()) {
                 printErrorLog("このアプリケーションはすでに起動しています");
-                JOptionPane.showMessageDialog(null, "このアプリケーションはすでに起動しています。", "エラー", JOptionPane.ERROR_MESSAGE);
-                System.exit(0);
+                dialog.viewFatalErrorDialog("アプリケーションが起動中");
             }
             lockFile.deleteOnExit(); // JVM終了時に削除
             RandomAccessFile randomAccessFile=new RandomAccessFile(lockFile, "rw");

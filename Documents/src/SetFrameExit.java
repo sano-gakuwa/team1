@@ -3,13 +3,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class SetFrameExit extends SetUpJframe {
     private ThreadsManager threadsManager = new ThreadsManager();
     private EmployeeManager manager = new EmployeeManager();
-
+    private ViewDialog dialog = new ViewDialog();
     SetFrameExit() {
     }
 
@@ -39,13 +38,8 @@ public class SetFrameExit extends SetUpJframe {
      * @author nishiyama
      */
     private void confirmAndExit() {
-        int result = JOptionPane.showConfirmDialog(
-                frame,
-                "本当に終了しますか？",
-                "アプリ終了確認",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-        if (result == JOptionPane.YES_OPTION) {
+        int result = dialog.questionConfirmation("本当に終了しますか？","アプリ終了確認");
+        if (result == 0) {
             frame.dispose();
             manager.printInfoLog("画面を閉じました");
             while (0 < threadsManager.usingThread()) {

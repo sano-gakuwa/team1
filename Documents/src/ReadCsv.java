@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.swing.JOptionPane;
 
 public class ReadCsv implements Runnable {
     private String selectedFilePath;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private static ReentrantLock readCsvLock = new ReentrantLock();
+    private ViewDialog dialog = new ViewDialog();
 
     /**
      * CSV読み込みのロックを取得
@@ -66,17 +66,17 @@ public class ReadCsv implements Runnable {
                     EmployeeInformation employee = MANAGER.convertEmployeeInformation(loadEmployeeDate);
                     // 読み込んだデータがnullでないか確認
                     if (!MANAGER.validateNotNull(employee)) {
-                        showErrorDialog("必須項目が入力されていません");
+                        dialog.viewErrorDialog("必須項目が入力されていません");
                         return;
                     }
                     // 読み込んだデータが要求仕様書通りの仕様になっているか確認
                     if (!MANAGER.validateEmployee(employee)) {
-                        showErrorDialog("社員情報の内容に誤りがあります");
+                        dialog.viewErrorDialog("社員情報の内容に誤りがあります");
                         return;
                     }
                     // 読み込んだ社員IDが重複していないか確認
                     if (!MANAGER.validateOverlappingEmployee(employee)) {
-                        showErrorDialog("重複する社員IDが存在します");
+                        dialog.viewErrorDialog("重複する社員IDが存在します");
                         return;
                     }
                     // 読み込んだ社員情報を新規社員情報リストに追加
@@ -84,13 +84,13 @@ public class ReadCsv implements Runnable {
                 }
                 // 読み込んだ社員情報の総数が上限を超えていないか確認
                 if (newEmployeeList.size() + EmployeeManager.employeeList.size() > 1000) {
-                    showErrorDialog("社員情報の総数が上限を超えています");
+                    dialog.viewErrorDialog("社員情報の総数が上限を超えています");
                     return;
                 }
             } catch (Exception e) {
                 String message = "指定されたCSVファイルから情報の読み込みが出来ませんでした";
                 MANAGER.printExceptionLog(e, message);
-                JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+                dialog.viewErrorDialog(message);
                 return;
             }
             // 読み込んだ社員情報を保存用CSVファイルに追加
@@ -100,8 +100,9 @@ public class ReadCsv implements Runnable {
                 // バックアップファイル作成
                 Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (Exception e) {
-                MANAGER.printExceptionLog(e, "バックアップファイルの作成に失敗しました");
-                showErrorDialog("バックアップファイルの作成に失敗しました");
+                String message = "バックアップファイルの作成に失敗しました";
+                MANAGER.printExceptionLog(e, message);
+                dialog.viewErrorDialog(message);
                 return;
             }
             FileOutputStream fileOutputStream = new FileOutputStream(originalFile, true);
@@ -120,12 +121,15 @@ public class ReadCsv implements Runnable {
                     }
 
                 } catch (Exception e) {
-                    MANAGER.printExceptionLog(e, "社員情報保存CSVへの書き込み中に失敗");
+                    String message = "社員情報保存CSVへの書き込み中に失敗";
+                    MANAGER.printExceptionLog(e, message);
+                    dialog.viewErrorDialog(message);
                     return;
                 }
-
             } catch (Exception e) {
-                MANAGER.printExceptionLog(e, "CSVファイルロックまたは書き込みに失敗");
+                String message = "CSVファイルロックまたは書き込みに失敗";
+                MANAGER.printExceptionLog(e, message);
+                dialog.viewErrorDialog(message);
                 return;
             } finally {
                 try {
@@ -136,7 +140,9 @@ public class ReadCsv implements Runnable {
                         originalFilechannel.close(); // 明示的にチャンネルを閉じる
                     }
                 } catch (Exception e) {
-                    MANAGER.printExceptionLog(e, "CSVチャンネルまたはロックの解放に失敗");
+                    String message = "CSVチャンネルまたはロックの解放に失敗";
+                    MANAGER.printExceptionLog(e, message);
+                    dialog.viewErrorDialog(message);
                 }
             }
             Files.deleteIfExists(backupFile.toPath());
@@ -147,34 +153,14 @@ public class ReadCsv implements Runnable {
             }
             String message = "CSV読み込み成功";
             MANAGER.printInfoLog(message);
-            showDialog(message);
+            dialog.viewEndDialog(message);
         } catch (Exception e) {
             String message = "指定されたCSVファイルの読み込みが出来ませんでした";
             MANAGER.printExceptionLog(e, message);
-            JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
+            dialog.viewErrorDialog(message);
             return;
         } finally {
             readCsvLock.unlock();
         }
-    }
-
-    /**
-     * エラー表示用に用意したダイアログに文言表示させる
-     *
-     * @param message 表示するエラーメッセージ
-     * @author 下村
-     */
-    private void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-    }
-
-    /**
-     * 成功表示用に用意したダイアログに文言表示させる
-     *
-     * @param message 表示するエラーメッセージ
-     * @author nishiyama
-     */
-    private void showDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
     }
 }

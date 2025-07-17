@@ -20,7 +20,6 @@ import javax.swing.text.*;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -44,14 +43,14 @@ public class ViewTopScreen extends SetUpTopScreen {
     private ArrayList<EmployeeInformation> tableEmployee = null;// JTablに表示する社員情報
     private final EmployeeManager MANAGER = new EmployeeManager();// 社員情報の管理用
     private EmployeeListOperator employeeListOperator;// 検索機能 6/9追記
-    //検索中オーバーレイ表示用パネル・ラベル・ボタンのフィールド宣言
+    // 検索中オーバーレイ表示用パネル・ラベル・ボタンのフィールド宣言
     private JPanel functionButtonsPanel;
     private JPanel searchOverlayPanel;
     private JLabel searchingLabel;
     private JButton cancelSearchButton;
     private JButton clearSearchResultButton;
     private JPanel employeeListPanel;
-
+    private ViewDialog dialog = new ViewDialog();
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
@@ -59,7 +58,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         engineerTable = new JTable();
 
         // ★中身を必ずコピー
-        tableEmployee = new ArrayList<>(EmployeeManager.employeeList); 
+        tableEmployee = new ArrayList<>(EmployeeManager.employeeList);
         employeeListOperator = new EmployeeListOperator(tableEmployee);
 
         setupViewTopScreen();
@@ -109,7 +108,7 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         searchButton.addActionListener(e -> {
             if (searchOverlayPanel == null) {
-                setupSearchOverlay();  // 初期化
+                setupSearchOverlay(); // 初期化
             }
             showSearchOverlay();
 
@@ -123,19 +122,18 @@ public class ViewTopScreen extends SetUpTopScreen {
             executeSearch(idQuery, nameQuery, ageQuery, engQuery, langQuery);
         });
 
-
         // centerPanel 取得
         JPanel centerWrapper = (JPanel) fullScreenPanel.getComponent(3);
         JPanel centerPanel = (JPanel) centerWrapper.getComponent(0);
         functionButtonsPanel = (JPanel) centerPanel.getComponent(0);
-        employeeListPanel = (JPanel) centerPanel.getComponent(2); 
+        employeeListPanel = (JPanel) centerPanel.getComponent(2);
         centerPanel.setOpaque(false);// 背景透過
         // ボタン配置
         functionButtonsPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
         functionButtonsPanel.setOpaque(false); // 背景透過
         functionButtonsPanel.add(new JLabel("エンジニア一覧"));
         JButton addEmployeeButton = new JButton("新規");
-        functionButtonsPanel.add(addEmployeeButton);//検索クリアボタン出現後の配置ずれ防止
+        functionButtonsPanel.add(addEmployeeButton);// 検索クリアボタン出現後の配置ずれ防止
         JButton loadButton = new JButton("読込");
         functionButtonsPanel.add(loadButton);
         JButton templateButton = new JButton("テンプレート出力");
@@ -164,7 +162,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             // CSV出力中のロックがかかっているか確認
             if (readCsv.validateReadCsvLock()) {
                 // CSV読み込みのロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "CSV読み込み中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                dialog.viewWarningDialog("CSV読み込み中です。しばらくお待ちください。");
                 return;
             }
             selectFile();
@@ -175,7 +173,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             CreateTemplate createTemplate = new CreateTemplate();
             if (createTemplate.validateCreateTemplateLock()) {
                 // CSVテンプレート出力のロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "CSVテンプレート出力中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                dialog.viewWarningDialog("CSVテンプレート出力中です。しばらくお待ちください。");
                 return;
             }
             JFileChooser fileChooser = new JFileChooser();
@@ -185,13 +183,10 @@ public class ViewTopScreen extends SetUpTopScreen {
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 File selectedDir = fileChooser.getSelectedFile();
                 // 保存確認ダイアログ
-                int saveConfirm = JOptionPane.showConfirmDialog(
-                        null,
-                        "この場所にテンプレートファイル「employee_template.csv」を保存しますか？",
-                        "保存確認",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE);
-                if (saveConfirm != JOptionPane.YES_OPTION) {
+                String message = "この場所にテンプレートファイル「employee_template.csv」を保存しますか？";
+                String title = "保存確認";
+                int saveConfirm = dialog.questionConfirmation(message, title);
+                if (saveConfirm != 0) {
                     return;
                 }
                 // テンプレート作成処理
@@ -200,7 +195,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                 templateThread.start();
             }
         });
-        
+
         // 選択画面（ViewSelectedScreen ）に遷移
         bulkSelectButton.addActionListener(e -> {
             for (int i = 0; i < 10; i++) {
@@ -278,7 +273,8 @@ public class ViewTopScreen extends SetUpTopScreen {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int col = header.columnAtPoint(e.getPoint());
-                if (unsortableColumns.contains(col)) return;
+                if (unsortableColumns.contains(col))
+                    return;
 
                 int current = sortStates.getOrDefault(col, 0);
                 int next = switch (current) {
@@ -364,28 +360,30 @@ public class ViewTopScreen extends SetUpTopScreen {
     }
 
     // 検索処理（検索ボタン押下時に呼ばれる）
-    private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery,  String langQuery) {
-        if (searchOverlayPanel == null) setupSearchOverlay();
+    private void executeSearch(String idQuery, String nameQuery, String ageQuery, String engQuery, String langQuery) {
+        if (searchOverlayPanel == null)
+            setupSearchOverlay();
         showSearchOverlay();
-        employeeListOperator.searchAsync(idQuery, nameQuery, ageQuery, engQuery, langQuery,new EmployeeListOperator.SearchCallback() {
-            @Override
-            public void onSearchFinished(boolean success, List<EmployeeInformation> results, String errorMessage) {
-                SwingUtilities.invokeLater(() -> {
-                    hideSearchOverlay();
-                    if (success) {
-                        currentPage = 1;
-                        employeeListOperator.setEmployeeList(EmployeeManager.employeeList);
-                        tableEmployee = new ArrayList<>(results);
-                        refreshTable();
-                    } else {
-                        JOptionPane.showMessageDialog(null, errorMessage, "検索失敗", JOptionPane.ERROR_MESSAGE);
+        employeeListOperator.searchAsync(idQuery, nameQuery, ageQuery, engQuery, langQuery,
+                new EmployeeListOperator.SearchCallback() {
+                    @Override
+                    public void onSearchFinished(boolean success, List<EmployeeInformation> results,
+                            String errorMessage) {
+                        SwingUtilities.invokeLater(() -> {
+                            hideSearchOverlay();
+                            if (success) {
+                                currentPage = 1;
+                                employeeListOperator.setEmployeeList(EmployeeManager.employeeList);
+                                tableEmployee = new ArrayList<>(results);
+                                refreshTable();
+                            } else {
+                                dialog.viewErrorDialog(errorMessage);
+                            }
+                        });
                     }
                 });
-            }
-        });
 
     }
-
 
     /*
      * refreshTableメソッドはengineerTable のデータモデルを更新
@@ -409,7 +407,6 @@ public class ViewTopScreen extends SetUpTopScreen {
 
         employeeListPanel.revalidate();
         employeeListPanel.repaint();
-        
 
         int totalEmployees = tableEmployee.size();// 下村作成部分(本番時利用コード)
         totalPages = Math.min((totalEmployees + 9) / 10, 100);
@@ -419,7 +416,7 @@ public class ViewTopScreen extends SetUpTopScreen {
         Object[][] pageData = getPageData(currentPage, 10);
         // テーブルのヘッダー
         String[] columnNames = { "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "詳細" };
-        
+
         // テーブルモデル作成（編集不可）
         model = new DefaultTableModel(pageData, columnNames) {
             @Override
@@ -464,8 +461,6 @@ public class ViewTopScreen extends SetUpTopScreen {
                 return label;
             }
         });
-
-        
 
         JTableHeader header = engineerTable.getTableHeader(); // ← 表示されているテーブルのヘッダー
         header.setReorderingAllowed(false);// テーブルの列移動を不許可にする。
@@ -569,7 +564,7 @@ public class ViewTopScreen extends SetUpTopScreen {
     public void View(ArrayList<EmployeeInformation> tableEmployee, int currentPage) {
         this.currentPage = currentPage;
         this.tableEmployee = tableEmployee;
-        setupSearchOverlay();  // ここで1回だけ初期化する
+        setupSearchOverlay(); // ここで1回だけ初期化する
         refreshTable();
         frame.setVisible(true);
     }
@@ -598,8 +593,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             displayList[i][2] = calcAge(empioyee.getBirthday(), now) + "歳";
 
             // 修正点：エンジニア歴を「○年○ヶ月」に変換して代入
-            displayList[i][3] = empioyee.getEngineerDate(); 
-
+            displayList[i][3] = empioyee.getEngineerDate();
 
             displayList[i][4] = empioyee.getAvailableLanguages();
             displayList[i][5] = "詳細";
@@ -643,16 +637,8 @@ public class ViewTopScreen extends SetUpTopScreen {
 
     private void showCreateCsvDialog(String selectedFile) {
         String[] label = { "読み込み", "キャンセル", "参照" };
-        int selectButton = JOptionPane.showOptionDialog(
-                null,
-                "以下のCSVファイルを読み込みます\n"
-                        + "選択中" + selectedFile,
-                "確認ダイアログ",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                label,
-                null);
+        String message = "以下のCSVファイルを読み込みます";
+        int selectButton = dialog.ioConfirmation(message, selectedFile, label);
         if (selectButton == 0) {
             MANAGER.printInfoLog("CSV読み込みを開始");
             ReadCsv readCsv = new ReadCsv();
@@ -666,6 +652,7 @@ public class ViewTopScreen extends SetUpTopScreen {
             selectFile();
         }
     }
+
     // 検索中オーバーレイを準備するメソッド（setupViewTopScreenの後かクラス末尾に配置推奨）
     private void setupSearchOverlay() {
         searchOverlayPanel = new JPanel();
@@ -708,13 +695,14 @@ public class ViewTopScreen extends SetUpTopScreen {
         if (clearSearchResultButton != null) {
             clearSearchResultButton.setVisible(true);
             MANAGER.printInfoLog("検索クリアボタン活性");
-            functionButtonsPanel.revalidate();  
+            functionButtonsPanel.revalidate();
             functionButtonsPanel.repaint();
             MANAGER.printInfoLog("検索中画面非表示");
         } else {
             MANAGER.printErrorLog("検索クリアボタン未定義");
         }
     }
+
     // 入力文字数制限用フィルター（最大100文字）
     private static class TextLengthFilter extends DocumentFilter {
         private int maxLength;
@@ -726,7 +714,8 @@ public class ViewTopScreen extends SetUpTopScreen {
         @Override
         public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
                 throws BadLocationException {
-            if (string == null) return;
+            if (string == null)
+                return;
 
             int currentLength = fb.getDocument().getLength();
             int newLength = currentLength + string.length();
@@ -744,7 +733,8 @@ public class ViewTopScreen extends SetUpTopScreen {
         @Override
         public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
                 throws BadLocationException {
-            if (text == null) return;
+            if (text == null)
+                return;
 
             int currentLength = fb.getDocument().getLength();
             int newLength = currentLength - length + text.length();
@@ -760,5 +750,4 @@ public class ViewTopScreen extends SetUpTopScreen {
         }
     }
 
-    
 }

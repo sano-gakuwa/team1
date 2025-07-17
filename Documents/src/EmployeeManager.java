@@ -21,8 +21,6 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import javax.swing.JOptionPane;
-
 /**
  * 社員情報を登録・管理するためのマネージャークラス
  * 
@@ -39,6 +37,7 @@ public class EmployeeManager extends SystemLog {
             "備考", "更新日"
     };
     public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
+    private ViewDialog dialog = new ViewDialog();
 
     public EmployeeManager() {
         // インスタンス生成時のメソッド等無し
@@ -70,10 +69,9 @@ public class EmployeeManager extends SystemLog {
                 printInfoLog("社員情報保存用CSVファイル読み込み成功");
             }
             employeeLoading();
-            // checkArrayList();
         } catch (Exception e) {
             printExceptionLog(e, "社員情報保存用CSVファイル読み込み失敗");
-            JOptionPane.showMessageDialog(null, "社員情報保存用CSVファイル読み込み失敗", "エラー", JOptionPane.ERROR_MESSAGE);
+            dialog.viewErrorDialog("社員情報保存用CSVファイル読み込み失敗");
             System.exit(0);
         }
     }

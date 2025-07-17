@@ -30,6 +30,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
     private JButton saveButton, backButton;
     private final EmployeeManager MANAGER = new EmployeeManager();
+    private ViewDialog dialog = new ViewDialog();
 
     public ViewAdditionScreen() {
         setupViewAdditionScreen();
@@ -210,17 +211,14 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         backButton.setBounds(0, 0, 140, 30);
         bottomPanel.add(backButton);
         backButton.addActionListener(e -> {
-            int result = javax.swing.JOptionPane.showConfirmDialog(
-                    null,
-                    "現在の入力内容を破棄してもよろしいですか？",
-                    "確認",
-                    javax.swing.JOptionPane.YES_NO_OPTION,
-                    javax.swing.JOptionPane.WARNING_MESSAGE);
-            if (result == javax.swing.JOptionPane.YES_OPTION) {
+            String message = "現在の入力内容を破棄してもよろしいですか？";
+            String title = "確認";
+            int result = dialog.warningConfirmation(message, title);
+            if (result == 0) {
                 refreshUI();
                 ViewTopScreen top = new ViewTopScreen();
                 top.View();
-            } else if (result == JOptionPane.NO_OPTION) {
+            } else if (result == 1) {
                 // NO_OPTION の場合は何もしない（入力画面に留まる）
             }
         });
@@ -231,22 +229,22 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             EmployeeInfoAddition addition = new EmployeeInfoAddition();
             if (addition.validateAdditionLock()) {
                 // 新規追加のロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "新規追加中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                dialog.viewWarningDialog("新規追加中です。しばらくお待ちください。");
                 return;
             }
             EmployeeInformation info = collectInputData();
             if (!MANAGER.validateNotNull(info)) {
-                showErrorDialog("必須項目が入力されていません");
+                dialog.viewErrorDialog("必須項目が入力されていません");
                 showErrorMessageOnPanel("必須項目が入力されていません");
                 return;
             }
             if(!MANAGER.validateEmployee(info)){
-                showErrorDialog("社員情報の内容に誤りがあります");
+                dialog.viewErrorDialog("社員情報の内容に誤りがあります");
                 showErrorMessageOnPanel("社員情報の内容に誤りがあります");
                 return;
             }
             if (!MANAGER.validateOverlappingEmployee(info)) {
-                showErrorDialog("重複する社員IDが存在します");
+                dialog.viewErrorDialog("重複する社員IDが存在します");
                 showErrorMessageOnPanel("重複する社員IDが存在します");
                 return;
             }
@@ -519,7 +517,7 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
             return employee;
         } catch (Exception e) {
             MANAGER.printExceptionLog(e, "データ取得中にエラーが発生しました");
-            showErrorDialog("データ取得中にエラーが発生しました");
+            dialog.viewErrorDialog("データ取得中にエラーが発生しました");
             return null;
         }
     }
@@ -622,14 +620,5 @@ public class ViewAdditionScreen extends SetUpDetailsScreen {
         errorLabel.setHorizontalAlignment(JLabel.CENTER);
         errorPanel.add(errorLabel);
         errorPanel.repaint();
-    }
-
-    /**
-     * エラー表示用に用意したダイアログに文言表示させる
-     * @param message 表示するエラーメッセージ
-     * @author nishiyama
-     */
-    private void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 }

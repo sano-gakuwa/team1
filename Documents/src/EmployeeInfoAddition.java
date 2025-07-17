@@ -10,13 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JOptionPane;
-
 public class EmployeeInfoAddition implements Runnable {
     private EmployeeInformation newEmployee;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private final ThreadsManager THREAD_MANAGER = new ThreadsManager();
     private static ReentrantLock additionLock = new ReentrantLock();
+    private ViewDialog dialog = new ViewDialog();
 
     /**
      * CSV読み込みのロックを取得
@@ -40,11 +39,11 @@ public class EmployeeInfoAddition implements Runnable {
             csvAddition();
             listAddition();
             if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
-                showEndDialog("社員情報の追加機能終了");
+                dialog.viewEndDialog("社員情報の追加機能終了");
             }
         } catch (Exception e) {
             if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
-                showValidationError("社員情報の追加に失敗しました。");
+                dialog.viewErrorDialog("社員情報の追加に失敗しました。");
             }
         } finally {
             additionLock.unlock(); // ロックを解放
@@ -96,7 +95,7 @@ public class EmployeeInfoAddition implements Runnable {
                 MANAGER.printExceptionLog(ex, "CSVファイルのロールバック処理に失敗");
             }
             javax.swing.SwingUtilities.invokeLater(() -> {
-                showValidationError("CSVファイルへの追加に失敗しました。"); // UIclassでエラーメッセージを表示
+                dialog.viewErrorDialog("CSVファイルへの追加に失敗しました。"); // UIclassでエラーメッセージを表示
             });
             return; // スレッド終了（deactivateサブ）
             // ファイル操作終了時、必ず対象ファイルに対するアクセス制御（ロック）や、開いたファイルのリソースを解放する
@@ -125,19 +124,13 @@ public class EmployeeInfoAddition implements Runnable {
 
     private void listAddition() {
         // 社員情報リストに新規データを追加
-        try {
-            EmployeeManager.employeeList.add(newEmployee);
-            MANAGER.printInfoLog("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
-        } catch (Exception e) {
-            MANAGER.printExceptionLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
+        synchronized (EmployeeManager.employeeList) {
+            try {
+                EmployeeManager.employeeList.add(newEmployee);
+                MANAGER.printInfoLog("社員リストに新規データを追加成功（社員ID: " + newEmployee.getEmployeeID() + "）");
+            } catch (Exception e) {
+                MANAGER.printExceptionLog(e, "社員リストに新規データを追加失敗（社員ID: " + newEmployee.getEmployeeID() + "）");
+            }
         }
-    }
-
-    public void showValidationError(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void showEndDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "完了通知", JOptionPane.INFORMATION_MESSAGE);
     }
 }

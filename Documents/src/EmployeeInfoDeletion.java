@@ -12,14 +12,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JOptionPane;
-
 public class EmployeeInfoDeletion implements Runnable {
     private ArrayList<String> selected;
     private ArrayList<EmployeeInformation> backupEmployeeList;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private ThreadsManager threadsManager=new ThreadsManager();
     private static ReentrantLock deletionLock = new ReentrantLock();
+    private ViewDialog dialog = new ViewDialog();
 
     /**
      * 社員情報削除のロックを取得
@@ -55,14 +54,14 @@ public class EmployeeInfoDeletion implements Runnable {
                 MANAGER.printExceptionLog(e, "削除後の社員情報リストの保存に失敗しました");
                 revertingOriginalFile(originalFile, backupFile);
                 MANAGER.printInfoLog("社員情報保存CSVファイルを削除処理前に戻しました");
-                showErrorDialog("削除後の社員情報リストの保存に失敗しました");
+                dialog.viewErrorDialog("削除後の社員情報リストの保存に失敗しました");
                 return;
             }
             Files.deleteIfExists(backupFile.toPath());
         } catch (Exception e) {
             // 社員情報保存CSV＆社員情報リスト以外で例外が発生した場合 (メモリがいっぱいなど)
             MANAGER.printExceptionLog(e, "社員情報の削除に失敗しました");
-            showErrorDialog("社員情報の削除に失敗しました");
+            dialog.viewErrorDialog("社員情報の削除に失敗しました");
             return;
         }finally{
             deletionLock.unlock();
@@ -91,7 +90,7 @@ public class EmployeeInfoDeletion implements Runnable {
                 EmployeeManager.employeeList.clear();
                 EmployeeManager.employeeList = backupEmployeeList;
                 MANAGER.printInfoLog("社員情報リストを削除処理前に戻しました");
-                showErrorDialog("選択された社員情報の削除に失敗しました");
+                dialog.viewErrorDialog("選択された社員情報の削除に失敗しました");
                 return;
             }
         }
@@ -103,7 +102,7 @@ public class EmployeeInfoDeletion implements Runnable {
             Files.copy(originalFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             MANAGER.printExceptionLog(e, "バックアップファイルの作成に失敗しました");
-            showErrorDialog("バックアップファイルの作成に失敗しました");
+            dialog.viewErrorDialog("バックアップファイルの作成に失敗しました");
             return;
         }
     }
@@ -155,20 +154,10 @@ public class EmployeeInfoDeletion implements Runnable {
             } catch (Exception e) {
                 // オリジナルの社員情報保存CSVファイルが削除に失敗した場合
                 MANAGER.printExceptionLog(e, "オリジナルの社員情報保存CSVファイルが削除できませんでした");
-                showErrorDialog("オリジナルの社員情報保存CSVファイルが削除できませんでした");
+                dialog.viewErrorDialog("オリジナルの社員情報保存CSVファイルが削除できませんでした");
                 return;
             }
             backupFile.renameTo(originalFile);
         }
-    }
-
-    /**
-     * エラー表示用に用意したダイアログに文言表示させる
-     *
-     * @param message 表示するエラーメッセージ
-     * @author nishiyama
-     */
-    private void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 }

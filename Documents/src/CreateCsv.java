@@ -12,14 +12,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JOptionPane;
-
 public class CreateCsv implements Runnable {
     private String directory;
     private ArrayList<String> selected;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private ThreadsManager threadsManager = new ThreadsManager();
     private static ReentrantLock createCsvLock = new ReentrantLock();
+    private ViewDialog dialog = new ViewDialog();
 
     /**
      * CSV出力のロックを取得
@@ -63,7 +62,7 @@ public class CreateCsv implements Runnable {
                 // ファイル新規作成で例外が発生
                 MANAGER.printExceptionLog(e, "ファイル新規作成で例外が発生しました");
                 if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
-                    showErrorDialog("ファイル新規作成で例外が発生しました");
+                    dialog.viewErrorDialog("ファイル新規作成で例外が発生しました");
                 }
                 return;
             }
@@ -93,7 +92,7 @@ public class CreateCsv implements Runnable {
             // CSV出力時に例外発生
             MANAGER.printExceptionLog(e, "CSV出力時に例外発生");
             if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
-                showErrorDialog("CSV出力時に例外が発生しました");
+                dialog.viewErrorDialog("CSV出力時に例外が発生しました");
             }
             try {
                 // 出力しようとしたファイルを削除
@@ -113,7 +112,7 @@ public class CreateCsv implements Runnable {
         MANAGER.printInfoLog("CSV出力処理が完了しました");
         // 成功ダイアログを表示
         if (SetUpJframe.frame != null && SetUpJframe.frame.isDisplayable()) {
-            showDialog("CSVファイルを出力しました: " + makeCsvFile.getAbsolutePath());
+            dialog.viewEndDialog("CSVファイルを出力しました: " + makeCsvFile.getAbsolutePath());
         }
     }
 
@@ -159,25 +158,5 @@ public class CreateCsv implements Runnable {
             MANAGER.printExceptionLog(e, "スレッドの一時停止に失敗しました");
         }
         return new File(filePath.toString());
-    }
-
-    /**
-     * エラー表示用に用意したダイアログに文言表示させる
-     *
-     * @param message 表示するエラーメッセージ
-     * @author 下村
-     */
-    private void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-    }
-
-    /**
-     * 成功表示用に用意したダイアログに文言表示させる
-     *
-     * @param message 表示するエラーメッセージ
-     * @author nishiyama
-     */
-    private void showDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
     }
 }

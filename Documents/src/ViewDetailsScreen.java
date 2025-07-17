@@ -13,7 +13,6 @@ import java.util.Date;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -55,6 +54,8 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
 
     // 表示対象のエンジニア情報
     private EmployeeInformation employeeInformation;
+
+    private ViewDialog dialog = new ViewDialog();
 
     /**
      * コンストラクタ：エンジニア情報を受け取る
@@ -217,7 +218,7 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
             EmployeeInfoUpdate employeeInfoUpdate = new EmployeeInfoUpdate();
             if (employeeInfoUpdate.validateUpdateLock()) {
                 // 更新中のロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "社員情報の更新中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                dialog.viewWarningDialog("社員情報の更新中です。しばらくお待ちください。");
                 return;
             }
             MANAGER.printInfoLog("編集画面に遷移");
@@ -386,25 +387,6 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Yu Gothic UI", Font.BOLD, 12));
         errorPanel.add(errorLabel);
-    }
-
-    /**
-     * 新規追加成功時に表示されるダイアログ
-     *
-     * @param message ダイアログに表示される新規追加処理完了メッセージ
-     */
-    public void showSuccessDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    /**
-     * 新規追加成功失敗時に表示されるダイアログ
-     *
-     * @param message 表示されるエラーメッセージ
-     * @author nishiyama
-     */
-    public void showValidationError(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 
     /**

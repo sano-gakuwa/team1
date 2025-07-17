@@ -3,14 +3,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JOptionPane;
-
 public class CreateTemplate implements Runnable {
 
     private File selectedDir;
     private final EmployeeManager MANAGER = new EmployeeManager();
     private final ThreadsManager THREAD_MANAGER = new ThreadsManager();
     private static ReentrantLock createTemplateLock = new ReentrantLock();
+    private ViewDialog dialog = new ViewDialog();
 
     /**
      * テンプレート作成のロックを取得
@@ -38,7 +37,7 @@ public class CreateTemplate implements Runnable {
             templateWriting(file);
             MANAGER.printInfoLog("テンプレートファイル作成完了");
         } catch (Exception e) {
-            MANAGER.printExceptionLog(e,"テンプレートファイル作成失敗");
+            MANAGER.printExceptionLog(e, "テンプレートファイル作成失敗");
         } finally {
             createTemplateLock.unlock();
             THREAD_MANAGER.endUsing(Thread.currentThread());
@@ -49,13 +48,10 @@ public class CreateTemplate implements Runnable {
     private void existenceValidation(File file) {
         // 上書き確認（存在する場合のみ）
         if (file.exists()) {
-            int overwriteConfirm = JOptionPane.showConfirmDialog(
-                    null,
-                    "ファイル「employee_template.csv」は既に存在します。上書きしてもよろしいですか？",
-                    "上書き確認",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE);
-            if (overwriteConfirm != JOptionPane.YES_OPTION) {
+            String message = "ファイル「employee_template.csv」は既に存在します。上書きしてもよろしいですか？";
+            String title = "上書き確認";
+            int overwriteConfirm = dialog.warningConfirmation(message, title);
+            if (overwriteConfirm != 0) {
                 return;
             }
         }
@@ -66,12 +62,10 @@ public class CreateTemplate implements Runnable {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write("社員ID,氏名,生年月日（yyyy/MM/dd）,入社年月（yyyy/MM）,エンジニア歴,扱える言語,職歴,研修歴,"
                     + "技術力,研修時の姿勢,コミュニケーション力,リーダーシップ,備考\n");
-            writer.write("TPL1234,山田太郎,1990/04/15,2020/08,3年,Java,C++,●●会社で3年間勤務,Java研修（2020年）,"
-                    + "4.5,5.0,4.0,3.5,特になし\n");
-            JOptionPane.showMessageDialog(null, "テンプレートファイル「employee_template.csv」を出力しました。");
+            dialog.viewEndDialog("テンプレートファイル「employee_template.csv」を出力しました。");
         } catch (IOException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, "テンプレートファイルの出力中にエラーが発生しました。", "エラー", JOptionPane.ERROR_MESSAGE);
+            dialog.viewErrorDialog("テンプレートファイルの出力中にエラーが発生しました。");
             if (file.exists()) {
                 if (!file.delete()) {
                     System.err.println("作成失敗したテンプレートファイルの削除に失敗しました: " + file.getAbsolutePath());

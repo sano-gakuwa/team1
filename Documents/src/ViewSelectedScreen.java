@@ -27,6 +27,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
     private DefaultTableModel model;
     private EmployeeManager manager = new EmployeeManager();
     private ArrayList<EmployeeInformation> tableEmployee = null;
+    private ViewDialog dialog = new ViewDialog();
 
     public ViewSelectedScreen() {
     }
@@ -96,7 +97,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             // CSV出力中のロックがかかっているか確認
             if (createCsv.validateCreateCsvLock()) {
                 // CSV出力中のロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "CSV出力中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                dialog.viewWarningDialog("CSV出力中です。しばらくお待ちください。");
                 return;
             }
             selectFolder();
@@ -107,7 +108,7 @@ public class ViewSelectedScreen extends SetUpTopScreen {
             EmployeeInfoDeletion deletion = new EmployeeInfoDeletion();
             if (deletion.validateDeleteLock()) {
                 // 削除のロックがかかっている場合
-                JOptionPane.showMessageDialog(frame, "削除中です。しばらくお待ちください。", "警告", JOptionPane.WARNING_MESSAGE);
+                dialog.viewWarningDialog("削除中です。しばらくお待ちください。");
                 return;
             }
             deletion.delete(selected);
@@ -456,16 +457,8 @@ public class ViewSelectedScreen extends SetUpTopScreen {
 
     private void showCreateCsvDialog(String directory) {
         String[] label = { "出力", "キャンセル", "参照" };
-        int selectButton = JOptionPane.showOptionDialog(
-                null,
-                "出力先を選択してください\n"
-                        + "選択中" + directory,
-                "確認ダイアログ",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                label,
-                null);
+        String message="出力先を選択してください";
+        int selectButton = dialog.ioConfirmation(message,directory,label);
         if (selectButton == 0) {
             manager.printInfoLog("CSV出力を開始");
             CreateCsv createCsv = new CreateCsv();
