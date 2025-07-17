@@ -31,25 +31,31 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
         fullScreenPanel.setLayout(new BoxLayout(fullScreenPanel, BoxLayout.Y_AXIS));
 
         // 上段の上スペース（25px）
-        fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 25)));
+        fullScreenPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         // 上段パネル（750*135px）
         topPanel = createPanel(new Dimension(750, 135));
         topPanel.setOpaque(false);
-        topPanel.setLayout(new BorderLayout());
+        topPanel.setLayout(null);
 
         // topパネル_社員ID（130*40px）
-        idPanel = createPaddedPanel(new Dimension(155, 40), 0, 0);
-        topPanel.add(idPanel, BorderLayout.NORTH);
+        idPanel = createPanel(new Dimension(180, 40), 0, 0);
+        idPanel.setBounds(5,5,160, 40);
+        idPanel.setBackground(Color.LIGHT_GRAY);
+        idPanel.setLayout(null);
+        topPanel.add(idPanel);
 
         // topパネル_上下段ギャップ（15px）
-        JPanel gapPanel = createPanel(new Dimension(0, 15));
-        gapPanel.setOpaque(false); // あえて背景透過
+        JPanel gapPanel = createPanel(new Dimension(0, 5));
         topPanel.add(gapPanel);
 
         // topパネル_氏名（405*80px）
-        namePanel = createPaddedPanel(new Dimension(420, 100), 0, 0);
-        topPanel.add(namePanel, BorderLayout.SOUTH);
+        namePanel = createPanel(new Dimension(420, 130), 0, 0);
+        // topPanel.add(namePanel, BorderLayout.SOUTH);
+        namePanel.setBounds(5,50,420, 110);
+        namePanel.setBackground(Color.LIGHT_GRAY);
+        namePanel.setLayout(null);
+        topPanel.add(namePanel);
 
         // topPanelをfullScreenPanelに追加（中央寄せ）
         fullScreenPanel.add(wrapCentered(topPanel));
@@ -156,38 +162,6 @@ public abstract class SetUpDetailsScreen extends SetUpJframe {
         panel.setMaximumSize(size); // 意図しない引き伸ばしを避ける
         panel.setBackground(Color.WHITE); // 仮背景色
         return panel;
-    }
-
-    /**
-     * 指定されたサイズ・背景色のJPanelを作成し、右と下にパディングを追加するためのラッパーパネルを返す。
-     * <p>
-     * rightPadding または bottomPadding が 0 の場合は、ラッパーなしのパネルをそのまま返す。
-     * パディングが必要な場合は、ラッパー用のパネルを作成し、レイアウトを null に設定して 内部パネル（コンテンツ）を手動配置する。
-     * </p>
-     *
-     * @param size          コンテンツパネルのサイズ（幅と高さ）
-     * @param rightPadding  右側に追加する余白のピクセル数
-     * @param bottomPadding 下側に追加する余白のピクセル数
-     * @param bgColor       コンテンツパネルの仮背景色
-     * @return 必要なパディングを含んだJPanel。パディングが不要な場合はコンテンツパネル自体を返す
-     *
-     * @author nishiyama
-     */
-    private JPanel createPaddedPanel(Dimension size, int rightPadding, int bottomPadding) {
-        JPanel panel = new JPanel(); // レイアウトをここで明示
-        panel.setBackground(Color.LIGHT_GRAY);
-        int wrapperWidth = size.width + rightPadding;
-        int wrapperHeight = size.height + bottomPadding;
-        JPanel wrapper = new JPanel(null);
-        wrapper.setBackground(Color.WHITE);
-        wrapper.setPreferredSize(new Dimension(wrapperWidth, wrapperHeight));
-        wrapper.setMaximumSize(new Dimension(wrapperWidth, wrapperHeight));
-        panel.setBounds(0, 0, size.width, size.height);
-        panel.setPreferredSize(size);
-        panel.setMaximumSize(size);
-        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        wrapper.add(panel);
-        return wrapper;
     }
 
     private JPanel createPanel(Dimension size, int rightPadding, int bottomPadding) {
