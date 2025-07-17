@@ -1,19 +1,14 @@
 
 // 画面やレイアウトに関するクラスを読み込む（ウィンドウの大きさや部品配置を扱う）
 import java.awt.*;
-
 // ボタンやコンボボックスなどの操作を検知するイベント関連クラスを読み込む
 import java.awt.event.*;
-
 // 年月日を扱う便利なクラスを読み込み（現在の日付取得など）
 import java.time.LocalDate;
-
 // 日付やリスト、マップなど便利なクラスをまとめて読み込み
 import java.util.*;
-
 // SwingのGUI部品をまとめて読み込み（ボタンやテキストフィールドなど）
 import javax.swing.*;
-
 // JTextFieldやJTextAreaなど、テキスト入力系の親クラス
 import javax.swing.text.JTextComponent;
 
@@ -23,50 +18,38 @@ import javax.swing.text.JTextComponent;
  */
 public class ViewEditScreen extends SetUpDetailsScreen {
     // --- UI部品の宣言 ---
-
     // 社員IDを表示・入力するテキストフィールド（編集不可に設定）
     private JTextField employeeIdField;
-
     // 氏名のフリガナ用テキストフィールド（姓・名）
     private JTextField rubyLastNameField, rubyFirstNameField;
-
     // 氏名の漢字用テキストフィールド（姓・名）
     private JTextField lastNameField, firstNameField;
-
     // 生年月日を選択する年・月・日コンボボックス
     private JComboBox<String> birthYearCombo = new JComboBox<>();
     private JComboBox<String> birthMonthCombo = new JComboBox<>();
     private JComboBox<String> birthDayCombo = new JComboBox<>();
-
     // 入社年月日を選択する年・月・日コンボボックス
     private JComboBox<String> joinYearCombo = new JComboBox<>();
     private JComboBox<String> joinMonthCombo = new JComboBox<>();
     private JComboBox<String> joinDayCombo = new JComboBox<>();
-
     // エンジニア歴（年・月）を選択するコンボボックス
     private JComboBox<String> engYearCombo = new JComboBox<>();
     private JComboBox<String> engMonthCombo = new JComboBox<>();
-
     // 生年月日、入社年月日、エンジニア歴の表示用パネル
     private JPanel birthPanel = new JPanel();
     private JPanel joinPanel = new JPanel();
     private JPanel engPanel = new JPanel();
-
     // 扱える言語を入力するテキストフィールド
     private JTextField availableLanguageField;
-
     // 経歴、研修受講歴、備考の複数行入力欄
     private JTextArea careerArea, trainingArea, remarksArea;
-
     // 技術力やコミュニケーション力など評価項目用のコンボボックス
     private JComboBox<String> techCombo, commCombo, attitudeCombo, leaderCombo;
-
     // 保存と戻るボタン
     private JButton saveButton, backButton;
-
     // 社員情報の管理クラスのインスタンス（CSVの読み書きなどを担当）
-
     private final EmployeeManager MANAGER = new EmployeeManager();
+    private ViewDialog dialog = new ViewDialog();
 
     public ViewEditScreen() {
         MANAGER.printInfoLog("ViewEditScreen 初期化完了");
@@ -112,7 +95,7 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      */
     private void setupEmployeeId() {
         // 社員ID用のテキストフィールドを作成（プレースホルダー付き）
-        employeeIdField = placeholderTextField("01234xx");
+        employeeIdField = placeholderTextField("例)01234xx");
         // 位置とサイズを指定（x, y, 幅, 高さ）
         employeeIdField.setBounds(15, 5, 130, 30);
         // 編集不可に設定（IDは変更できない）
@@ -126,23 +109,20 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      */
     private void setupNameFields() {
         // フリガナ（姓）用のテキストフィールドを作成
-        rubyLastNameField = placeholderTextField("ヤマダ");
+        rubyLastNameField = placeholderTextField("例)ヤマダ");
         rubyLastNameField.setBounds(15, 15, 195, 30);
         namePanel.add(rubyLastNameField);
-
         // フリガナ（名）用のテキストフィールドを作成
-        rubyFirstNameField = placeholderTextField("タロウ");
+        rubyFirstNameField = placeholderTextField("例)タロウ");
         rubyFirstNameField.setBounds(215, 15, 195, 30);
         namePanel.add(rubyFirstNameField);
-
         // 漢字（姓）用テキストフィールド作成、太字に設定
-        lastNameField = placeholderTextField("山田");
+        lastNameField = placeholderTextField("例)山田");
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
         lastNameField.setBounds(15, 55, 195, 40);
         namePanel.add(lastNameField);
-
         // 漢字（名）用テキストフィールド作成、太字に設定
-        firstNameField = placeholderTextField("太郎");
+        firstNameField = placeholderTextField("例)太郎");
         firstNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
         firstNameField.setBounds(215, 55, 195, 40);
         namePanel.add(firstNameField);
@@ -154,44 +134,35 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupDateAndLanguageFields() {
         // 生年月日パネルに「生年月日」ラベルを北（上）に追加
         birthdDayPanel.add(new JLabel("生年月日"), BorderLayout.NORTH);
-
         // 生年月日の年・月・日コンボボックスをまとめたパネルを作成し追加
         birthPanel.add(dateSelector(birthYearCombo, birthMonthCombo, birthDayCombo));
         birthPanel.setBackground(Color.WHITE);
         birthdDayPanel.add(birthPanel, BorderLayout.SOUTH);
-
         // 入社年月パネルに「入社年月」ラベルを上に追加
         joiningDatePanel.add(new JLabel("入社年月"), BorderLayout.NORTH);
-
         // 入社年月日のコンボボックスまとめパネルを追加
         joinPanel.add(dateSelector(joinYearCombo, joinMonthCombo, joinDayCombo));
         joinPanel.setBackground(Color.WHITE);
         joiningDatePanel.add(joinPanel, BorderLayout.SOUTH);
-
         // エンジニア歴パネルに「エンジニア歴」ラベルを上に追加
         engineerDatePanel.add(new JLabel("エンジニア歴"), BorderLayout.NORTH);
-
         // エンジニア歴の年・月コンボボックスまとめパネルを追加
         engPanel.add(engineerDateSelector(engYearCombo, engMonthCombo));
         engPanel.setBackground(Color.WHITE);
         engineerDatePanel.add(engPanel, BorderLayout.SOUTH);
-
         // 扱える言語のラベルを作成し位置指定してパネルに追加
         JLabel availableLanguagesLabel = new JLabel("扱える言語");
         availableLanguagesLabel.setBounds(0, -3, 100, 20);
         availableLanguagesPanel.add(availableLanguagesLabel);
-
         // 言語入力用のパネルを作成し位置指定、色設定
         JPanel availableLanguageFieldPanel = new JPanel();
         availableLanguageFieldPanel.setBounds(0, 15, 190, 40);
         availableLanguageFieldPanel.setBackground(Color.LIGHT_GRAY);
         availableLanguageFieldPanel.setLayout(null);
-
         // 扱える言語のテキストフィールドを作成し配置
-        availableLanguageField = placeholderTextField("html・CSS");
+        availableLanguageField = placeholderTextField("例)html・CSS");
         availableLanguageField.setBounds(0, 5, 190, 30);
         availableLanguageFieldPanel.add(availableLanguageField);
-
         // パネルに言語入力欄を追加
         availableLanguagesPanel.add(availableLanguageFieldPanel);
     }
@@ -202,17 +173,13 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupCareer() {
         // 「経歴」ラベルをパネルの上部に追加
         careerPanel.add(createLabel("経歴", 0, 0), BorderLayout.NORTH);
-
         // 複数行入力できるテキストエリアを作成
         careerArea = new JTextArea(5, 30);
         careerArea.setLineWrap(true); // 行の折り返しを有効にする
-
         // プレースホルダー（初期文字）を設定
-        placeholderTextArea("経歴", careerArea);
-
+        placeholderTextArea("例)XXXXXXX", careerArea);
         // スクロールバー付きのパネルにテキストエリアを入れる
         JScrollPane careerScroll = new JScrollPane(careerArea);
-
         // パネルの中央にテキストエリアのスクロールパネルを配置
         careerPanel.add(careerScroll, BorderLayout.CENTER);
     }
@@ -223,17 +190,14 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupSkills() {
         // スキルラベルをパネルの上部に追加
         skillsPanel.add(createLabel("スキル", 0, 0), BorderLayout.NORTH);
-
         // 4行2列のグリッドレイアウトでスキル評価欄を作成
         JPanel skillPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         skillPanel.setBackground(Color.LIGHT_GRAY);
-
         // 技術力、コミュニケーション能力、受講態度、リーダーシップのコンボボックスを作成
         techCombo = createScoreCombo();
         commCombo = createScoreCombo();
         attitudeCombo = createScoreCombo();
         leaderCombo = createScoreCombo();
-
         // ラベルとコンボボックスを交互に追加し横並びで配置
         skillPanel.add(new JLabel("技術力"));
         skillPanel.add(techCombo);
@@ -243,10 +207,8 @@ public class ViewEditScreen extends SetUpDetailsScreen {
         skillPanel.add(attitudeCombo);
         skillPanel.add(new JLabel("リーダーシップ"));
         skillPanel.add(leaderCombo);
-
         // パネルの位置とサイズを指定
         skillPanel.setBounds(0, 10, 360, 10);
-
         // スキルパネルを中央に配置
         skillsPanel.add(skillPanel, BorderLayout.CENTER);
     }
@@ -257,17 +219,13 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupTraining() {
         // 「研修受講歴」ラベルをパネル上部に追加
         trainingRecordsPanel.add(createLabel("研修受講歴", 0, 0), BorderLayout.NORTH);
-
         // 複数行テキストエリアを作成し折り返し有効化
         trainingArea = new JTextArea(5, 30);
         trainingArea.setLineWrap(true);
-
         // プレースホルダーを設定
-        placeholderTextArea("2000年4月1日株式会社XXXX入社", trainingArea);
-
+        placeholderTextArea("例)2000年4月1日株式会社XXXX入社", trainingArea);
         // スクロール可能にするためスクロールパネルに入れる
         JScrollPane trainingScroll = new JScrollPane(trainingArea);
-
         // 中央にスクロールパネルを追加
         trainingRecordsPanel.add(trainingScroll, BorderLayout.CENTER);
     }
@@ -278,17 +236,13 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupRemarks() {
         // 「備考」ラベルをパネル上部に追加
         remarksPanel.add(createLabel("備考", 440, 340), BorderLayout.NORTH);
-
         // 複数行テキストエリアを作成し折り返し有効化
         remarksArea = new JTextArea(5, 30);
         remarksArea.setLineWrap(true);
-
         // プレースホルダーを設定
-        placeholderTextArea("特になし", remarksArea);
-
+        placeholderTextArea("例)特になし", remarksArea);
         // スクロールパネルに入れてスクロール可能に
         JScrollPane remarksScroll = new JScrollPane(remarksArea);
-
         // パネルにスクロールパネルを追加
         remarksPanel.add(remarksScroll, BorderLayout.CENTER);
     }
@@ -299,111 +253,61 @@ public class ViewEditScreen extends SetUpDetailsScreen {
     private void setupButtons() {
         // bottomPanelのレイアウトをnullにして自由配置可能に設定
         bottomPanel.setLayout(null);
-
         // 戻るボタンを作成（編集キャンセル用）
         backButton = new JButton("< 編集キャンセル");
         backButton.setBounds(0, 0, 140, 30);
         bottomPanel.add(backButton);
-
         // 戻るボタン押下時の動作を設定
         backButton.addActionListener(e -> {
             // 確認ダイアログを表示
-            int result = JOptionPane.showConfirmDialog(
-                    null,
-                    "保存せず前画面に戻ると\n編集中の内容は破棄されますが\n本当によろしいですか？",
-                    "確認",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE);
-
+            int result = dialog.warningConfirmation("保存せず前画面に戻ると\n編集中の内容は破棄されますが\n本当によろしいですか？", "確認");
             // 「はい」が選択された場合の処理
-            if (result == JOptionPane.YES_OPTION) {
+            if (result == 0) {
                 refreshUI(); // UIをリセット（入力内容などクリア）
                 ViewDetailsScreen details = new ViewDetailsScreen();
                 details.view(employeeInformation); // 詳細画面に戻る
             }
             // 「いいえ」の場合は何もしない（編集画面のまま）
         });
-
         // 保存ボタンを作成
         saveButton = new JButton("保存");
         saveButton.setBounds(350, 0, 80, 30);
         bottomPanel.add(saveButton);
-
         // 保存ボタン押下時の動作設定
         saveButton.addActionListener(e -> {
             setUIEnabled(false); // ボタンや入力欄を全て無効にし操作不可にして重複操作防止
-
             // 上書き保存の確認ダイアログ表示
-            int result = JOptionPane.showConfirmDialog(
-                    null,
-                    "この情報で上書きしますか？",
-                    "確認",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE);
-
+            int result = dialog.questionConfirmation("この情報で上書きしますか？", "確認");
             // 「はい」以外ならUIを再度有効にして処理中止
-            if (result != JOptionPane.YES_OPTION) {
+            if (result != 0) {
                 setUIEnabled(true);
                 return;
             }
-
+            EmployeeInfoUpdate update = new EmployeeInfoUpdate();
+            if (update.validateUpdateLock()) {
+                // 削除のロックがかかっている場合
+                dialog.viewWarningDialog("削除中です。しばらくお待ちください。");
+                return;
+            }
             EmployeeInformation info = collectInputData();
             if (!MANAGER.validateNotNull(info)) {
-                showErrorDialog("必須項目が入力されていません");
+                dialog.viewErrorDialog("必須項目が入力されていません");
                 showErrorMessageOnPanel("必須項目が入力されていません");
                 setUIEnabled(true);
                 return;
             }
             if (!MANAGER.validateEmployee(info)) {
-                showErrorDialog("社員情報の内容に誤りがあります");
+                dialog.viewErrorDialog("社員情報の内容に誤りがあります");
                 showErrorMessageOnPanel("社員情報の内容に誤りがあります");
                 setUIEnabled(true);
                 return;
             }
-
-            // 保存処理を呼び出し
-// 保存処理を呼び出し（非同期スレッドで実行し、終了待ち）
-EmployeeInfoUpdate update = new EmployeeInfoUpdate();
-update.update(info);
-Thread thread = new Thread(update);
-thread.start();
-
-try {
-    thread.join(); // 保存処理が完了するまで待機
-
-    // 保存成功時のみ完了ダイアログと画面遷移を行う
-    if (update.isSuccess()) {
-        JOptionPane optionPane = new JOptionPane(
-            "保存完了しました",
-            JOptionPane.INFORMATION_MESSAGE,
-            JOptionPane.DEFAULT_OPTION,
-            null,
-            new Object[] { "一覧画面へ戻る" },
-            "一覧画面へ戻る"
-        );
-        JDialog dialog = optionPane.createDialog("成功");
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.setModal(true);
-        dialog.setVisible(true);
-
-        Object selectedValue = optionPane.getValue();
-        if ("一覧画面へ戻る".equals(selectedValue)) {
+            update.update(info);
+            Thread thread = new Thread(update);
+            thread.start();
             refreshUI();
             ViewTopScreen top = new ViewTopScreen();
             top.View();
-        } else {
-            setUIEnabled(true);
-        }
-    } else {
-        // エラーは EmployeeInfoUpdate 内で showErrorDialog 済み
-        setUIEnabled(true);
-    }
-} catch (InterruptedException ex) {
-    ex.printStackTrace();
-    showErrorDialog("保存処理が中断されました");
-    setUIEnabled(true);
-}
-
         });
     }
 
@@ -473,28 +377,24 @@ try {
     private JPanel dateSelector(JComboBox<String> yearBox, JComboBox<String> monthBox, JComboBox<String> dayBox) {
         // 現在の年
         int currentYear = LocalDate.now().getYear();
-
         // 年を「〇〇年」で100年分追加
         DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>();
         for (int i = currentYear - 100; i <= currentYear; i++) {
             yearModel.addElement(i + "年");
         }
         yearBox.setModel(yearModel);
-
         // 月を「〇月」で追加（正しい設定：生年月日・入社年月は「1月」〜「12月」）
         DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
         for (int i = 1; i <= 12; i++) {
             monthModel.addElement(i + "月");
         }
         monthBox.setModel(monthModel);
-
         // 日は仮に31日まで表示
         DefaultComboBoxModel<String> dayModel = new DefaultComboBoxModel<>();
         for (int i = 1; i <= 31; i++) {
             dayModel.addElement(i + "日");
         }
         dayBox.setModel(dayModel);
-
         // レイアウト設定
         JPanel panel = new JPanel();
         panel.setPreferredSize(new Dimension(205, 40));
@@ -518,21 +418,18 @@ try {
         panel.setPreferredSize(new Dimension(155, 40));
         panel.setMaximumSize(new Dimension(140, 40));
         panel.setBackground(Color.LIGHT_GRAY);
-
         // 年は0〜49年までを追加
         DefaultComboBoxModel<String> yearModel = new DefaultComboBoxModel<>();
         for (int i = 0; i < 50; i++) {
             yearModel.addElement(i + "年");
         }
         yearBox.setModel(yearModel);
-
         // 月は0〜11ヶ月までを追加
         DefaultComboBoxModel<String> monthModel = new DefaultComboBoxModel<>();
         for (int i = 0; i <= 11; i++) {
             monthModel.addElement(i + "ヵ月"); // 「ヵ月」に変更
         }
         monthBox.setModel(monthModel);
-
         // パネルに年・月コンボボックスとラベルを追加
         panel.add(yearBox);
         panel.add(monthBox);
@@ -563,7 +460,6 @@ try {
         // 初期文字列とグレー色を設定
         textArea.setText(placeholder);
         textArea.setForeground(Color.GRAY);
-
         // 入力開始時にプレースホルダーを消す処理
         textArea.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
@@ -581,7 +477,6 @@ try {
                 }
             }
         });
-
         return textArea;
     }
 
@@ -592,55 +487,45 @@ try {
      */
     public EmployeeInformation collectInputData() {
         try {
-            System.out.println("【DEBUG】データ取得開始");
-
+            MANAGER.printInfoLog("データ取得開始");
             EmployeeInformation employee = new EmployeeInformation();
-
             // 各入力欄から値を取得しセット（プレースホルダーと同じ場合は空文字として扱う）
-            employee.setEmployeeID(getFieldValue(employeeIdField, "01234xx"));
-            employee.setlastName(getFieldValue(lastNameField, "山田"));
-            employee.setFirstname(getFieldValue(firstNameField, "太郎"));
-            employee.setRubyLastName(getFieldValue(rubyLastNameField, "ヤマダ"));
-            employee.setRubyFirstname(getFieldValue(rubyFirstNameField, "タロウ"));
-
+            employee.setEmployeeID(getFieldValue(employeeIdField, "例)01234xx"));
+            employee.setlastName(getFieldValue(lastNameField, "例)山田"));
+            employee.setFirstname(getFieldValue(firstNameField, "例)太郎"));
+            employee.setRubyLastName(getFieldValue(rubyLastNameField, "例)ヤマダ"));
+            employee.setRubyFirstname(getFieldValue(rubyFirstNameField, "例)タロウ"));
             // 日付はコンボボックスの選択値からDate型で生成
             employee.setBirthday(getDateFromComboBoxes(birthYearCombo, birthMonthCombo, birthDayCombo));
             employee.setJoiningDate(getDateFromComboBoxes(joinYearCombo, joinMonthCombo, joinDayCombo));
-
             // エンジニア歴は年と月を合算（単位は月）
             String yearStr = engYearCombo.getSelectedItem().toString(); // 例: "3年"
             String monthStr = engMonthCombo.getSelectedItem().toString(); // 例: "1ヵ月"
-
             int years = Integer.parseInt(yearStr.replace("年", "")); // → 3
             int months = Integer.parseInt(monthStr.replace("ヵ月", "")); // → 1
-
             employee.setEngineerDate(years * 12 + months);
-
             // 扱える言語、経歴、研修、備考などテキスト入力欄の値をセット
-            String langs = getFieldValue(availableLanguageField, "html・CSS");
+            String langs = getFieldValue(availableLanguageField, "例)html・CSS");
             langs = langs.replaceAll("[\\s　]+", "・");
             employee.setAvailableLanguages(langs);
-            employee.setCareerDate(getFieldValue(careerArea, "XXXXXXX"));
-
+            employee.setCareerDate(getFieldValue(careerArea, "例)XXXXXXX"));
             // スキル評価はコンボボックスの選択値を数値変換してセット
             employee.setSkillPoint(parseScore(techCombo));
             employee.setAttitudePoint(parseScore(attitudeCombo));
             employee.setCommunicationPoint(parseScore(commCombo));
             employee.setLeadershipPoint(parseScore(leaderCombo));
-
-            employee.setTrainingDate(getFieldValue(trainingArea, "2000年4月1日株式会社XXXX入社"));
-            employee.setRemarks(getFieldValue(remarksArea, "特になし"));
-
+            employee.setTrainingDate(getFieldValue(trainingArea, "例)2000年4月1日株式会社XXXX入社"));
+            employee.setRemarks(getFieldValue(remarksArea, "例)特になし"));
             // 更新日は現在日時をセット
             employee.setUpdatedDay(new Date());
 
-            System.out.println("【DEBUG】データ取得完了");
+            MANAGER.printInfoLog("データ取得完了");
             return employee;
 
         } catch (Exception e) {
             // 例外発生時はスタックトレースを表示しエラーダイアログを出す
             e.printStackTrace();
-            showValidationError("データ取得中にエラーが発生しました");
+            dialog.viewErrorDialog("データ取得中にエラーが発生しました");
             return null;
         }
     }
@@ -693,7 +578,7 @@ try {
 
         // "0月" が選ばれていたらエラーダイアログを表示して中断（nullを返す）
         if (monthStr.equals("0月")) {
-            showErrorDialog("月の選択が不正です。1月〜12月の中から選択してください。");
+            dialog.viewErrorDialog("月の選択が不正です。1月〜12月の中から選択してください。");
             return null; // ← 必ず null を返す
         }
 
@@ -733,24 +618,6 @@ try {
     }
 
     /**
-     * 処理成功時にポップアップの情報ダイアログを表示する
-     * 
-     * @param message 表示メッセージ
-     */
-    public void showSuccessDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "成功", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    /**
-     * バリデーションエラー発生時にエラーダイアログを表示する
-     * 
-     * @param message 表示するエラーメッセージ
-     */
-    public void showValidationError(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
-    }
-
-    /**
      * EmployeeInformationオブジェクトの内容を各UI入力欄にセットするメソッド
      * （編集画面表示時に既存データを反映するために使用）
      */
@@ -787,14 +654,5 @@ try {
         engYearCombo.setSelectedItem((totalMonths / 12) + "年");
         engMonthCombo.setSelectedItem((totalMonths % 12) + "ヵ月"); // 「ヵ月」に変更
 
-    }
-
-    /**
-     * エラーメッセージをモーダルダイアログで表示する共通メソッド
-     *
-     * @param message 表示したいメッセージ文字列
-     */
-    private void showErrorDialog(String message) {
-        JOptionPane.showMessageDialog(null, message, "エラー", JOptionPane.ERROR_MESSAGE);
     }
 }
