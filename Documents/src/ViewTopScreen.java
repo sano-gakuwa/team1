@@ -95,7 +95,6 @@ public class ViewTopScreen extends SetUpTopScreen {
         topPanel.add(new JLabel("歳"));
         topPanel.add(new JLabel("エンジニア歴"));
         topPanel.add(engField);
-        topPanel.add(new JLabel("ヶ月"));
         topPanel.add(new JLabel("扱える言語"));
         topPanel.add(langField);
 

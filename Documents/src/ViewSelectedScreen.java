@@ -58,7 +58,6 @@ public class ViewSelectedScreen extends SetUpTopScreen {
         topPanel.add(new JLabel("歳"));
         topPanel.add(new JLabel(columnNames[3]));
         topPanel.add(engField);
-        topPanel.add(new JLabel("ヶ月"));
         topPanel.add(new JLabel(columnNames[4]));
         topPanel.add(langField);
 
