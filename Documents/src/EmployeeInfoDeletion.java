@@ -54,9 +54,10 @@ public class EmployeeInfoDeletion implements Runnable {
                 MANAGER.printExceptionLog(e, "削除後の社員情報リストの保存に失敗しました");
                 revertingOriginalFile(originalFile, backupFile);
                 MANAGER.printInfoLog("社員情報保存CSVファイルを削除処理前に戻しました");
-                dialog.viewErrorDialog("削除後の社員情報リストの保存に失敗しました");
+                dialog.viewErrorDialog("社員情報の削除に失敗");
                 return;
             }
+            dialog.viewEndDialog("社員情報の削除に成功");
             Files.deleteIfExists(backupFile.toPath());
         } catch (Exception e) {
             // 社員情報保存CSV＆社員情報リスト以外で例外が発生した場合 (メモリがいっぱいなど)
@@ -82,6 +83,7 @@ public class EmployeeInfoDeletion implements Runnable {
                     // 選択された社員情報と合致したら削除
                     if (selected.contains(employee.getEmployeeID()) == true) {
                         employeeIterator.remove();
+                        MANAGER.printInfoLog("社員リストから削除成功（社員ID: " + employee.getEmployeeID() + "）");
                     }
                 }
             } catch (Exception e) {
@@ -115,6 +117,7 @@ public class EmployeeInfoDeletion implements Runnable {
             for (EmployeeInformation employee : EmployeeManager.employeeList) {
                 printWriter.println(MANAGER.convertToCSV(employee));
             }
+            MANAGER.printInfoLog("選択された社員情報が削除された社員リストを社員情報保存用csvファイルに保存成功");
         } catch (Exception e) {
             MANAGER.printExceptionLog(e, "社員情報保存CSVファイルに書き込み失敗");
         } finally {
