@@ -51,6 +51,11 @@ public class ViewTopScreen extends SetUpTopScreen {
     private JButton clearSearchResultButton;
     private JPanel employeeListPanel;
     private ViewDialog dialog = new ViewDialog();
+    private JTextField idField;
+    private JTextField nameField;
+    private JTextField ageField;
+    private JTextField engField;
+    private JTextField langField;
 
     // 記載順間違えると起動しなくなるから注意
     public ViewTopScreen() {
@@ -74,11 +79,11 @@ public class ViewTopScreen extends SetUpTopScreen {
         topPanel.setOpaque(false);
 
         // それぞれの検索フィールドを変数化して保持
-        JTextField idField = new JTextField(5);
-        JTextField nameField = new JTextField(5);
-        JTextField ageField = new JTextField(5);
-        JTextField engField = new JTextField(5);
-        JTextField langField = new JTextField(5);
+        idField = new JTextField(5);
+        nameField = new JTextField(5);
+        ageField = new JTextField(5);
+        engField = new JTextField(5);
+        langField = new JTextField(5);
 
         // ラベル + フィールドを追加
         topPanel.add(new JLabel("社員ID"));
@@ -87,8 +92,10 @@ public class ViewTopScreen extends SetUpTopScreen {
         topPanel.add(nameField);
         topPanel.add(new JLabel("年齢"));
         topPanel.add(ageField);
+        topPanel.add(new JLabel("歳"));
         topPanel.add(new JLabel("エンジニア歴"));
         topPanel.add(engField);
+        topPanel.add(new JLabel("ヶ月"));
         topPanel.add(new JLabel("扱える言語"));
         topPanel.add(langField);
 
@@ -202,8 +209,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                 selected.add((model.getValueAt(i, 0)).toString());
             }
             refreshUI();
-            ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
-            selectedScreen.View(tableEmployee, selected, currentPage);
+            viewSelectedScreen();
         });
         // 検索結果クリア（検索後のみ表示）
         clearSearchResultButton.addActionListener(e -> {
@@ -302,8 +308,7 @@ public class ViewTopScreen extends SetUpTopScreen {
                         tableEmployee = new ArrayList<>(EmployeeManager.employeeList);
                     } else {
                         boolean ascending = (next == 1);
-                        employeeListOperator.sort(sortKey, ascending);
-                        tableEmployee = new ArrayList<>(employeeListOperator.getFilteredList());
+                        tableEmployee=employeeListOperator.sortEmployee(sortKey, ascending, tableEmployee);
                     }
                     currentPage = 1;
                     refreshTable();
@@ -526,13 +531,10 @@ public class ViewTopScreen extends SetUpTopScreen {
 
                 if (row >= 0) {
                     String id = model.getValueAt(row, 0).toString();
-                    ArrayList<String> selectedIds = new ArrayList<>();
-                    selectedIds.add(id);
+                    selected.add(id);
                     // ViewSelectedScreen に切り替える前に ViewTopScreen の画面をクリア
                     refreshUI();
-                    // ViewSelectedScreen に遷移
-                    ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
-                    selectedScreen.View(tableEmployee, selectedIds, currentPage);
+                    viewSelectedScreen();
                 }
             }
         });
@@ -560,12 +562,21 @@ public class ViewTopScreen extends SetUpTopScreen {
         frame.setVisible(true);
     }
 
-    public void View(ArrayList<EmployeeInformation> tableEmployee, int currentPage) {
-        this.currentPage = currentPage;
-        this.tableEmployee = tableEmployee;
-        setupSearchOverlay(); // ここで1回だけ初期化する
-        refreshTable();
-        frame.setVisible(true);
+    private void viewSelectedScreen() {
+        // ViewSelectedScreen に遷移
+        String[] searchKeyWord = new String[5];
+        // 検索キーワード取得
+        searchKeyWord[0] = idField.getText();
+        searchKeyWord[1] = nameField.getText();
+        searchKeyWord[2] = ageField.getText();
+        searchKeyWord[3] = engField.getText();
+        searchKeyWord[4] = langField.getText();
+        ViewSelectedScreen selectedScreen = new ViewSelectedScreen();
+        //検索後か確認
+        if(clearSearchResultButton.isVisible() ){
+            selectedScreen.setSearchKeyWord(searchKeyWord);
+        }
+        selectedScreen.View(tableEmployee, selected, currentPage);
     }
 
     public Object[][] getPageData(int currentPage, int maxDisplayCount) {

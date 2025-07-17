@@ -1,19 +1,19 @@
 import java.util.*;
 import java.text.Normalizer;
+
 /**
  * 社員情報の検索およびソート機能のクラス。
  * 元データのリストを保持し、検索条件に基づくフィルタリングや
  * ソート操作を提供
+ * 
  * @atuthor 木下
  */
 public class EmployeeListOperator {
-    private final EmployeeManager MANAGER = new EmployeeManager();//infoログ用
+    private final EmployeeManager MANAGER = new EmployeeManager();// infoログ用
     private final List<EmployeeInformation> masterList; // 元データ（不変）
     private volatile List<EmployeeInformation> filteredList; // 検索結果（ディープコピー）
     private final Object lock = new Object();
     private volatile boolean isSearching = false;
-
-    
 
     /**
      * コンストラクタ。初期リストから最大1000件の社員情報を保持
@@ -37,12 +37,12 @@ public class EmployeeListOperator {
      * AND条件で複数の検索項目に対応、空文字やnullは無視
      * 最大100文字までの入力を受け付ける
      *
-     * @param employeeIDQuery          社員IDの検索キーワード
-     * @param nameQuery                氏名の検索キーワード
-     * @param ageQuery                 年齢の検索キーワード
-     * @param engineerDateQuery        エンジニア歴の検索キーワード
+     * @param employeeIDQuery         社員IDの検索キーワード
+     * @param nameQuery               氏名の検索キーワード
+     * @param ageQuery                年齢の検索キーワード
+     * @param engineerDateQuery       エンジニア歴の検索キーワード
      * @param availableLanguagesQuery 扱える言語の検索キーワード
-     * @param callback                 検索完了時のコールバック
+     * @param callback                検索完了時のコールバック
      */
     public void searchAsync(
             String employeeIDQuery,
@@ -51,50 +51,50 @@ public class EmployeeListOperator {
             String engineerDateQuery,
             String availableLanguagesQuery,
             SearchCallback callback) {
-                if (isSearching) {
-                    MANAGER.printInfoLog("検索中に検索ボタンが押されました");
-                    callback.onSearchFinished(false, null, "検索中です。");
-                    return;
+        if (isSearching) {
+            MANAGER.printInfoLog("検索中に検索ボタンが押されました");
+            callback.onSearchFinished(false, null, "検索中です。");
+            return;
+        }
+        // 空検索なら何もしない（再検索対応）
+        boolean allEmpty = isEmpty(employeeIDQuery) &&
+                isEmpty(nameQuery) &&
+                isEmpty(ageQuery) &&
+                isEmpty(engineerDateQuery) &&
+                isEmpty(availableLanguagesQuery);
+        if (allEmpty) {
+            MANAGER.printInfoLog("検索条件が入力されていません。検索処理は実行されませんでした。");
+            callback.onSearchFinished(false, null, "検索条件が入力されていません。");
+            return;
+        }
+        // 100文字
+        final String trimmedEmployeeIDQuery = cutTo100(employeeIDQuery);
+        final String trimmedNameQuery = cutTo100(nameQuery);
+        final String trimmedAgeQuery = cutTo100(ageQuery);
+        final String trimmedEngineerDateQuery = cutTo100(engineerDateQuery);
+        final String trimmedAvailableLanguagesQuery = cutTo100(availableLanguagesQuery);
+        isSearching = true;
+        Runnable searchTask = () -> {
+            try {
+                List<EmployeeInformation> results = search(
+                        trimmedEmployeeIDQuery,
+                        trimmedNameQuery,
+                        trimmedAgeQuery,
+                        trimmedEngineerDateQuery,
+                        trimmedAvailableLanguagesQuery);
+                synchronized (lock) {
+                    filteredList = results;
                 }
-                // 空検索なら何もしない（再検索対応）
-                boolean allEmpty = isEmpty(employeeIDQuery) &&
-                        isEmpty(nameQuery) &&
-                        isEmpty(ageQuery) &&
-                        isEmpty(engineerDateQuery) &&
-                        isEmpty(availableLanguagesQuery);
-                if (allEmpty) {
-                    MANAGER.printInfoLog("検索条件が入力されていません。検索処理は実行されませんでした。");
-                    callback.onSearchFinished(false, null, "検索条件が入力されていません。");
-                    return;
-                }
-                // 100文字
-                final String trimmedEmployeeIDQuery = cutTo100(employeeIDQuery);
-                final String trimmedNameQuery = cutTo100(nameQuery);
-                final String trimmedAgeQuery = cutTo100(ageQuery);
-                final String trimmedEngineerDateQuery = cutTo100(engineerDateQuery);
-                final String trimmedAvailableLanguagesQuery = cutTo100(availableLanguagesQuery);
-                isSearching = true;
-                Runnable searchTask = () -> {
-                    try {
-                        List<EmployeeInformation> results = search(
-                                trimmedEmployeeIDQuery,
-                                trimmedNameQuery,
-                                trimmedAgeQuery,
-                                trimmedEngineerDateQuery,
-                                trimmedAvailableLanguagesQuery);
-                        synchronized (lock) {
-                            filteredList = results;
-                        }
-                        callback.onSearchFinished(true, deepCopyEmployeeList(results), null);
-                    } catch (Exception e) {
-                        callback.onSearchFinished(false, null, e.getMessage());
-                    } finally {
-                        isSearching = false;
-                    }
-                };
-                Thread thread = new Thread(searchTask);
-                thread.setDaemon(true);
-                thread.start();
+                callback.onSearchFinished(true, deepCopyEmployeeList(results), null);
+            } catch (Exception e) {
+                callback.onSearchFinished(false, null, e.getMessage());
+            } finally {
+                isSearching = false;
+            }
+        };
+        Thread thread = new Thread(searchTask);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**
@@ -109,54 +109,52 @@ public class EmployeeListOperator {
      * @return 条件に合致した社員情報のリスト
      */
     private List<EmployeeInformation> search(
-        String employeeIDQuery,
-        String nameQuery,
-        String ageQuery,
-        String engineerDateQuery,
-        String availableLanguagesQuery) {
-            // 入力の単語リスト化（スペース区切り）
-            List<String> employeeIDWords = splitBySpace(employeeIDQuery);
-            List<String> nameWords = splitBySpace(nameQuery);
-            List<String> ageWords = splitBySpace(ageQuery);
-            List<String> engineerDateWords = splitBySpace(engineerDateQuery);
-            List<String> availableLanguagesWords = splitBySpace(availableLanguagesQuery);
+            String employeeIDQuery,
+            String nameQuery,
+            String ageQuery,
+            String engineerDateQuery,
+            String availableLanguagesQuery) {
+        // 入力の単語リスト化（スペース区切り）
+        List<String> employeeIDWords = splitBySpace(employeeIDQuery);
+        List<String> nameWords = splitBySpace(nameQuery);
+        List<String> ageWords = splitBySpace(ageQuery);
+        List<String> engineerDateWords = splitBySpace(engineerDateQuery);
+        List<String> availableLanguagesWords = splitBySpace(availableLanguagesQuery);
 
-            List<EmployeeInformation> results = new ArrayList<>();
-            for (EmployeeInformation emp : masterList) {
-                if (!matchesAllWords(employeeIDWords, normalize(emp.getEmployeeID())))
-                    continue;
+        List<EmployeeInformation> results = new ArrayList<>();
+        for (EmployeeInformation emp : masterList) {
+            if (!matchesAllWords(employeeIDWords, normalize(emp.getEmployeeID())))
+                continue;
 
-                if (!matchesAllWords(nameWords,
-                        normalize(emp.getLastName() + emp.getFirstname() + emp.getRubyLastName() + emp.getRubyFirstname())))
-                    continue;
+            if (!matchesAllWords(nameWords,
+                    normalize(emp.getLastName() + emp.getFirstname() + emp.getRubyLastName() + emp.getRubyFirstname())))
+                continue;
 
-                if (!matchesAllWords(ageWords, String.valueOf(calcAge(emp.getBirthday()))))
-                    continue;
+            if (!matchesAllWords(ageWords, String.valueOf(calcAge(emp.getBirthday()))))
+                continue;
 
-                // エンジニア歴は「月数」+「○年○ヶ月」の両方で検索に対応
-                String engineerDateStr = emp.getEngineerDate() + ""; // 例: "24"
-                engineerDateStr += " " + formatEngineerDate(emp.getEngineerDate()); // 例: "24 2年0ヶ月"
-                if (!matchesAllWords(engineerDateWords, engineerDateStr))
-                    continue;
+            // エンジニア歴は「月数」+「○年○ヶ月」の両方で検索に対応
+            String engineerDateStr = emp.getEngineerDate() + ""; // 例: "24"
+            engineerDateStr += " " + formatEngineerDate(emp.getEngineerDate()); // 例: "24 2年0ヶ月"
+            if (!matchesAllWords(engineerDateWords, engineerDateStr))
+                continue;
 
-                if (!matchesAllWords(availableLanguagesWords, normalize(emp.getAvailableLanguages())))
-                    continue;
+            if (!matchesAllWords(availableLanguagesWords, normalize(emp.getAvailableLanguages())))
+                continue;
 
-                results.add(copyEmployeeInformation(emp));
-            }
-            return results;
+            results.add(copyEmployeeInformation(emp));
         }
-        /**
-         * 月数を「○年○ヶ月」形式に変換する
-         */
-        public static String formatEngineerDate(int months) {
-            int years = months / 12;
-            int remain = months % 12;
-            return years + "年" + remain + "ヶ月";
-        }
+        return results;
+    }
 
-
-
+    /**
+     * 月数を「○年○ヶ月」形式に変換する
+     */
+    public static String formatEngineerDate(int months) {
+        int years = months / 12;
+        int remain = months % 12;
+        return years + "年" + remain + "ヶ月";
+    }
 
     /**
      * 与えられた文字列を正規化
@@ -175,6 +173,7 @@ public class EmployeeListOperator {
         n = hiraToKana(n).toUpperCase(Locale.JAPAN);
         return n;
     }
+
     // ひらがな→カタカナ変換
     private String hiraToKana(String s) {
         if (s == null)
@@ -212,10 +211,12 @@ public class EmployeeListOperator {
         }
         return true;
     }
+
     // 空判定（nullまたはtrim後空文字）
     private boolean isEmpty(String s) {
         return s == null || s.trim().isEmpty();
     }
+
     // 100文字超えカット
     private String cutTo100(String s) {
         if (s == null)
@@ -264,6 +265,7 @@ public class EmployeeListOperator {
         employee.setUpdatedDay(emp.getUpdatedDay() != null ? (Date) emp.getUpdatedDay().clone() : null);
         return employee;
     }
+
     // リストのディープコピー
     private List<EmployeeInformation> deepCopyEmployeeList(List<EmployeeInformation> source) {
         List<EmployeeInformation> copy = new ArrayList<>(source.size());
@@ -292,6 +294,7 @@ public class EmployeeListOperator {
         }
         return age;
     }
+
     /**
      * ソートキー定義
      */
@@ -321,14 +324,15 @@ public class EmployeeListOperator {
      * @return 現在の検索結果リストのコピー
      */
     public List<EmployeeInformation> getFilteredList() {
-        
+
         synchronized (lock) {
             return deepCopyEmployeeList(filteredList);
         }
     }
+
     /**
-    * マスターデータと検索結果を再設定（検索結果クリア）
-    */
+     * マスターデータと検索結果を再設定（検索結果クリア）
+     */
     public void setEmployeeList(List<EmployeeInformation> newList) {
         synchronized (lock) {
             masterList.clear();
@@ -337,19 +341,25 @@ public class EmployeeListOperator {
         }
     }
 
-    public void sort(SortKey key, boolean ascending) {
+    public ArrayList<EmployeeInformation> sortEmployee(SortKey key, boolean ascending,
+            ArrayList<EmployeeInformation> tableEmployee) {
         synchronized (lock) {
             Comparator<EmployeeInformation> comparator = switch (key) {
-                case EMPLOYEE_ID -> Comparator.comparing(EmployeeInformation::getEmployeeID, Comparator.nullsFirst(String::compareTo));
-                case NAME -> Comparator.comparing(emp -> normalize(emp.getRubyLastName() + emp.getRubyFirstname()), Comparator.nullsFirst(String::compareTo));
+                case EMPLOYEE_ID ->
+                    Comparator.comparing(EmployeeInformation::getEmployeeID, Comparator.nullsFirst(String::compareTo));
+                case NAME -> Comparator.comparing(emp -> normalize(emp.getRubyLastName() + emp.getRubyFirstname()),
+                        Comparator.nullsFirst(String::compareTo));
                 case AGE -> Comparator.comparingInt(emp -> calcAge(emp.getBirthday()));
                 case ENGINEER_DATE -> Comparator.comparingInt(EmployeeInformation::getEngineerDate);
                 default -> null;
             };
-            if (comparator == null) return;
-            if (!ascending) comparator = comparator.reversed();
+            if (comparator == null)
+                return null;
+            if (!ascending)
+                comparator = comparator.reversed();
             // 登録順を保持するために安定ソート（JavaのCollections.sortは安定）
-            filteredList.sort(comparator);
+            tableEmployee.sort(comparator);
+            return tableEmployee;
         }
     }
 
