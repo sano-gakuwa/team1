@@ -60,20 +60,6 @@ public class ViewDialog {
         return returnInt;
     }
 
-    public int utputConfirmation(String directory, String[] label) {
-        int returnInt;
-        returnInt = JOptionPane.showOptionDialog(
-                null,
-                "出力先を選択してください\n"
-                        + "選択中" + directory,
-                "確認ダイアログ",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                label,
-                null);
-        return returnInt;
-    }
     public int ioConfirmation(String message,String directory, String[] label){
         String messagesString=message+"\n選択中"+directory;
         int returnInt;

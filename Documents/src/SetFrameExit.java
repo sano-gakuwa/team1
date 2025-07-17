@@ -42,17 +42,34 @@ public class SetFrameExit extends SetUpJframe {
         if (result == 0) {
             frame.dispose();
             manager.printInfoLog("画面を閉じました");
-            while (0 < threadsManager.usingThread()) {
-                manager.printInfoLog("使用中のスレッド:"+threadsManager.usingThread());
-                try {
-                    manager.printInfoLog("mainスレッド1秒停止");
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                    manager.printExceptionLog(e, "mainスレッド1秒停止失敗");
-                }
-            }
+            stopMainThread();
             manager.printInfoLog("終了");
             System.exit(0);
+        }
+    }
+
+    private void stopMainThread() {
+        int seconds=0;
+        while (0 < threadsManager.usingThread()) {
+            manager.printInfoLog("使用中のスレッド:" + threadsManager.usingThread());
+            try {
+                manager.printInfoLog("mainスレッド1秒停止");
+                Thread.sleep(1000);
+                seconds++;
+            } catch (Exception e) {
+                manager.printExceptionLog(e, "mainスレッド1秒停止失敗");
+            }
+            if(seconds>=60){
+                questionExit();
+                seconds=0;
+            }
+        }
+    }
+
+    private void questionExit(){
+        int result=dialog.questionConfirmation("1分経過しました。強制終了しますか?","強制終了確認");
+        if (result==0) {
+            System.exit(1);
         }
     }
 }
