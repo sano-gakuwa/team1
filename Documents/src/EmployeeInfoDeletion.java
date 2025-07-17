@@ -54,9 +54,10 @@ public class EmployeeInfoDeletion implements Runnable {
                 MANAGER.printExceptionLog(e, "削除後の社員情報リストの保存に失敗しました");
                 revertingOriginalFile(originalFile, backupFile);
                 MANAGER.printInfoLog("社員情報保存CSVファイルを削除処理前に戻しました");
-                dialog.viewErrorDialog("削除後の社員情報リストの保存に失敗しました");
+                dialog.viewErrorDialog("社員情報の削除に失敗");
                 return;
             }
+            dialog.viewEndDialog("社員情報の削除に成功");
             Files.deleteIfExists(backupFile.toPath());
         } catch (Exception e) {
             // 社員情報保存CSV＆社員情報リスト以外で例外が発生した場合 (メモリがいっぱいなど)
