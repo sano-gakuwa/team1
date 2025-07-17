@@ -94,13 +94,8 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * 社員IDの入力欄を初期化し、編集不可に設定する
      */
     private void setupEmployeeId() {
-        // 社員ID用のテキストフィールドを作成（プレースホルダー付き）
         employeeIdField = placeholderTextField("例)01234xx");
-        // 位置とサイズを指定（x, y, 幅, 高さ）
-        employeeIdField.setBounds(15, 5, 130, 30);
-        // 編集不可に設定（IDは変更できない）
-        employeeIdField.setEditable(false);
-        // 社員ID用パネルに追加
+        employeeIdField.setBounds(5, 5, 150, 30);
         idPanel.add(employeeIdField);
     }
 
@@ -108,23 +103,19 @@ public class ViewEditScreen extends SetUpDetailsScreen {
      * 氏名入力欄（フリガナ・漢字）を初期化して配置する
      */
     private void setupNameFields() {
-        // フリガナ（姓）用のテキストフィールドを作成
         rubyLastNameField = placeholderTextField("例)ヤマダ");
-        rubyLastNameField.setBounds(15, 15, 195, 30);
+        rubyLastNameField.setBounds(5, 5, 195, 30);
         namePanel.add(rubyLastNameField);
-        // フリガナ（名）用のテキストフィールドを作成
         rubyFirstNameField = placeholderTextField("例)タロウ");
-        rubyFirstNameField.setBounds(215, 15, 195, 30);
+        rubyFirstNameField.setBounds(215, 5, 195, 30);
         namePanel.add(rubyFirstNameField);
-        // 漢字（姓）用テキストフィールド作成、太字に設定
         lastNameField = placeholderTextField("例)山田");
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        lastNameField.setBounds(15, 55, 195, 40);
+        lastNameField.setBounds(5, 40, 195, 40);
         namePanel.add(lastNameField);
-        // 漢字（名）用テキストフィールド作成、太字に設定
         firstNameField = placeholderTextField("例)太郎");
         firstNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        firstNameField.setBounds(215, 55, 195, 40);
+        firstNameField.setBounds(215, 40, 195, 40);
         namePanel.add(firstNameField);
     }
 

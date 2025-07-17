@@ -86,29 +86,26 @@ public class ViewDetailsScreen extends SetUpDetailsScreen {
 
     // 社員ID
     private void setupEmployeeId() {
-        employeeIdField = placeholderTextField("01234xx");
-        employeeIdField.setBounds(15, 5, 130, 30);
+        employeeIdField = placeholderTextField("例)01234xx");
+        employeeIdField.setBounds(5, 5, 150, 30);
         idPanel.add(employeeIdField);
     }
 
     // 氏名（フリガナ + 氏名）
     private void setupNameFields() {
-        rubyLastNameField = placeholderTextField("ヤマダ");
-        rubyLastNameField.setBounds(15, 15, 195, 30);
+        rubyLastNameField = placeholderTextField("例)ヤマダ");
+        rubyLastNameField.setBounds(5, 5, 195, 30);
         namePanel.add(rubyLastNameField);
-
-        rubyFirstNameField = placeholderTextField("タロウ");
-        rubyFirstNameField.setBounds(215, 15, 195, 30);
+        rubyFirstNameField = placeholderTextField("例)タロウ");
+        rubyFirstNameField.setBounds(215, 5, 195, 30);
         namePanel.add(rubyFirstNameField);
-
-        lastNameField = placeholderTextField("山田");
+        lastNameField = placeholderTextField("例)山田");
         lastNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        lastNameField.setBounds(15, 55, 195, 40);
+        lastNameField.setBounds(5, 40, 195, 40);
         namePanel.add(lastNameField);
-
-        firstNameField = placeholderTextField("太郎");
+        firstNameField = placeholderTextField("例)太郎");
         firstNameField.setFont(new Font("SansSerif", Font.BOLD, 18));
-        firstNameField.setBounds(215, 55, 195, 40);
+        firstNameField.setBounds(215, 40, 195, 40);
         namePanel.add(firstNameField);
     }
 
