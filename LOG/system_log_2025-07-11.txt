@@ -1,8 +1,0 @@
-[2025-07-11 20:05:48] [情報] [AppLock printInfoLog] - アプリケーションのロックに成功
-[2025-07-11 20:05:48] [情報] [EmployeeManager printInfoLog] - 起動
-[2025-07-11 20:05:48] [情報] [EmployeeManager printInfoLog] - 社員情報保存用CSVファイル読み込み成功
-[2025-07-11 20:05:57] [情報] [EmployeeManager printInfoLog] - 削除ボタンが押されました
-[2025-07-11 20:05:58] [情報] [EmployeeManager printInfoLog] - 社員情報削除の開始
-[2025-07-11 20:05:58] [情報] [EmployeeManager printInfoLog] - 社員情報削除の完了
-[2025-07-11 20:06:04] [情報] [EmployeeManager printInfoLog] - 画面を閉じました
-[2025-07-11 20:06:04] [情報] [EmployeeManager printInfoLog] - 終了

@@ -1,2 +1,0 @@
-[2025-07-09 10:05:08] [情報] [EmployeeManager setUp] - 起動
-[2025-07-09 10:05:08] [情報] [EmployeeManager setUpCSV] - 社員情報保存用CSVファイル読み込み成功
