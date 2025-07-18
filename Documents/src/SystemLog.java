@@ -85,14 +85,14 @@ public abstract class SystemLog {
 
     /**
      * ログに情報を出力する
-     * @param infoString　出力する文言
+     * @param infoString 出力する文言
      * @author 下村
      */
     public abstract void printInfoLog(String infoString);
 
     /**
      * ログにエラーを出力する
-     * @param infoString　出力する文言
+     * @param errString 出力する文言
      * @author 下村
      */
     public abstract void printErrorLog(String errString);

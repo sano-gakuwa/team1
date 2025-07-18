@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * 社員情報を登録・管理するためのマネージャークラス
@@ -79,7 +78,7 @@ public class EmployeeManager extends SystemLog {
     /**
      * 社員情報を登録・管理するためのCSVファイルの存在確認用
      * 
-     * @return 社員情報CSVの存在するかの真偽
+     * @return 社員情報CSVの存在する場合true
      * @author 下村
      */
     private boolean verificationEmployeeData() {
@@ -221,7 +220,6 @@ public class EmployeeManager extends SystemLog {
      *
      * @param employee 変換する社員情報
      * @return CSV形式の文字列
-     *
      * @author simomura
      */
     public String convertToCSV(EmployeeInformation employee) {
@@ -305,28 +303,43 @@ public class EmployeeManager extends SystemLog {
             validate = validateTraining(employee, validate);
             validate = validateAllScores(employee, validate);
             validate = validateRemarks(employee, validate);
-
         } catch (Exception e) {
             printExceptionLog(e, "形式エラー");
         }
         return validate;
     }
 
+    /**
+     * 社員IDが7桁かつ英数字のみか
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　問題あり場合はfalse
+     * @author 下村
+     */
     public boolean validateEmployeeID(EmployeeInformation employee, boolean validate) {
         if (employee.getEmployeeID().length() != 7) {
             printErrorLog("エラー:社員IDが7桁ではありません");
+            validate = false;
+        }
+        if(!employee.getEmployeeID().matches("[a-zA-Z0-9]+")){
+            printErrorLog("エラー:社員IDが英数字のみではありません");
             validate = false;
         }
         return validate;
     }
 
     /**
-     * 氏名（姓・名）の必須、文字数、形式、記号、サロゲートペアのチェック
+     * 氏名（姓・名）の必須、文字数、形式、記号、アルファベット･日本語のチェック
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　問題あり場合はfalse
+     * @author 下村
      */
     public boolean validateName(EmployeeInformation employee, boolean validate) {
         String lastName = employee.getLastName();
         String firstName = employee.getFirstname();
-
         if (lastName.length() > 15) {
             printErrorLog("エラー:姓が15文字を超えています");
             validate = false;
@@ -335,25 +348,28 @@ public class EmployeeManager extends SystemLog {
             printErrorLog("エラー:名が15文字を超えています");
             validate = false;
         }
-        if (containsForbiddenChars(lastName) || containsForbiddenChars(firstName)) {
+        if (validateForbiddenChars(lastName) || validateForbiddenChars(firstName)) {
             printErrorLog("エラー:氏名に使用できない文字が含まれています");
             validate = false;
         }
-        if (containsSurrogatePair(lastName) || containsSurrogatePair(firstName)) {
-            printErrorLog("エラー:氏名に環境依存文字が含まれています");
+        if (validateNameLanguage(lastName) || validateNameLanguage(firstName)) {
+            printErrorLog("エラー:氏名にアルファベット･日本語以外が含まれています");
             validate = false;
         }
-
         return validate;
     }
 
     /**
-     * フリガナ（姓・名）の文字数、文字種、記号、サロゲートペアのチェック
+     * フリガナ（姓・名）の文字数、文字種、記号、アルファベット･日本語のチェック
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　問題あり場合はfalse
+     * @author 下村
      */
     public boolean validateRuby(EmployeeInformation employee, boolean validate) {
         String rubyLastName = employee.getRubyLastName();
         String rubyFirstName = employee.getRubyFirstname();
-
         if (rubyLastName.length() > 15) {
             printErrorLog("エラー:姓のフリガナが15文字を超えています");
             validate = false;
@@ -366,16 +382,20 @@ public class EmployeeManager extends SystemLog {
             printErrorLog("エラー:フリガナに使用できない文字が含まれています（全角カタカナのみ）");
             validate = false;
         }
-        if (containsSurrogatePair(rubyLastName) || containsSurrogatePair(rubyFirstName)) {
-            printErrorLog("エラー:フリガナに環境依存文字が含まれています");
+        if (validateNameLanguage(rubyLastName) || validateNameLanguage(rubyFirstName)) {
+            printErrorLog("エラー:フリガナにアルファベット･日本語以外が含まれています");
             validate = false;
         }
-
         return validate;
     }
 
     /**
      * 生年月日の未来日チェック
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　問題あり場合はfalse
+     * @author 下村
      */
     public boolean validateBirthday(EmployeeInformation employee, boolean validate) {
         if (validateNotFuture(employee.getBirthday())) {
@@ -387,6 +407,11 @@ public class EmployeeManager extends SystemLog {
 
     /**
      * 入社年月の未来日チェック
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　問題あり場合はfalse
+     * @author 下村
      */
     public boolean validateJoiningDate(EmployeeInformation employee, boolean validate) {
         if (validateNotFuture(employee.getJoiningDate())) {
@@ -398,6 +423,11 @@ public class EmployeeManager extends SystemLog {
 
     /**
      * エンジニア歴の上限・下限チェック（月数）
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　問題あり場合はfalse
+     * @author 下村
      */
     public boolean validateEngineerDate(EmployeeInformation employee, boolean validate) {
         int months = employee.getEngineerDate();
@@ -413,7 +443,12 @@ public class EmployeeManager extends SystemLog {
     }
 
     /**
-     * 扱える言語：文字数、区切り形式、サロゲートペアチェック
+     * 扱える言語：文字数が400文字以下かつ区切り文字が空欄でないか
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　問題あり場合はfalse
+     * @author 下村
      */
     public boolean validateLanguages(EmployeeInformation employee, boolean validate) {
         String langs = employee.getAvailableLanguages();
@@ -425,15 +460,16 @@ public class EmployeeManager extends SystemLog {
             printErrorLog("エラー:言語は空白ではなく中黒（・）で区切ってください");
             validate = false;
         }
-        if (containsSurrogatePair(langs)) {
-            printErrorLog("エラー:扱える言語に環境依存文字が含まれています");
-            validate = false;
-        }
         return validate;
     }
 
     /**
-     * 経歴：文字数、記号、サロゲートペアチェック
+     * 経歴：文字数が400文字以下か
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　超えていた場合はfalse
+     * @author 下村
      */
     public boolean validateCareer(EmployeeInformation employee, boolean validate) {
         String career = employee.getCareerDate();
@@ -441,19 +477,16 @@ public class EmployeeManager extends SystemLog {
             printErrorLog("エラー:経歴が400文字を超えています");
             validate = false;
         }
-        if (containsForbiddenChars(career)) {
-            printErrorLog("エラー:経歴に使用できない記号が含まれています");
-            validate = false;
-        }
-        if (containsSurrogatePair(career)) {
-            printErrorLog("エラー:経歴に環境依存文字が含まれています");
-            validate = false;
-        }
         return validate;
     }
 
     /**
-     * 研修：文字数、記号、サロゲートペアチェック
+     * 研修：文字数が400文字以下か
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　超えていた場合はfalse
+     * @author 下村
      */
     public boolean validateTraining(EmployeeInformation employee, boolean validate) {
         String training = employee.getTrainingDate();
@@ -461,19 +494,16 @@ public class EmployeeManager extends SystemLog {
             printErrorLog("エラー:研修歴が400文字を超えています");
             validate = false;
         }
-        if (containsForbiddenChars(training)) {
-            printErrorLog("エラー:研修歴に使用できない記号が含まれています");
-            validate = false;
-        }
-        if (containsSurrogatePair(training)) {
-            printErrorLog("エラー:研修歴に環境依存文字が含まれています");
-            validate = false;
-        }
         return validate;
     }
 
     /**
-     * 備考：文字数、記号、サロゲートペアチェック
+     * 備考：文字数が400文字以下か
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return　超えていた場合はfalse
+     * @author 下村
      */
     public boolean validateRemarks(EmployeeInformation employee, boolean validate) {
         String remarks = employee.getRemarks();
@@ -481,19 +511,17 @@ public class EmployeeManager extends SystemLog {
             printErrorLog("エラー:備考が400文字を超えています");
             validate = false;
         }
-        if (containsForbiddenChars(remarks)) {
-            printErrorLog("エラー:備考に使用できない記号が含まれています");
-            validate = false;
-        }
-        if (containsSurrogatePair(remarks)) {
-            printErrorLog("エラー:備考に環境依存文字が含まれています");
-            validate = false;
-        }
         return validate;
     }
 
     /**
-     * 評価項目：1〜5の0.5刻みであることを確認（共通）
+     * 各項目：0.5刻みかつ1以上5以下か
+     * 
+     * @param score 項目のスコア
+     * @param itemName 項目名
+     * @param validate 真偽
+     * @return　問題ありの場合はtrue
+     * @author 下村
      */
     public boolean validateScore(double score, String itemName, boolean validate) {
         if (score < 1 || score > 5) {
@@ -506,7 +534,14 @@ public class EmployeeManager extends SystemLog {
         }
         return validate;
     }
-
+    /**
+     * スコア欄：各項目が0.5刻みかつ1以上5以下か
+     * 
+     * @param employee 社員情報
+     * @param validate 真偽
+     * @return 問題ありの場合はtrue
+     * @author 下村
+     */
     public boolean validateAllScores(EmployeeInformation employee, boolean validate) {
         validate = validateScore(employee.getSkillPoint(), "技術力", validate);
         validate = validateScore(employee.getAttitudePoint(), "受講態度", validate);
@@ -516,24 +551,37 @@ public class EmployeeManager extends SystemLog {
     }
 
     /**
-     * サロゲートペアを含むかどうかの共通チェック
+     * アルファベット、日本語以外を含むかどうかの確認
+     * 
+     * @param input 入力された姓･名
+     * @return 問題ありの場合はtrue
+     * @author 下村
      */
-    public boolean containsSurrogatePair(String input) {
-        if (input == null)
-            return false;
-        return Pattern.compile("[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]").matcher(input).find();
+    public boolean validateNameLanguage(String input) {
+        if (input == null || input.isEmpty()) {
+            return false; // 空欄はOK
+        }
+        // 許可された文字だけなら false（＝不正文字なし）
+        // そうでなければ true（＝不正文字あり）
+        return !input.matches("^[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}a-zA-Z]+$");
     }
 
     /**
-     * 記号や全角英字、半角カナを含むかどうか
+     * 記号や全角英字、半角カナを含むか確認
+     * 
+     * @param input 入力された文字列
+     * @return 問題ありの場合はtrue
+     * @author 下村
      */
-public boolean containsForbiddenChars(String input) {
-    if (input == null) return false;
-    return input.matches(".*[!@#$%^&*()_+={}\\[\\]:;\"'<>,.?/\\\\|\\uFF61-\\uFF9FＡ-Ｚａ-ｚ！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：；“”’＜＞？／\\\\].*");
-}
+    public boolean validateForbiddenChars(String input) {
+        if (input == null)
+            return false;
+        return input.matches(
+                ".*[!@#$%^&*()_+={}\\[\\]:;\"'<>,.?/\\\\|\\uFF61-\\uFF9FＡ-Ｚａ-ｚ！＠＃＄％＾＆＊（）＿＋＝￥｛｝［］：；“”’＜＞？／\\\\].*");
+    }
 
     /**
-     * 日付が未来の日付では無いか確認用
+     * 日付が未来の日付では無いか確認
      * 
      * @param date 日付
      * @return 日付が未来の日付の場合はtrue、そうでない場合はfalse
