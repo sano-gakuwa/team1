@@ -554,7 +554,7 @@ public class EmployeeManager extends SystemLog {
      * アルファベット、日本語以外を含むかどうかの確認
      * 
      * @param input 入力された姓･名
-     * @return 問題ありの場合はtrue
+     * @return 許可された文字以外が含まれていれば true（＝バリデーションエラー）
      * @author 下村
      */
     public boolean validateNameLanguage(String input) {
@@ -563,7 +563,7 @@ public class EmployeeManager extends SystemLog {
         }
         // 許可された文字だけなら false（＝不正文字なし）
         // そうでなければ true（＝不正文字あり）
-        return !input.matches("^[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}a-zA-Z]+$");
+        return !input.matches("^[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}ーa-zA-Z]+$");
     }
 
     /**
